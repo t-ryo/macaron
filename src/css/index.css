@@ -152,8 +152,20 @@ main {
   margin-right: 5px;
 }
 
+.active {
+  display: inline-block!important;
+}
+
 .btn-start-plot {
   background-color: green;
+  width:10%;
+  display: none;
+}
+
+.btn-stop-plot {
+  background-color: blue;
+  width: 10%;
+  display: none;
 }
 
 .btn-increment-frame {

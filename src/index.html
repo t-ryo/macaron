@@ -17,6 +17,8 @@ function upload(){
 	<meta http-equiv="Content-Style-Type" content="text/css" />
 	<meta http-equiv="Content-Script-Type" content="text/javascript" />
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script type="text/javascript" src="imageselect.js"></script>
+	<link href="css/imageselect.css" media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
 	<header id="header" class="header">
@@ -58,7 +60,14 @@ function upload(){
 			</div>
 			<div class="start-form">
 				<h1>開始記号：</h1>
-				<textarea id="start-text" class="text-form">SAKURA(500,500,1,1,0)</textarea>
+				<select name="image-selecter">
+					<option value="1">./image/sakura.png</option>
+					<option value="2">./image/fish.png</option>
+					<option value="3">./image/star.png</option>
+					<option value="4">./image/arrow.png</option>
+					<option value="4">./image/triangle.png</option>
+				</select>
+				<textarea id="start-text" class="text-form">SAKURA(500,500,100,100,0)</textarea>
 				<div id="apply-start" class="btn btn-apply-start">適用</div>
 			</div>
 			<div class="rule-form">
@@ -68,13 +77,18 @@ function upload(){
 			</div>
 		</div>
 		<div id="control-panel">
-			<div id="start-plot" class="btn btn-start-plot">
+			<div id="start-plot" class="btn btn-start-plot active" switch-link="#pause-plot">
 				<span class="fa fa-play"></span>
 				開始
+			</div>
+			<div id="pause-plot" class="btn btn-stop-plot" switch-link="#start-plot">
+				<span class="fa fa-pause"></span>
+				一時停止
 			</div>
 			<div id="increment-frame" class="btn btn-increment-frame">
 				<span class="fa fa-pause"></span>
 				<span class="fa fa-play"></span>
+				<span> </span>
 				コマ送り
 			</div>
 			<div id="reset" class="btn btn-reset">
@@ -82,12 +96,10 @@ function upload(){
 				リセット
 			</div>
 			<h1 class="time-counter">
-				time counter : 0
+				time counter : <span id="time-counter">0</span>
 			</h1>
 		</div>
 	</main>
-<script src="model.js"></script>
-<script src="view.js"></script>
-<script src="controller.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
