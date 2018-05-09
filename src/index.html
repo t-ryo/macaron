@@ -1,10 +1,3 @@
-<?php
-function upload(){
-	move_uploaded_file($_FILES['image']['tmp_name'],ファイルの移動先);
-}
-?>
-<?php require_once('data.php') ?>
-
 <!doctype html>
 <html lang="ja">
 <head>
@@ -12,69 +5,64 @@ function upload(){
 	<title>macaroon</title>
 	<link rel="stylesheet" href="css/index.css"/>
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="tzSelect/jquery.tzSelect.css" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta http-equiv="Content-Language" content="ja" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
 	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 </head>
 <body>
-	<header id="header" class="header">
-		<div class="header-logo">
-			macaroon playground
-		</div>
-	</header>
 	<main>
 		<div id="mapping-area">
-			<canvas id="cvs" width="1000px" height="1000px" style="background-color:#000;"></canvas>
+			<canvas id="cvs" style="background-color:#000;"></canvas>
 		</div>
 		<div id="code-editor">
 			<div id="image-set-area">
 				<h1 class="form-title">
-					画像集合：
+					サンプルイメージ：
 				</h1>
 				<div class="seted-image-list">
-					<ul class="seted-image">
+					<div class="drag-and-drop" id="sakura">
 						<img class="image" src="image/sakura.png" alt="">
-						<h3><span>:</span>SAKURA</h3>
-					</ul>
-					<ul crass="seted-image">
+					</div>
+					<div class="drag-and-drop" id="fish">
 						<img class="image" src="image/fish.png" alt="">
-						<h3><span>:</span>FISH</h3>
-					</ul>
-						<ul crass="seted-image">
+					</div>
+					<div class="drag-and-drop" id="star">
 						<img class="image" src="image/star.png" alt="">
-						<h3><span>:</span>STAR</h3>
-					</ul>
-					<ul crass="seted-image">
+					</div>
+					<div class="drag-and-drop" id="arrow">
 						<img class="image" src="image/arrow.png" alt="">
-						<h3><span>:</span>ARROW</h3>
-					</ul>
-					<ul crass="seted-image">
-						<img class="image" src="image/triangle.png" alt="">
-						<h3><span>:</span>TRIANGLE</h3>
-					</ul>
+					</div>
+					<div class="drag-and-drop" id="rocket">
+						<img class="image" src="image/rocket.png" alt="">
+					</div>
 				</div>
 			</div>
-			<div class="start-form">
-				<h1>開始記号：</h1>
-				<textarea id="start-text" class="text-form">SAKURA(500,500,1,1,0)</textarea>
-				<div id="apply-start" class="btn btn-apply-start">適用</div>
+			<div class="source-form">
+				<h1>Macaronソース：</h1>
+				<textarea id="source-text" class="text-form">X = &lt;rocket&gt;
+x:image x.y &lt; 100
+	$x.y = x.y - 10</textarea>
+				<div id="apply-source" class="btn btn-apply-source">適用</div>
 			</div>
-			<div class="rule-form">
-				<h1>規則：</h1>
-				<textarea id="rule-text" class="text-form">SAKURA->(2,2,1,1,1)</textarea>
-				<div id="apply-rule" class="btn btn-apply-rule">適用</div>
-			</div>
+			<div class="clear"></div>
 		</div>
 		<div id="control-panel">
-			<div id="start-plot" class="btn btn-start-plot">
+			<div id="start-plot" class="btn btn-start-plot active" switch-link="#pause-plot">
 				<span class="fa fa-play"></span>
 				開始
+			</div>
+			<div id="pause-plot" class="btn btn-stop-plot" switch-link="#start-plot">
+				<span class="fa fa-pause"></span>
+				一時停止
 			</div>
 			<div id="increment-frame" class="btn btn-increment-frame">
 				<span class="fa fa-pause"></span>
 				<span class="fa fa-play"></span>
+				<span> </span>
 				コマ送り
 			</div>
 			<div id="reset" class="btn btn-reset">
@@ -82,12 +70,13 @@ function upload(){
 				リセット
 			</div>
 			<h1 class="time-counter">
-				time counter : 0
+				time counter : <span id="time-counter">0</span>
 			</h1>
 		</div>
+		<div class="clear"></div>
 	</main>
-<script src="model.js"></script>
-<script src="view.js"></script>
-<script src="controller.js"></script>
+<script src="app.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+<script src="tzSelect/jquery.tzSelect.js"></script>
 </body>
 </html>
