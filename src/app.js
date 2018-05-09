@@ -1,47 +1,59 @@
-class ImageSymbol {
-    constructor(name, posx, posy, sizew, sizeh, angle, id) {
-        this.img = new Image();
-        this.name = name;
-        this.id = id;
-        
-        this.fPosx = posx;
-        this.fPosy = posy;
-        this.fSizew = sizew;
-        this.fSizeh = sizeh;
-        this.fAngle = angle;
-        this.posx = posx;
-        this.posy = posy;
-        this.sizew = sizew;
-        this.sizeh = sizeh;
-        this.angle = angle;
-
-        switch (name) {
-            case "SAKURA":
-                this.img.src = "image/sakura.png";
-                break;
-            case "FISH":
-                this.img.src = "image/fish.png";
-                break;
-            case "STAR":
-                this.img.src = "image/star.png";
-                break;
-            case "ARROW":
-                this.img.src = "image/arrow.png";
-                break;
-            case "TRIANGLE":
-                this.img.src = "image/triangle.png";
-                break;
-            default:
-                break;
-        }
+const images = {
+    "<sakura>":"image/sakura.png",
+    "<fish>":"image/fish.png",
+    "<star>":"image/star.png",
+    "<arrow>":"image/arrow.png",
+    "<triangle>":"image/triangle.png",
+    "<rocket>":"image/rocket.png"
+};
+const motype = {
+    IMAGE: 1,
+    NUMBER: 2,
+    STRING: 3
+};
+class MObject {
+    constructor() {
+        this.x = Math.random()*cvsw;
+        this.y = Math.random()*cvsh;
+        this.h = 64;
+        this.w = 64;
+        this.a = 0;
+        this.ix = this.x;
+        this.iy = this.y;
+        this.ih = this.h;
+        this.iw = this.w;
+        this.ia = this.a;
     }
 
     init(){
-        this.posx = this.fPosx;
-        this.posy = this.fPosy;
-        this.sizew = this.fSizew;
-        this.sizeh = this.fSizeh;
-        this.angle = this.fAngle;
+        this.x = this.ix;
+        this.y = this.iy;
+        this.h = this.ih;
+        this.w = this.iw;
+        this.a = this.ia;
+    }
+}
+class MImage extends MObject {
+    constructor(input) {
+        super();
+        this.img = new Image();
+        this.img.src = images[input];
+        this.value = input;
+        this.type = motype.IMAGE;
+    }
+}
+class MNumber extends MObject {
+    constructor(input) {
+        super();
+        this.value = input;
+        this.type = motype.NUMBER;
+    }
+}
+class MString extends MObject {
+    constructor(input) {
+        super();
+        this.value = input;
+        this.type = motype.STRING;
     }
 }
 class Transition {
@@ -54,35 +66,36 @@ class Transition {
         this.dangle = dangle;
     }
 }
-var imageSymbols = [];
-var symbolCount = 0;
-var transitions = [];
-var transitionCount = 0;
-function createImageSymbol(input) {
-    var inputs = input.split("(");
-    var name = inputs[0];
-    var imageData = [];
-    inputs = inputs[1].split(",");
-    for (var i = 0; i < inputs.length; i++) {
-        imageData.push(parseInt(inputs[i]));
+var MObjects = [];
+var MObjectCount = 0;
+var variables = {};
+function createMObject(input) {
+    var mobj;
+    if(images[input]){
+        mobj =  new MImage(input);
+    }else if(isNaN(input)){
+        mobj = new MString(input);
+    }else{
+        mobj = new MNumber(input);
     }
-    imageSymbols.push(new ImageSymbol(name, imageData[0], imageData[1], imageData[2], imageData[3], imageData[4], symbolCount));
-    symbolCount++;
-}
-function createTransition(input) {
-    var inputs = input.split("->(");
-    var target = inputs[0];
-    var transitionData = [];
-    inputs = inputs[1].split(",");
-    for (var i = 0; i < inputs.length; i++) {
-        transitionData.push(parseInt(inputs[i]));
-    }
-    transitions.push(new Transition(target, transitionData[0], transitionData[1], transitionData[2], transitionData[3], transitionData[4]));
-    transitionCount++;
+    MObjects.push(mobj);
+    MObjectCount++;
+    return mobj;
 }
 function exec(input) {
-
+    MObjects = [];
+    MObjectCount = 0;
+    variables = [];
+    var inputs = input.split(";");
+    for(var statement of inputs){
+        for(key in images){
+            if(statement.indexOf(key) >= 0){
+                variables[statement.split("=")[0].trim()] = createMObject(key);
+            }
+        }
+    }
 }
+
 var canvas = document.getElementById("cvs");
 var ctx = canvas.getContext("2d");
 var cvsw = 900;
@@ -94,37 +107,26 @@ var timeCounter = 0;
 var timer;
 function plot() {
     ctx.clearRect(0, 0, cvsw, cvsh);
-    for (var i = 0; i < symbolCount; i++) {
-        cos = Math.cos(imageSymbols[i].angle * rad);
-        sin = Math.sin(imageSymbols[i].angle * rad);
-        ctx.setTransform(cos, sin, -1 * sin, cos, imageSymbols[i].posx, imageSymbols[i].posy);
-        ctx.drawImage(imageSymbols[i].img, 0, 0, imageSymbols[i].sizew, imageSymbols[i].sizeh);
+    for (var i = 0; i < MObjectCount; i++) {
+        cos = Math.cos(MObjects[i].a * rad);
+        sin = Math.sin(MObjects[i].a * rad);
+        ctx.setTransform(cos, sin, -1 * sin, cos, MObjects[i].x, MObjects[i].y);
+        ctx.drawImage(MObjects[i].img, 0, 0, MObjects[i].w, MObjects[i].h);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
 function flow() {
-    for (var i = 0; i < transitionCount; i++) {
-        for (var j = 0; j < symbolCount; j++) {
-            if (transitions[i].target === imageSymbols[j].name) {
-                imageSymbols[j].posx += transitions[i].dx;
-                if (imageSymbols[j].posx > 1000)
-                    imageSymbols[j].posx -= 1000;
-                if (imageSymbols[j].posx < 0)
-                    imageSymbols[j].posx += 1000;
-                imageSymbols[j].posy += transitions[i].dy;
-                if (imageSymbols[j].posy > 1000)
-                    imageSymbols[j].posy -= 1000;
-                if (imageSymbols[j].posy < 0)
-                    imageSymbols[j].posy += 1000;
-                imageSymbols[j].sizew *= transitions[i].dsizew;
-                imageSymbols[j].sizeh *= transitions[i].dsizeh;
-                imageSymbols[j].angle += transitions[i].dangle;
-                if (imageSymbols[j].angle > 360)
-                    imageSymbols[j].angle -= 360;
-                if (imageSymbols[j].angle < 360)
-                    imageSymbols[j].angle += 360;
-            }
-        }
+    var input = $('#source-text').val().toString();
+    input = input.replace(/<(.*)>/g,'""');
+    input = input.replace(/\$/g,'');
+    eval(input);
+    for (var i = 0; i < MObjectCount; i++) {
+        if(MObjects[i].x > cvsw) MObjects[i].x -= cvsw;
+        if(MObjects[i].x < 0) MObjects[i].x += cvsw;
+        if(MObjects[i].y > cvsh) MObjects[i].y -= cvsh;
+        if(MObjects[i].y < 0) MObjects[i].y += cvsh;
+        if(MObjects[i].a > 360) MObjects[i].a -= 360;
+        if(MObjects[i].a < 0) MObjects[i].a += 360;
     }
     plot();
     $(function(){
@@ -132,7 +134,7 @@ function flow() {
     });
 }
 function flowStart() {
-    timer = setInterval(flow, 10);
+    timer = setInterval(flow, 20);
 }
 function flowPause() {
     clearInterval(timer);
@@ -141,8 +143,8 @@ function incrementFrame() {
     flow();
 }
 function init() {
-    for (var i = 0; i < symbolCount; i++) {
-        imageSymbols[i].init();
+    for (var i = 0; i < MObjectCount; i++) {
+        MObjects[i].init();
     }
     plot();
     timeCounter = 0;
@@ -169,32 +171,10 @@ $(function () {
             $('#cvs').attr('height', cvsh);
         }, 200);
     });
-
-    $('select.makeMeFancy').tzSelect({
-        render : function(option){
-            return $('<li>',{
-                html:   '<img src="'+option.data('icon')+'" /><span>'+
-                        option.data('html-text')+'</span>'
-            });
-        },
-        className : 'hasDetails'
-    });
-    $('#apply-start').click(function () {
-        var start = $('#start-text').val().toString();
-        console.log(start);
-        createImageSymbol(start);
-        plot();
-    });
-    $('#apply-rule').click(function () {
-        var rule = $('#rule-text').val().toString();
-        console.log(rule);
-        createTransition(rule);
-        plot();
-    });
     $('#apply-source').click(function() {
         var source = $('#source-text').val().toString();
         console.log(source);
-
+        exec(source);
     });
     $('#start-plot').click(function () {
         console.log("start");
@@ -215,9 +195,6 @@ $(function () {
     $('#reset').click(function () {
         console.log("reset");
         init();
-    });
-    $('.btn').click(function() {
-
     });
 });
 
