@@ -14,32 +14,41 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 </head>
 <body>
-	<header id="header" class="header">
-		<div class="header-logo">
-			macaroon playground
-		</div>
-	</header>
 	<main>
 		<div id="mapping-area">
-			<canvas id="cvs" width="1000px" height="1000px" style="background-color:#000;"></canvas>
+			<canvas id="cvs" style="background-color:#000;"></canvas>
 		</div>
 		<div id="code-editor">
-			<div class="start-form">
-				<h1>イメージ：</h1>
-				<select name="fancySelect" class="makeMeFancy">
-					<option value="0" selected="selected" data-skip="1">Choose Image</option>
-					<option value="1" data-icon="image/sakura.png" data-html-text="SAKURA">SAKURA</option>
-					<option value="2" data-icon="image/star.png" data-html-text="STAR">STAR</option>
-					<option value="3" data-icon="image/fish.png" data-html-text="FISH">FISH</option>
-					<option value="4" data-icon="image/arrow.png" data-html-text="ARROW">ARROW</option>
-					<option value="5" data-icon="image/triangle.png" data-html-text="TRIANGLE">TRIANGLE</option>
-				</select>
+			<div id="image-set-area">
+				<h1 class="form-title">
+					サンプルイメージ：
+				</h1>
+				<div class="seted-image-list">
+					<div class="drag-and-drop" id="sakura">
+						<img class="image" src="image/sakura.png" alt="">
+					</div>
+					<div class="drag-and-drop" id="fish">
+						<img class="image" src="image/fish.png" alt="">
+					</div>
+					<div class="drag-and-drop" id="star">
+						<img class="image" src="image/star.png" alt="">
+					</div>
+					<div class="drag-and-drop" id="arrow">
+						<img class="image" src="image/arrow.png" alt="">
+					</div>
+					<div class="drag-and-drop" id="rocket">
+						<img class="image" src="image/rocket.png" alt="">
+					</div>
+				</div>
 			</div>
-			<div class="rule-form">
-				<h1>規則：</h1>
-				<textarea id="rule-text" class="text-form">SAKURA->(2,2,1,1,1)</textarea>
-				<div id="apply-rule" class="btn btn-apply-rule">適用</div>
+			<div class="source-form">
+				<h1>Macaronソース：</h1>
+				<textarea id="source-text" class="text-form">X = &lt;rocket&gt;
+x:image x.y &lt; 100
+	$x.y = x.y - 10</textarea>
+				<div id="apply-source" class="btn btn-apply-source">適用</div>
 			</div>
+			<div class="clear"></div>
 		</div>
 		<div id="control-panel">
 			<div id="start-plot" class="btn btn-start-plot active" switch-link="#pause-plot">
@@ -64,6 +73,7 @@
 				time counter : <span id="time-counter">0</span>
 			</h1>
 		</div>
+		<div class="clear"></div>
 	</main>
 <script src="app.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>

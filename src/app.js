@@ -80,10 +80,13 @@ function createTransition(input) {
     transitions.push(new Transition(target, transitionData[0], transitionData[1], transitionData[2], transitionData[3], transitionData[4]));
     transitionCount++;
 }
+function exec(input) {
+
+}
 var canvas = document.getElementById("cvs");
 var ctx = canvas.getContext("2d");
-var cvsw = 1000;
-var cvsh = 1000;
+var cvsw = 900;
+var cvsh = 900;
 var cos = 0;
 var sin = 0;
 var rad = Math.PI / 180;
@@ -125,7 +128,7 @@ function flow() {
     }
     plot();
     $(function(){
-        $("#time-counter").text(timeCounter++);
+        $("#time-counter").text(++timeCounter);
     });
 }
 function flowStart() {
@@ -149,6 +152,24 @@ function init() {
 }
 
 $(function () {
+    cvsw = $('#mapping-area').width();
+    cvsh = $('#mapping-area').height();
+    $('#cvs').attr('width', cvsw);
+    $('#cvs').attr('height', cvsh);
+    var timer = false;
+    $(window).resize(function() {
+        if (timer !== false) {
+            clearTimeout(timer);
+        }
+        timer = setTimeout(function() {
+            console.log('resized');
+            cvsw = $('#mapping-area').width();
+            cvsh = $('#mapping-area').height();
+            $('#cvs').attr('width', cvsw);
+            $('#cvs').attr('height', cvsh);
+        }, 200);
+    });
+
     $('select.makeMeFancy').tzSelect({
         render : function(option){
             return $('<li>',{
@@ -169,6 +190,11 @@ $(function () {
         console.log(rule);
         createTransition(rule);
         plot();
+    });
+    $('#apply-source').click(function() {
+        var source = $('#source-text').val().toString();
+        console.log(source);
+
     });
     $('#start-plot').click(function () {
         console.log("start");
@@ -198,8 +224,7 @@ $(function () {
 (function(){
 
     //要素の取得
-    var elements = document.querySelectorAll('.dropDown img');
-
+    var elements = document.getElementsByClassName("drag-and-drop");
 
     //要素内のクリックされた位置を取得するグローバル（のような）変数
     var x;
@@ -213,7 +238,6 @@ $(function () {
 
     //マウスが押された際の関数
     function mdown(e) {
-        console.log("mdown");
 
         //クラス名に .drag を追加
         this.classList.add("drag");
@@ -236,7 +260,6 @@ $(function () {
 
     //マウスカーソルが動いたときに発火
     function mmove(e) {
-        console.log("mmove");
 
         //ドラッグしている要素を取得
         var drag = document.getElementsByClassName("drag")[0];
@@ -265,7 +288,6 @@ $(function () {
 
     //マウスボタンが上がったら発火
     function mup(e) {
-        console.log("mup");
         var drag = document.getElementsByClassName("drag")[0];
 
         //ムーブベントハンドラの消去
