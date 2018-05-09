@@ -5,12 +5,10 @@
 	<title>macaroon</title>
 	<link rel="stylesheet" href="css/index.css"/>
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
-	<link rel="stylesheet" type="text/css" href="tzSelect/jquery.tzSelect.css" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta http-equiv="Content-Language" content="ja" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
 	<meta http-equiv="Content-Script-Type" content="text/javascript" />
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 </head>
 <body>
@@ -42,10 +40,13 @@
 				</div>
 			</div>
 			<div class="source-form">
-				<h1>Macaronソース：</h1>
-				<textarea id="source-text" class="text-form">X = &lt;rocket&gt;
-x:image x.y &lt; 100
-	$x.y = x.y - 10</textarea>
+				<h1>Macaronコード：</h1>
+				<textarea id="source-text" class="text-form">X = &lt;rocket&gt;;
+for(x of MObjects){
+	if(x.type == motype.IMAGE){
+		$x.y = x.y - 10;
+	}
+}</textarea>
 				<div id="apply-source" class="btn btn-apply-source">適用</div>
 			</div>
 			<div class="clear"></div>
@@ -76,7 +77,5 @@ x:image x.y &lt; 100
 		<div class="clear"></div>
 	</main>
 <script src="app.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
-<script src="tzSelect/jquery.tzSelect.js"></script>
 </body>
 </html>

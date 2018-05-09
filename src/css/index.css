@@ -85,23 +85,23 @@ main {
 }
 
 #sakura {
-  left: 50px;
+  left: 5%;
 }
 
 #fish {
-  left: 150px;
+  left: 25%;
 }
 
 #star {
-  left: 250px;
+  left: 45%;
 }
 
 #arrow {
-  left: 350px;
+  left: 65%;
 }
 
 #rocket {
-  left: 450px;
+  left: 85%;
 }
 
 .makeMeFancy {
@@ -138,7 +138,7 @@ main {
   padding: 8px 24px;
   color: white;
   display: inline-block;
-  opacity: 0.8;
+  opacity: 1;
   cursor: pointer;
 
   font-family: 'Dosis', sans-serif;
@@ -154,7 +154,7 @@ main {
 }
 
 .btn:hover {
-  opacity: 1;
+  opacity: 0.8;
 }
 
 .fa {
