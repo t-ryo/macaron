@@ -304,6 +304,6 @@ $(function () {
 
 var jsEditor = CodeMirror.fromTextArea(document.getElementById("source-text"), {
     mode: "javascript",
-    lineNumbers: true,
+    lineNumbers: false,
     indentUnit: 4
 });
