@@ -278,3 +278,9 @@ $(function () {
     }
 
 })()
+
+var jsEditor = CodeMirror.fromTextArea(document.getElementById("source-text"), {
+    mode: "javascript",
+    lineNumbers: false,
+    indentUnit: 4
+});

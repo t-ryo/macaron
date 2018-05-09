@@ -10,8 +10,16 @@
 	<meta http-equiv="Content-Style-Type" content="text/css" />
 	<meta http-equiv="Content-Script-Type" content="text/javascript" />
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<link rel="stylesheet" href="lib/codemirror.css">
+	<script src="lib/codemirror.js"></script>
+	<script src="mode/javascript/javascript.js"></script>
 </head>
 <body>
+	<header id="header" class="header">
+		<div class="header-logo">
+			macaroon playground
+		</div>
+	</header>
 	<main>
 		<div id="mapping-area">
 			<canvas id="cvs" style="background-color:#000;"></canvas>
