@@ -301,3 +301,9 @@ $(function () {
     }
 
 })()
+
+var jsEditor = CodeMirror.fromTextArea(document.getElementById("source-text"), {
+    mode: "javascript",
+    lineNumbers: true,
+    indentUnit: 4
+});
