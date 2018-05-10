@@ -127,6 +127,22 @@ var sin = 0;
 var rad = Math.PI / 180;
 var timeCounter = 0;
 var timer;
+var mouse = {
+    x:0,
+    y:0
+};
+canvas.addEventListener('mousemove', function (evt) {
+    var mousePos = getMousePosition(canvas, evt);
+    mouse.x = mousePos.x;
+    mouse.y = mousePos.y;
+}, false);
+function getMousePosition(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+    };
+}
 function plot() {
     ctx.clearRect(0, 0, cvsw, cvsh);
     for (var i = 0; i < MObjectCount; i++) {
