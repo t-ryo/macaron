@@ -72,36 +72,24 @@ main {
   position: relative;
 }
 
-.drag-and-drop {
+.btn-plot {
   display: inline-block;
-  cursor: move;
-  position: absolute;
-  z-index: 1000;
-  top:0px;
+  opacity: 0.8;
+  border-radius: 4px;
+  padding: 5px 5px;
+  background-color: #5dca88;
+  cursor: pointer;
+  box-shadow: 0 7px #1a7940;
 }
 
-.drag {
-  z-index: 1001;
+.btn-plot:hover {
+  opacity: 1;
 }
 
-#sakura {
-  left: 5%;
-}
-
-#fish {
-  left: 25%;
-}
-
-#star {
-  left: 45%;
-}
-
-#arrow {
-  left: 65%;
-}
-
-#rocket {
-  left: 85%;
+.btn-plot:active {
+  box-shadow:none;
+  position:relative;
+  top:7px;
 }
 
 .makeMeFancy {
