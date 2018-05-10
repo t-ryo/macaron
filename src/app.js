@@ -11,12 +11,27 @@ const motype = {
     NUMBER: 2,
     STRING: 3
 };
+
+const objh = 64;
+const objw = 64;
+var objPos = [0,0];
+
+function nextPos (){
+    if(objPos[0] + objw <= cvsw){
+        objPos[0] = objPos[0] + objw;
+    }else{
+        objPos[0] = 0;
+        objPos[1] = objPos[1] + objh;
+    }
+}
+
 class MObject {
     constructor() {
-        this.x = Math.random()*cvsw;
-        this.y = Math.random()*cvsh;
-        this.h = 64;
-        this.w = 64;
+        this.x = objPos[0];
+        this.y = objPos[1];
+        nextPos();
+        this.h = objh;
+        this.w = objw;
         this.a = 0;
         this.ix = this.x;
         this.iy = this.y;
@@ -94,6 +109,11 @@ function exec(input) {
                 eval(statement.split("=")[0].trim() + " = createMObject(key);");
             }
         }
+        for(key of initFuncs){
+            if(statement.indexOf(key) >= 0){
+                eval(statement);
+            }
+        }
     }
     init();
 }
@@ -117,10 +137,14 @@ function plot() {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 }
+const initFuncs = ["POS", "RAND", "CENTER"];
 function flow() {
     var input = source;
     input = input.replace(/.*<.*>.*/g,'');
     input = input.replace(/\$/g,'');
+    for(f of initFuncs){
+        input = input.replace(new RegExp(f + ".*;", 'g'), '');
+    }
     eval(input);
     for (var i = 0; i < MObjectCount; i++) {
         if(MObjects[i].x > cvsw) MObjects[i].x -= cvsw;
@@ -175,6 +199,7 @@ $(function () {
     });
     $('#apply-source').click(function() {
         jsEditor.save();
+        objPos = [0,0];
         var input = $('#source-text').val().toString();
         console.log(input);
         exec(input);
@@ -287,3 +312,41 @@ var jsEditor = CodeMirror.fromTextArea(document.getElementById("source-text"), {
     lineNumbers: false,
     indentUnit: 4
 });
+
+function POS(posx,posy,obj){
+    obj.x = posx;
+    obj.y = posy;
+    obj.ix = obj.x;
+    obj.iy = obj.y;
+}
+
+function RAND(){
+    for(obj of arguments){
+        POS(Math.random()*cvsw, Math.random()*cvsh, obj);
+    }
+}
+
+function CENTER(){
+    var ys = [];
+    for(obj of arguments){
+        if(ys.indexOf(obj.y) < 0){
+            ys.push(obj.y);
+        }
+    }
+    for(posy of ys){
+        var sumw = 0;
+        for(obj of arguments){
+            if(posy == obj.y){
+                sumw = sumw + obj.w;
+            }
+            
+        }
+        var posx = (cvsw - sumw) / 2;
+        for(obj of arguments){
+            if(posy == obj.y){
+                POS(posx, posy, obj);
+                posx = posx + obj.w;
+            }
+        }
+    }
+}
