@@ -38,7 +38,7 @@ class MImage extends MObject {
         super();
         this.img = new Image();
         this.img.src = images[input];
-        this.value = input;
+        this.value = input.replace(/<(.*)>/g,'$1');
         this.type = motype.IMAGE;
     }
 }
@@ -69,6 +69,7 @@ class Transition {
 var MObjects = [];
 var MObjectCount = 0;
 var variables = {};
+var source;
 function createMObject(input) {
     var mobj;
     if(images[input]){
@@ -86,6 +87,7 @@ function exec(input) {
     MObjects = [];
     MObjectCount = 0;
     variables = [];
+    source = input;
     var inputs = input.split(";");
     for(var statement of inputs){
         for(key in images){
@@ -94,6 +96,8 @@ function exec(input) {
             }
         }
     }
+    console.log(variables);
+    init();
 }
 
 var canvas = document.getElementById("cvs");
@@ -116,8 +120,8 @@ function plot() {
     }
 }
 function flow() {
-    var input = $('#source-text').val().toString();
-    input = input.replace(/<(.*)>/g,'""');
+    var input = source;
+    input = input.replace(/<(.*)>/g,'$1');
     input = input.replace(/\$/g,'');
     eval(input);
     for (var i = 0; i < MObjectCount; i++) {
@@ -172,9 +176,10 @@ $(function () {
         }, 200);
     });
     $('#apply-source').click(function() {
-        var source = $('#source-text').val().toString();
-        console.log(source);
-        exec(source);
+        jsEditor.save();
+        var input = $('#source-text').val().toString();
+        console.log(input);
+        exec(input);
     });
     $('#start-plot').click(function () {
         console.log("start");
