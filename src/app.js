@@ -68,7 +68,7 @@ class Transition {
 }
 var MObjects = [];
 var MObjectCount = 0;
-var variables = {};
+var svariableCount = 0;
 var source;
 function createMObject(input) {
     var mobj;
@@ -86,17 +86,15 @@ function createMObject(input) {
 function exec(input) {
     MObjects = [];
     MObjectCount = 0;
-    variables = [];
     source = input;
     var inputs = input.split(";");
     for(var statement of inputs){
         for(key in images){
             if(statement.indexOf(key) >= 0){
-                variables[statement.split("=")[0].trim()] = createMObject(key);
+                eval(statement.split("=")[0].trim() + " = createMObject(key);");
             }
         }
     }
-    console.log(variables);
     init();
 }
 
@@ -121,7 +119,7 @@ function plot() {
 }
 function flow() {
     var input = source;
-    input = input.replace(/<(.*)>/g,'$1');
+    input = input.replace(/.*<.*>.*/g,'');
     input = input.replace(/\$/g,'');
     eval(input);
     for (var i = 0; i < MObjectCount; i++) {
