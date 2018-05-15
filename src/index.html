@@ -50,13 +50,10 @@
 			</div>
 			<div class="source-form">
 				<h2>Macaronコード：</h2>
-				<textarea id="source-text" class="text-form">X = &lt;rocket&gt;;
-for(x of MObjects){
-	if(x.type == motype.IMAGE){
-		$x.y = x.y - 10;
-	}
-}</textarea>
-				<div id="apply-source" class="btn btn-apply-source">適用</div>
+				<textarea id="source-text" class="text-form"></textarea>
+				<div id="parse" class="btn btn-parse">parse</div>
+				<div id="eval" class="btn btn-eval">eval</div>
+				<div id="show" class="btn btn-show">show</div>
 			</div>
 			<div class="clear"></div>
 		</div>
@@ -86,5 +83,6 @@ for(x of MObjects){
 		<div class="clear"></div>
 	</main>
 <script src="app.js"></script>
+<script src="macaron.js"></script>
 </body>
 </html>
