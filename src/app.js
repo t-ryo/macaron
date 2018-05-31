@@ -11,6 +11,47 @@ const motype = {
     NUMBER: 2,
     STRING: 3
 };
+const ttag = {
+    Source: "Source",
+    Rule: "Rule",
+    Context: "Context",
+    Premise: "Premise",
+    PeriodicSome: "PeriodicSome",
+    Periodic: "Periodic",
+    Event: "Event",
+    Body: "Body",
+    Let: "Let",
+    Assign: "Assign",
+    Return: "Return",
+    Name: "Name",
+    Infix: "Infix",
+    Cast: "Cast",
+    Unary: "Unary",
+    Norm: "Norm",
+    Method: "Method",
+    Get: "Get",
+    Apply: "Apply",
+    Index: "Index",
+    CastExpr: "CastExpr",
+    Tuple: "Tuple",
+    Empty: "Empty",
+    List: "List",
+    RangeUntilExpr: "RangeUntilExpr",
+    RangeExpr: "RangeExpr",
+    Dict: "Dict",
+    Data: "Data",
+    Template: "Template",
+    String: "String",
+    Char: "Char",
+    Image: "Image",
+    Rational: "Rational",
+    Unit: "Unit",
+    Int: "Int",
+    Double: "Double",
+    True: "True",
+    False: "False",
+    Null: "Null"
+};
 
 const objh = 64;
 const objw = 64;
@@ -26,7 +67,18 @@ function nextPos (){
 }
 
 class MObject {
-    constructor() {
+    constructor(value) {
+        this.value = value;
+    }
+}
+class MImage extends MObject {
+    constructor(value) {
+        super(value);
+        this.img = new Image();
+        this.img.src = "image/" + value + ".png";
+        this.visible = true;
+        this.type = motype.IMAGE;
+
         this.x = objPos[0];
         this.y = objPos[1];
         nextPos();
@@ -48,74 +100,355 @@ class MObject {
         this.a = this.ia;
     }
 }
-class MImage extends MObject {
-    constructor(input) {
-        super();
-        this.img = new Image();
-        this.img.src = images[input];
-        this.value = input.replace(/<(.*)>/g,'$1');
-        this.type = motype.IMAGE;
-    }
-}
 class MNumber extends MObject {
-    constructor(input) {
-        super();
-        this.value = input;
+    constructor(value) {
+        super(value);
+        this.value = value;
         this.type = motype.NUMBER;
     }
 }
 class MString extends MObject {
-    constructor(input) {
-        super();
-        this.value = input;
+    constructor(value) {
+        super(value);
+        this.value = value;
         this.type = motype.STRING;
     }
 }
+class MEmpty extends MObject {
+    constructor(value){
+        super(value);
+    }
+}
 class Transition {
-    constructor(target, dx, dy, dsizew, dsizeh, dangle) {
-        this.target = target;
-        this.dx = dx;
-        this.dy = dy;
-        this.dsizew = dsizew;
-        this.dsizeh = dsizeh;
-        this.dangle = dangle;
+    constructor(){
+
     }
 }
-var MObjects = [];
-var MObjectCount = 0;
+
+var globalField = {};
+var currentField = globalField;
+var Transitions = [];
+var TransitionCount = 0;
+var currentTransition = -1;
 var svariableCount = 0;
-var source;
-function createMObject(input) {
-    var mobj;
-    if(images[input]){
-        mobj =  new MImage(input);
-    }else if(isNaN(input)){
-        mobj = new MString(input);
-    }else{
-        mobj = new MNumber(input);
-    }
-    MObjects.push(mobj);
-    MObjectCount++;
-    return mobj;
+var showFlipper = false;
+function createImage(input) {
+    return new MImage(input);
 }
-function exec(input) {
-    MObjects = [];
-    MObjectCount = 0;
-    source = input;
-    var inputs = input.split(";");
-    for(var statement of inputs){
-        for(key in images){
-            if(statement.indexOf(key) >= 0){
-                eval(statement.split("=")[0].trim() + " = createMObject(key);");
+function createTransition(){
+    var transition;
+    transition = new Transition();
+    Transitions.push(transition);
+    TransitionCount++;
+    return transition;
+}
+function evalTree(tree,info){
+    switch(tree.tag){
+        case ttag.Source:
+            evalList(tree.child,info);
+            return null;
+        case ttag.Rule:
+            if(info.inFlow){
+                var before = currentField;
+                currentField = {};
+                evalLabeledTree(tree.child,"context",info); // TODO
+                for(var obj in globalField){
+                    info.currentObject = globalField[obj];
+                    if(evalLabeledTree(tree.child,"cond",info)){
+                        info.isKey = false;
+                        evalLabeledTree(tree.child,"body",info);
+                    }
+                }
+                currentField = before;
             }
-        }
-        for(key of initFuncs){
-            if(statement.indexOf(key) >= 0){
-                eval(statement);
+            return null;
+        case ttag.Context:
+            return null; // TODO
+        case ttag.Premise:
+            var length = getLength(tree.child);
+            var targets = evalElement(tree.child,0,info);
+            if(Array.isArray(targets)){
+                currentField[targets[0]] = info.currentObject;
+            }else if(targets === false){
+                return false;
             }
-        }
+            for(var i = 1;i<length;i++){
+                if(!evalElement(tree.child,i,info)){
+                    return false;
+                }
+            }
+            return true;
+        case ttag.PeriodicSome: // TODO
+            var targets = [];
+            targets.push(evalElement(tree.child,0,{inFlow:true,isKey:true}));
+            targets.push(evalElement(tree.child,1,{inFlow:true,isKey:true}));
+            return targets;
+        case ttag.Periodic:
+            var length = getLength(tree.child);
+            var targets = []
+            for(var i = 0;i<length;i++){
+                targets.push(evalElement(tree.child,i,{inFlow:true,isKey:true}));
+            }
+            return targets;
+        case ttag.Event:
+            return null; // TODO
+        case ttag.Body:
+            evalList(tree.child,info);
+            return null;
+        case ttag.Assign:
+            var right = evalLabeledTree(tree.child,"right",info);
+            info.isKey = true;
+            var val = null;
+            try{
+                val = eval("currentField." + evalLabeledTree(tree.child,"left",info) + " = " + right);
+            }catch(e){
+                try{
+                    val = eval("globalField." + evalLabeledTree(tree.child,"left",info) + " = " + right);
+                }catch(e){
+                    val = eval(evalLabeledTree(tree.child,"left",info) + " = " + right);
+                }
+            }
+            info.isKey = false;
+            return null;
+        case ttag.Return:
+            return null; // TODO
+        case ttag.Let:
+            if(!(info.inFlow)){
+                currentField[evalLabeledTree(tree.child,"left",{inFlow:false,isKey:true})] = evalLabeledTree(tree.child,"right",{inFlow:false,createNew:true});
+            }
+            return null;
+        case ttag.Infix:
+            if(info.isKey){
+                return evalLabeledTree(tree.child,"left",info) + evalLabeledTree(tree.child,"op",info) + evalLabeledTree(tree.child,"right",info);
+            }
+            var left = evalLabeledTree(tree.child,"left",info);
+            var right = evalLabeledTree(tree.child,"right",info);
+            if(MObject.prototype.isPrototypeOf(left)){
+                left = left.value;
+            }
+            if(MObject.prototype.isPrototypeOf(right)){
+                right = right.value;
+            }
+            var ret = left + evalLabeledTree(tree.child,"op",{isKey:true}) + right;
+            return eval(ret);
+        case ttag.Cast:
+            if(info.isKey){
+                return "(" + evalLabeledTree(tree.child,"type",info) + ")" + evalLabeledTree(tree.child,"recv",info);
+            }
+            return eval("(" + evalLabeledTree(tree.child,"type",info) + ")" + evalLabeledTree(tree.child,"recv",info));
+        case ttag.Unary:
+            if(info.isKey){
+                return evalLabeledTree(tree.child,"op",info) + evalLabeledTree(tree.child,"expr",info);
+            }
+            return eval(evalLabeledTree(tree.child,"op",info) + evalLabeledTree(tree.child,"expr",info));
+        case ttag.Norm:
+            if(info.isKey){
+                return "|" + evalLabeledTree(tree.child,"expr",info) + "|";
+            }
+            return eval("|" + evalLabeledTree(tree.child,"expr",info) + "|");
+        case ttag.Method:
+            if(info.isKey){
+                return evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")";
+            }
+            info.isKey = true;
+            var val = null;
+            try{
+                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+            }catch(e){
+                try{
+                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                }catch(e){
+                    val = eval(evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                }
+            }
+            info.isKey = false;
+            return val;
+        case ttag.Get:
+            if(info.isKey){
+                return evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info);
+            }
+            info.isKey = true;
+            var val = null;
+            try{
+                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info));
+            }catch(e){
+                try{
+                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info));
+                }catch(e){
+                    val = eval(evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info));
+                }
+            }
+            info.isKey = false;
+            return val;
+        case ttag.Apply:
+            if(info.isKey){
+                return evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")";
+            }
+            info.isKey = true;
+            var val = null;
+            try{
+                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+            }catch(e){
+                try{
+                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                }catch(e){
+                    val = eval(evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                }
+            }
+            info.isKey = false;
+            return val;
+        case ttag.Index:
+            if(info.isKey){
+                return evalLabeledTree(tree.child,"recv",info) + "[" + evalLabeledTree(tree.child,"param",info) + "]";
+            }
+            info.isKey = true;
+            var val = null;
+            try{
+                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "[" + evalLabeledTree(tree.child,"param",info) + "]");
+            }catch(e){
+                try{
+                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "[" + evalLabeledTree(tree.child,"param",info) + "]");
+                }catch(e){
+                    val = eval(evalLabeledTree(tree.child,"recv",info) + "[" + evalLabeledTree(tree.child,"param",info) + "]");
+                }
+            }
+            info.isKey = false;
+            return val;
+        case ttag.CastExpr:
+            if(info.isKey){
+                return evalLabeledTree(tree.child,"recv",info) + "=>" + evalLabeledTree(tree.child,"type",info);
+            }
+            info.isKey = true;
+            var val = null;
+            try{
+                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "=>" + evalLabeledTree(tree.child,"type",info));
+            }catch(e){
+                try{
+                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "=>" + evalLabeledTree(tree.child,"type",info));
+                }catch(e){
+                    val = eval(evalLabeledTree(tree.child,"recv",info) + "=>" + evalLabeledTree(tree.child,"type",info));
+                }
+            }
+            info.isKey = false;
+            return val;
+        case ttag.Tuple:
+            evalList(tree.child,info);
+            return null; // TODO
+        case ttag.Empty:
+            return null;
+        case ttag.List:
+            evalList(tree.child,info);
+            return null; // TODO
+        case ttag.RangeUntilExpr:
+            return null; // TODO
+        case ttag.RangeExpr:
+            return null; // TODO
+        case ttag.Data:
+            return null; // TODO
+        case ttag.Dict:
+            return null; // TODO
+        case ttag.Tamplete:
+            return null; // TODO
+        case ttag.String:
+            return "\"" + getValue(tree) + "\"";
+        case ttag.Char:
+            return "\'" + getValue(tree) + "\'";
+        case ttag.Image:
+            if(info.createNew){
+                return createImage(getValue(tree));
+            }
+            return new MEmpty(getValue(tree));
+        case ttag.Double:
+            return getValue(tree);
+        case ttag.Unit:
+            return null; // TODO
+        case ttag.Rational:
+            return eval(getValue(tree));
+        case ttag.Int:
+            return getValue(tree);
+        case ttag.True:
+            return true;
+        case ttag.False:
+            return false;
+        case ttag.Null:
+            return null;
+        case ttag.Name:
+            var val = getValue(tree);
+            if(info.isKey){
+                return val;
+            }
+            if(val in currentField){
+                return currentField[val];
+            }
+            if(val in globalField){
+                return globalField[val];
+            }
+            return val;
+        default:
     }
-    init();
+}
+
+// :string
+function getValue(tree){
+    var inputs = tree.inputs.slice(tree.spos,tree.epos);
+    return (new TextDecoder).decode(inputs);
+}
+
+function evalLabeledTree(tree,label,info){
+    if(tree.tag === label){
+        return evalTree(tree.child,info);
+    }else if(tree.prev !== null){
+        return evalLabeledTree(tree.prev,label,info);
+    }
+    return null;
+}
+
+function evalElement(tree,index,info){
+    var i = getLength(tree) - index;
+    var target = tree;
+    while(i>0){
+        target = target.prev;
+        i--;
+    }
+    return evalTree(target.child,info);
+}
+
+function getLength(tree){
+    var length = 0;
+    var target = tree;
+    while(target.prev !== null){
+        target = target.prev;
+        length++;
+    }
+    return length;
+}
+
+function evalList(tree,info){
+    if(tree.prev !== null){
+        evalList(tree.prev,info);
+    }
+    if(tree.child !== null){
+        evalTree(tree.child,info);
+    }
+}
+
+function showTree(tree,depth){
+    var indent = showFlipper ? "=".repeat(depth) : "-".repeat(depth);
+    showFlipper = !showFlipper;
+    console.log(indent + tree.tag);
+    if(tree.child.prev !== null){
+        if(tree.child.prev.prev !== null){
+            showChild(tree.child.prev.prev,depth);
+        }
+        showTree(tree.child.prev.child,depth+1);
+    }
+}
+
+function showChild(tree,depth){
+    if(tree.prev !== null){
+        showChild(tree.prev,depth);
+    }
+    showTree(tree.child,depth+1);
 }
 
 var canvas = document.getElementById("cvs");
@@ -127,14 +460,15 @@ var sin = 0;
 var rad = Math.PI / 180;
 var timeCounter = 0;
 var timer;
-var mouse = {
+var result;
+var Mouse = {
     x:0,
     y:0
 };
 canvas.addEventListener('mousemove', function (evt) {
     var mousePos = getMousePosition(canvas, evt);
-    mouse.x = mousePos.x;
-    mouse.y = mousePos.y;
+    Mouse.x = mousePos.x;
+    Mouse.y = mousePos.y;
 }, false);
 function getMousePosition(canvas, evt) {
     var rect = canvas.getBoundingClientRect();
@@ -145,30 +479,30 @@ function getMousePosition(canvas, evt) {
 }
 function plot() {
     ctx.clearRect(0, 0, cvsw, cvsh);
-    for (var i = 0; i < MObjectCount; i++) {
-        cos = Math.cos(MObjects[i].a * rad);
-        sin = Math.sin(MObjects[i].a * rad);
-        ctx.setTransform(cos, sin, -1 * sin, cos, MObjects[i].x, MObjects[i].y);
-        ctx.drawImage(MObjects[i].img, 0, 0, MObjects[i].w, MObjects[i].h);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+    for(var obj in globalField) {
+        if(MImage.prototype.isPrototypeOf(globalField[obj])){
+            cos = Math.cos(globalField[obj].a * rad);
+            sin = Math.sin(globalField[obj].a * rad);
+            ctx.setTransform(cos, sin, -1 * sin, cos, globalField[obj].x, globalField[obj].y);
+            ctx.drawImage(globalField[obj].img, 0, 0, globalField[obj].w, globalField[obj].h);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
     }
 }
 const initFuncs = ["POS", "RAND", "CENTER"];
 function flow() {
-    var input = source;
-    input = input.replace(/.*<.*>.*/g,'');
-    input = input.replace(/\$/g,'');
-    for(f of initFuncs){
-        input = input.replace(new RegExp(f + ".*;", 'g'), '');
+    if(result !== null){
+        evalTree(result,{inFlow:true});
     }
-    eval(input);
-    for (var i = 0; i < MObjectCount; i++) {
-        if(MObjects[i].x > cvsw) MObjects[i].x -= cvsw;
-        if(MObjects[i].x < 0) MObjects[i].x += cvsw;
-        if(MObjects[i].y > cvsh) MObjects[i].y -= cvsh;
-        if(MObjects[i].y < 0) MObjects[i].y += cvsh;
-        if(MObjects[i].a > 360) MObjects[i].a -= 360;
-        if(MObjects[i].a < 0) MObjects[i].a += 360;
+    for(var obj in globalField) {
+        if(MImage.prototype.isPrototypeOf(globalField[obj])){
+            if(globalField[obj].x > cvsw) globalField[obj].x -= cvsw;
+            if(globalField[obj].x < 0) globalField[obj].x += cvsw;
+            if(globalField[obj].y > cvsh) globalField[obj].y -= cvsh;
+            if(globalField[obj].y < 0) globalField[obj].y += cvsh;
+            if(globalField[obj].a > 360) globalField[obj].a -= 360;
+            if(globalField[obj].a < 0) globalField[obj].a += 360;
+        }
     }
     plot();
     $(function(){
@@ -185,8 +519,10 @@ function incrementFrame() {
     flow();
 }
 function init() {
-    for (var i = 0; i < MObjectCount; i++) {
-        MObjects[i].init();
+    for(var obj in globalField){
+        if(MImage.prototype.isPrototypeOf(globalField[obj])){
+            globalField[obj].init();
+        }
     }
     plot();
     timeCounter = 0;
@@ -196,7 +532,8 @@ function init() {
 }
 
 $(function () {
-    $('#source-text').val("X = <rocket>;\nfor(x of MObjects){\n    if(x.type == motype.IMAGE){\n        $x.y = x.y - 10;\n    }\n}");
+    var initCode = "s = <sakura>\nforeach a  a == <sakura>\n-------------------\n    $a.x = a.x + 10";
+    $('#source-text').val(initCode);
     var jsEditor = makeEditor();
     cvsw = $('#mapping-area').width();
     cvsh = $('#mapping-area').height();
@@ -215,13 +552,23 @@ $(function () {
             $('#cvs').attr('height', cvsh);
         }, 200);
     });
-    $('#apply-source').click(function() {
+    $('#parse').click(function () {
+        console.log("parse");
         jsEditor.toTextArea();
-        objPos = [0,0];
-        var input = $('#source-text').val().toString();
-        console.log(input);
-        exec(input);
+        var inputs = (new TextEncoder).encode($('#source-text').val().toString());
+        result = parse(inputs,inputs.length-1);
         jsEditor = makeEditor();
+    });
+    $('#eval').click(function () {
+        console.log("eval");
+        objPos = [0,0];
+        globalField = {};
+        currentField = globalField;
+        evalTree(result,{inFlow:false});
+        init();
+    });
+    $('#show').click(function() {
+        showTree(result,0);
     });
     $('#start-plot').click(function () {
         console.log("start");
@@ -247,7 +594,7 @@ $(function () {
         console.log("sakura");
         jsEditor.toTextArea();
         var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <sakura>;\n" + input;
+        input = "_" + svariableCount + " = <sakura>\n" + input;
         svariableCount++;
         $('#source-text').val(input);
         jsEditor = makeEditor();
@@ -256,7 +603,7 @@ $(function () {
         console.log("fish");
         jsEditor.toTextArea();
         var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <fish>;\n" + input;
+        input = "_" + svariableCount + " = <fish>\n" + input;
         svariableCount++;
         $('#source-text').val(input);
         jsEditor = makeEditor();
@@ -265,7 +612,7 @@ $(function () {
         console.log("star");
         jsEditor.toTextArea();
         var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <star>;\n" + input;
+        input = "_" + svariableCount + " = <star>\n" + input;
         svariableCount++;
         $('#source-text').val(input);
         jsEditor = makeEditor();
@@ -274,7 +621,7 @@ $(function () {
         console.log("arrow");
         jsEditor.toTextArea();
         var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <arrow>;\n" + input;
+        input = "_" + svariableCount + " = <arrow>\n" + input;
         svariableCount++;
         $('#source-text').val(input);
         jsEditor = makeEditor();
@@ -283,7 +630,7 @@ $(function () {
         console.log("rocket");
         jsEditor.toTextArea();
         var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <rocket>;\n" + input;
+        input = "_" + svariableCount + " = <rocket>\n" + input;
         svariableCount++;
         $('#source-text').val(input);
         jsEditor = makeEditor();
