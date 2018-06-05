@@ -15,6 +15,7 @@ const ttag = {
     Source: "Source",
     Rule: "Rule",
     Context: "Context",
+    TimingPremise: "TimingPremise",
     Premise: "Premise",
     PeriodicSome: "PeriodicSome",
     Periodic: "Periodic",
@@ -152,8 +153,18 @@ function evalTree(tree,info){
                 var before = currentField;
                 currentField = {};
                 evalLabeledTree(tree.child,"context",info); // TODO
-                for(var obj in globalField){
-                    info.currentObject = globalField[obj];
+                if(getLabeledTag(tree.child,"cond") === ttag.TimingPremise){
+                    info.counter = 0;
+                    while(true){
+                        var bool = evalLabeledTree(tree.child,"cond",info);
+                        if(bool){
+                            info.isKey = false;
+                            evalLabeledTree(tree.child,"body",info);
+                        }else{
+                            break;
+                        }
+                    }
+                }else{
                     if(evalLabeledTree(tree.child,"cond",info)){
                         info.isKey = false;
                         evalLabeledTree(tree.child,"body",info);
@@ -164,15 +175,28 @@ function evalTree(tree,info){
             return null;
         case ttag.Context:
             return null; // TODO
-        case ttag.Premise:
+        case ttag.TimingPremise:
             var length = getLength(tree.child);
             var targets = evalElement(tree.child,0,info);
-            if(Array.isArray(targets)){
-                currentField[targets[0]] = info.currentObject;
-            }else if(targets === false){
-                return false;
+            while(targetsSetter(targets,info.counter,[],{index:0})){
+                var isContinue = false;
+                for(var i = 1;i<length;i++){
+                    if(!evalElement(tree.child,i,info)){
+                        isContinue = true;
+                        break;
+                    }
+                }
+                info.counter++;
+                if(isContinue){
+                    continue;
+                }else{
+                    return true;
+                }
             }
-            for(var i = 1;i<length;i++){
+            return false;
+        case ttag.Premise:
+            var length = getLength(tree.child);
+            for(var i = 0;i<length;i++){
                 if(!evalElement(tree.child,i,info)){
                     return false;
                 }
@@ -430,6 +454,36 @@ function evalList(tree,info){
     if(tree.child !== null){
         evalTree(tree.child,info);
     }
+}
+
+function getLabeledTag(tree,label){
+    if(tree.tag === label){
+        return tree.child.tag;
+    }else if(tree.prev !== null){
+        return getLabeledTag(tree.prev,label);
+    }
+    return "";
+}
+
+function targetsSetter(targets,index,setted,counter){
+    for(obj in globalField){
+        if(setted.indexOf(obj) === -1){
+            currentField[targets[0]] = globalField[obj];
+            setted.push(obj);
+            if(targets.length !== 1){
+                if(targetsSetter(targets.slice(1),index,setted.slice(0),counter)){
+                    return true;
+                }else{
+                    continue;
+                }
+            }else if(counter.index == index){
+                return true;
+            }else{
+                counter.index++;
+            }
+        }
+    }
+    return false;
 }
 
 function showTree(tree,depth){
