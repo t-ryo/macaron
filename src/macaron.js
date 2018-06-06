@@ -207,24 +207,16 @@ function tagtree(px,tag){
   return mlink(px,tag,EmptyTree,px.tree);
 }
 
-function e79(px){
-  return bits32(bs25,px.inputs[px.pos++]) && or1(px,(p245) => bits32(bs26,p245.inputs[p245.pos++]),(p246) => true) && bits32(bs13,px.inputs[px.pos++]) && many1(px,(p247) => manychar(p247,bs16) && bits32(bs13,p247.inputs[p247.pos++]));
-}
-
 function e78(px){
-  return or1(px,(p242) => !(p242.inputs[p242.pos] == 95) && many1(p242,(p240) => manychar(p240,bs16) && bits32(bs13,p240.inputs[p240.pos++])) && p242.inputs[p242.pos++] == 46 && bits32(bs13,p242.inputs[p242.pos++]) && many1(p242,(p241) => manychar(p241,bs16) && bits32(bs13,p241.inputs[p241.pos++])),(p244) => bits32(bs13,p244.inputs[p244.pos++]) && many1(p244,(p243) => manychar(p243,bs16) && bits32(bs13,p243.inputs[p243.pos++])) && p244.inputs[p244.pos++] == 46 && !(p244.inputs[p244.pos] == 46));
+  return or1(px,(p234) => p234.inputs[p234.pos++] == 92 && bits32(bs21,p234.inputs[p234.pos++]),(p241) => or1(p241,(p235) => p235.inputs[p235.pos++] == 92 && bits32(bs22,p235.inputs[p235.pos++]) && bits32(bs23,p235.inputs[p235.pos++]) && bits32(bs23,p235.inputs[p235.pos++]),(p240) => or1(p240,(p236) => p236.inputs[p236.pos++] == 92 && bits32(bs23,p236.inputs[p236.pos++]) && bits32(bs23,p236.inputs[p236.pos++]),(p239) => or1(p239,(p237) => p237.inputs[p237.pos++] == 92 && bits32(bs23,p237.inputs[p237.pos++]),(p238) => p238.inputs[p238.pos++] == 92 && p238.inputs[p238.pos++] == 117 && manychar(p238,bs24) && bits32(bs18,p238.inputs[p238.pos++]) && bits32(bs18,p238.inputs[p238.pos++]) && bits32(bs18,p238.inputs[p238.pos++]) && bits32(bs18,p238.inputs[p238.pos++])))));
 }
 
 function e73(px){
-  return or1(px,(p225) => e78(p225) && or1(p225,e79,(p224) => true),(p226) => bits32(bs13,p226.inputs[p226.pos++]) && manychar(p226,bs13) && e79(p226));
-}
-
-function e77(px){
-  return or1(px,(p232) => p232.inputs[p232.pos++] == 92 && bits32(bs21,p232.inputs[p232.pos++]),(p239) => or1(p239,(p233) => p233.inputs[p233.pos++] == 92 && bits32(bs22,p233.inputs[p233.pos++]) && bits32(bs23,p233.inputs[p233.pos++]) && bits32(bs23,p233.inputs[p233.pos++]),(p238) => or1(p238,(p234) => p234.inputs[p234.pos++] == 92 && bits32(bs23,p234.inputs[p234.pos++]) && bits32(bs23,p234.inputs[p234.pos++]),(p237) => or1(p237,(p235) => p235.inputs[p235.pos++] == 92 && bits32(bs23,p235.inputs[p235.pos++]),(p236) => p236.inputs[p236.pos++] == 92 && p236.inputs[p236.pos++] == 117 && manychar(p236,bs24) && bits32(bs18,p236.inputs[p236.pos++]) && bits32(bs18,p236.inputs[p236.pos++]) && bits32(bs18,p236.inputs[p236.pos++]) && bits32(bs18,p236.inputs[p236.pos++])))));
+  return or1(px,e78,(p225) => bits32(bs12,p225.inputs[p225.pos++]));
 }
 
 function e72(px){
-  return or1(px,e77,(p223) => bits32(bs12,p223.inputs[p223.pos++]));
+  return or1(px,e78,(p224) => bits32(bs11,p224.inputs[p224.pos++]));
 }
 
 function e3(px){
@@ -336,7 +328,7 @@ function e14(px){
 }
 
 function e50(px){
-  return newtree(px,0,(p163) => or3(p163,(p160) => linktree(p160,"",e14),(p161) => true) && many3(p163,(p162) => e15(p162) && linktree(p162,"",e14)),EmptyTag,0);
+  return newtree(px,0,(p164) => or3(p164,(p161) => linktree(p161,"",e14),(p162) => true) && many3(p164,(p163) => e15(p163) && linktree(p163,"",e14)),EmptyTag,0);
 }
 
 function e24(px){
@@ -344,7 +336,7 @@ function e24(px){
 }
 
 function e53(px){
-  return or1(px,(p164) => p164.inputs[p164.pos++] == 116 && p164.inputs[p164.pos++] == 111 && e24(p164),(p167) => or1(p167,(p165) => p165.inputs[p165.pos++] == 97 && p165.inputs[p165.pos++] == 115 && e24(p165),(p166) => p166.inputs[p166.pos++] == 61 && p166.inputs[p166.pos++] == 62 && e16(p166)));
+  return or1(px,(p165) => p165.inputs[p165.pos++] == 116 && p165.inputs[p165.pos++] == 111 && e24(p165),(p168) => or1(p168,(p166) => p166.inputs[p166.pos++] == 97 && p166.inputs[p166.pos++] == 115 && e24(p166),(p167) => p167.inputs[p167.pos++] == 61 && p167.inputs[p167.pos++] == 62 && e16(p167)));
 }
 
 function e52(px){
@@ -375,24 +367,20 @@ function e57(px){
   return px.inputs[px.pos++] == 125 && e16(px);
 }
 
-function e71(px){
-  return or1(px,e77,(p222) => bits32(bs11,p222.inputs[p222.pos++]));
-}
-
 function e61(px){
-  return px.inputs[px.pos++] == 39 && newtree(px,0,(p183) => many1(p183,e71) && tagtree(p183,"Char"),EmptyTag,0) && px.inputs[px.pos++] == 39 && e16(px);
+  return px.inputs[px.pos++] == 39 && newtree(px,0,(p184) => many1(p184,e72) && tagtree(p184,"Char"),EmptyTag,0) && px.inputs[px.pos++] == 39 && e16(px);
 }
 
-function e70(px){
-  return or1(px,e77,(p221) => bits32(bs10,p221.inputs[p221.pos++]));
+function e71(px){
+  return or1(px,e78,(p223) => bits32(bs10,p223.inputs[p223.pos++]));
 }
 
 function e60(px){
-  return px.inputs[px.pos++] == 34 && newtree(px,0,(p182) => many1(p182,e70) && tagtree(p182,"String"),EmptyTag,0) && px.inputs[px.pos++] == 34 && e16(px);
+  return px.inputs[px.pos++] == 34 && newtree(px,0,(p183) => many1(p183,e71) && tagtree(p183,"String"),EmptyTag,0) && px.inputs[px.pos++] == 34 && e16(px);
 }
 
 function e58(px){
-  return newtree(px,0,(p179) => linktree(p179,"name",(p174) => or3(p174,e60,e61)) && or1(p179,(p175) => p175.inputs[p175.pos++] == 58,(p178) => or1(p178,(p176) => p176.inputs[p176.pos++] == 61,(p177) => p177.inputs[p177.pos++] == 61 && p177.inputs[p177.pos++] == 62)) && e16(p179) && linktree(p179,"value",e14),EmptyTag,0);
+  return newtree(px,0,(p180) => linktree(p180,"name",(p175) => or3(p175,e60,e61)) && or1(p180,(p176) => p176.inputs[p176.pos++] == 58,(p179) => or1(p179,(p177) => p177.inputs[p177.pos++] == 61,(p178) => p178.inputs[p178.pos++] == 61 && p178.inputs[p178.pos++] == 62)) && e16(p180) && linktree(p180,"value",e14),EmptyTag,0);
 }
 
 function e48(px){
@@ -400,11 +388,11 @@ function e48(px){
 }
 
 function e55(px){
-  return newtree(px,0,(p168) => p168.inputs[p168.pos++] == 35 && linktree(p168,"name",e12),EmptyTag,0);
+  return newtree(px,0,(p169) => p169.inputs[p169.pos++] == 35 && linktree(p169,"name",e12),EmptyTag,0);
 }
 
 function e56(px){
-  return newtree(px,0,(p173) => linktree(p173,"name",e12) && or1(p173,(p169) => p169.inputs[p169.pos++] == 58,(p172) => or1(p172,(p170) => p170.inputs[p170.pos++] == 61,(p171) => p171.inputs[p171.pos++] == 61 && p171.inputs[p171.pos++] == 62)) && e16(p173) && linktree(p173,"value",e14),EmptyTag,0);
+  return newtree(px,0,(p174) => linktree(p174,"name",e12) && or1(p174,(p170) => p170.inputs[p170.pos++] == 58,(p173) => or1(p173,(p171) => p171.inputs[p171.pos++] == 61,(p172) => p172.inputs[p172.pos++] == 61 && p172.inputs[p172.pos++] == 62)) && e16(p174) && linktree(p174,"value",e14),EmptyTag,0);
 }
 
 function e47(px){
@@ -412,55 +400,71 @@ function e47(px){
 }
 
 function e62(px){
-  return px.inputs[px.pos++] == 60 && newtree(px,0,(p184) => many1(p184,e72) && tagtree(p184,"Image"),EmptyTag,0) && px.inputs[px.pos++] == 62 && e16(px);
-}
-
-function e74(px){
-  return or1(px,(p227) => p227.inputs[p227.pos++] == 48 && !(bits32(bs14,p227.inputs[p227.pos])),(p229) => bits32(bs15,p229.inputs[p229.pos++]) && many1(p229,(p228) => manychar(p228,bs16) && bits32(bs13,p228.inputs[p228.pos++])));
-}
-
-function e64(px){
-  return newtree(px,0,(p189) => e74(p189) && p189.inputs[p189.pos++] == 47 && e74(p189) && tagtree(p189,"Rational"),EmptyTag,0) && e16(px) && or3(px,(p191) => foldtree(p191,0,"",(p190) => linktree(p190,"",e12) && tagtree(p190,"Unit"),EmptyTag,0),(p192) => true);
-}
-
-function e63(px){
-  return newtree(px,0,(p185) => e73(p185) && tagtree(p185,"Double"),EmptyTag,0) && e16(px) && or3(px,(p187) => foldtree(p187,0,"",(p186) => linktree(p186,"",e12) && tagtree(p186,"Unit"),EmptyTag,0),(p188) => true);
-}
-
-function e66(px){
-  return newtree(px,0,(p200) => bits32(bs7,p200.inputs[p200.pos++]) && p200.inputs[p200.pos++] == 114 && p200.inputs[p200.pos++] == 117 && p200.inputs[p200.pos++] == 101 && or1(p200,(p198) => bits32(bs5,p198.inputs[p198.pos]) && !(bits32(bs5,p198.inputs[p198.pos])),(p199) => true) && tagtree(p200,"True"),EmptyTag,0) && e16(px);
+  return px.inputs[px.pos++] == 60 && newtree(px,0,(p185) => many1(p185,e73) && tagtree(p185,"Image"),EmptyTag,0) && px.inputs[px.pos++] == 62 && e16(px);
 }
 
 function e75(px){
-  return px.inputs[px.pos++] == 48 && bits32(bs17,px.inputs[px.pos++]) && bits32(bs18,px.inputs[px.pos++]) && many1(px,(p230) => manychar(p230,bs16) && bits32(bs18,p230.inputs[p230.pos++]));
+  return or1(px,(p229) => p229.inputs[p229.pos++] == 48 && !(bits32(bs14,p229.inputs[p229.pos])),(p231) => bits32(bs15,p231.inputs[p231.pos++]) && many1(p231,(p230) => manychar(p230,bs16) && bits32(bs13,p230.inputs[p230.pos++])));
+}
+
+function e64(px){
+  return newtree(px,0,(p190) => e75(p190) && p190.inputs[p190.pos++] == 47 && e75(p190) && tagtree(p190,"Rational"),EmptyTag,0) && e16(px) && or3(px,(p192) => foldtree(p192,0,"",(p191) => linktree(p191,"",e12) && tagtree(p191,"Unit"),EmptyTag,0),(p193) => true);
+}
+
+function e79(px){
+  return or1(px,(p244) => !(p244.inputs[p244.pos] == 95) && many1(p244,(p242) => manychar(p242,bs16) && bits32(bs13,p242.inputs[p242.pos++])) && p244.inputs[p244.pos++] == 46 && bits32(bs13,p244.inputs[p244.pos++]) && many1(p244,(p243) => manychar(p243,bs16) && bits32(bs13,p243.inputs[p243.pos++])),(p246) => bits32(bs13,p246.inputs[p246.pos++]) && many1(p246,(p245) => manychar(p245,bs16) && bits32(bs13,p245.inputs[p245.pos++])) && p246.inputs[p246.pos++] == 46 && !(p246.inputs[p246.pos] == 46));
+}
+
+function e80(px){
+  return bits32(bs25,px.inputs[px.pos++]) && or1(px,(p247) => bits32(bs26,p247.inputs[p247.pos++]),(p248) => true) && bits32(bs13,px.inputs[px.pos++]) && many1(px,(p249) => manychar(p249,bs16) && bits32(bs13,p249.inputs[p249.pos++]));
+}
+
+function e74(px){
+  return or1(px,(p227) => e79(p227) && or1(p227,e80,(p226) => true),(p228) => bits32(bs13,p228.inputs[p228.pos++]) && manychar(p228,bs13) && e80(p228));
+}
+
+function e63(px){
+  return newtree(px,0,(p186) => e74(p186) && tagtree(p186,"Double"),EmptyTag,0) && e16(px) && or3(px,(p188) => foldtree(p188,0,"",(p187) => linktree(p187,"",e12) && tagtree(p187,"Unit"),EmptyTag,0),(p189) => true);
+}
+
+function e66(px){
+  return newtree(px,0,(p201) => bits32(bs7,p201.inputs[p201.pos++]) && p201.inputs[p201.pos++] == 114 && p201.inputs[p201.pos++] == 117 && p201.inputs[p201.pos++] == 101 && or1(p201,(p199) => bits32(bs5,p199.inputs[p199.pos]) && !(bits32(bs5,p199.inputs[p199.pos])),(p200) => true) && tagtree(p201,"True"),EmptyTag,0) && e16(px);
+}
+
+function e77(px){
+  return px.inputs[px.pos++] == 48 && bits32(bs19,px.inputs[px.pos++]) && bits32(bs20,px.inputs[px.pos++]) && many1(px,(p233) => manychar(p233,bs16) && bits32(bs20,p233.inputs[p233.pos++]));
 }
 
 function e76(px){
-  return px.inputs[px.pos++] == 48 && bits32(bs19,px.inputs[px.pos++]) && bits32(bs20,px.inputs[px.pos++]) && many1(px,(p231) => manychar(p231,bs16) && bits32(bs20,p231.inputs[p231.pos++]));
+  return px.inputs[px.pos++] == 48 && bits32(bs17,px.inputs[px.pos++]) && bits32(bs18,px.inputs[px.pos++]) && many1(px,(p232) => manychar(p232,bs16) && bits32(bs18,p232.inputs[p232.pos++]));
 }
 
 function e65(px){
-  return newtree(px,0,(p194) => or1(p194,e74,(p193) => or1(p193,e75,e76)) && tagtree(p194,"Int"),EmptyTag,0) && e16(px) && or3(px,(p196) => foldtree(p196,0,"",(p195) => linktree(p195,"",e12) && tagtree(p195,"Unit"),EmptyTag,0),(p197) => true);
+  return newtree(px,0,(p195) => or1(p195,e75,(p194) => or1(p194,e76,e77)) && tagtree(p195,"Int"),EmptyTag,0) && e16(px) && or3(px,(p197) => foldtree(p197,0,"",(p196) => linktree(p196,"",e12) && tagtree(p196,"Unit"),EmptyTag,0),(p198) => true);
 }
 
 function e68(px){
-  return newtree(px,0,(p214) => bits32(bs9,p214.inputs[p214.pos++]) && or1(p214,(p204) => p204.inputs[p204.pos++] == 117 && p204.inputs[p204.pos++] == 108 && p204.inputs[p204.pos++] == 108,(p211) => or1(p211,(p205) => p205.inputs[p205.pos++] == 111 && p205.inputs[p205.pos++] == 110 && p205.inputs[p205.pos++] == 101,(p210) => or1(p210,(p206) => p206.inputs[p206.pos++] == 105 && p206.inputs[p206.pos++] == 108,(p209) => or1(p209,(p207) => p207.inputs[p207.pos++] == 85 && p207.inputs[p207.pos++] == 76 && p207.inputs[p207.pos++] == 76,(p208) => p208.inputs[p208.pos++] == 111 && p208.inputs[p208.pos++] == 116 && p208.inputs[p208.pos++] == 104 && p208.inputs[p208.pos++] == 105 && p208.inputs[p208.pos++] == 110 && p208.inputs[p208.pos++] == 103)))) && or1(p214,(p212) => bits32(bs5,p212.inputs[p212.pos]) && !(bits32(bs5,p212.inputs[p212.pos])),(p213) => true) && tagtree(p214,"Null"),EmptyTag,0) && e16(px);
+  return newtree(px,0,(p215) => bits32(bs9,p215.inputs[p215.pos++]) && or1(p215,(p205) => p205.inputs[p205.pos++] == 117 && p205.inputs[p205.pos++] == 108 && p205.inputs[p205.pos++] == 108,(p212) => or1(p212,(p206) => p206.inputs[p206.pos++] == 111 && p206.inputs[p206.pos++] == 110 && p206.inputs[p206.pos++] == 101,(p211) => or1(p211,(p207) => p207.inputs[p207.pos++] == 105 && p207.inputs[p207.pos++] == 108,(p210) => or1(p210,(p208) => p208.inputs[p208.pos++] == 85 && p208.inputs[p208.pos++] == 76 && p208.inputs[p208.pos++] == 76,(p209) => p209.inputs[p209.pos++] == 111 && p209.inputs[p209.pos++] == 116 && p209.inputs[p209.pos++] == 104 && p209.inputs[p209.pos++] == 105 && p209.inputs[p209.pos++] == 110 && p209.inputs[p209.pos++] == 103)))) && or1(p215,(p213) => bits32(bs5,p213.inputs[p213.pos]) && !(bits32(bs5,p213.inputs[p213.pos])),(p214) => true) && tagtree(p215,"Null"),EmptyTag,0) && e16(px);
 }
 
 function e67(px){
-  return newtree(px,0,(p203) => bits32(bs8,p203.inputs[p203.pos++]) && p203.inputs[p203.pos++] == 97 && p203.inputs[p203.pos++] == 108 && p203.inputs[p203.pos++] == 115 && p203.inputs[p203.pos++] == 101 && or1(p203,(p201) => bits32(bs5,p201.inputs[p201.pos]) && !(bits32(bs5,p201.inputs[p201.pos])),(p202) => true) && tagtree(p203,"False"),EmptyTag,0) && e16(px);
+  return newtree(px,0,(p204) => bits32(bs8,p204.inputs[p204.pos++]) && p204.inputs[p204.pos++] == 97 && p204.inputs[p204.pos++] == 108 && p204.inputs[p204.pos++] == 115 && p204.inputs[p204.pos++] == 101 && or1(p204,(p202) => bits32(bs5,p202.inputs[p202.pos]) && !(bits32(bs5,p202.inputs[p202.pos])),(p203) => true) && tagtree(p204,"False"),EmptyTag,0) && e16(px);
 }
 
-function e69(px){
-  return or3(px,(p215) => p215.inputs[p215.pos++] == 36 && p215.inputs[p215.pos++] == 123 && e14(p215) && p215.inputs[p215.pos++] == 125,(p220) => newtree(p220,0,(p219) => many1(p219,(p218) => not1(p218,(p216) => p216.inputs[p216.pos++] == 39 && p216.inputs[p216.pos++] == 39 && p216.inputs[p216.pos++] == 39) && not1(p218,(p217) => p217.inputs[p217.pos++] == 36 && p217.inputs[p217.pos++] == 123) && p218.pos < p218.length && mnext1(p218)) && tagtree(p219,"String"),EmptyTag,0));
+function e70(px){
+  return or3(px,(p217) => p217.inputs[p217.pos++] == 36 && p217.inputs[p217.pos++] == 123 && e14(p217) && p217.inputs[p217.pos++] == 125,(p222) => newtree(p222,0,(p221) => many1(p221,(p220) => not1(p220,(p218) => p218.inputs[p218.pos++] == 39 && p218.inputs[p218.pos++] == 39 && p218.inputs[p218.pos++] == 39) && not1(p220,(p219) => p219.inputs[p219.pos++] == 36 && p219.inputs[p219.pos++] == 123) && p220.pos < p220.length && mnext1(p220)) && tagtree(p221,"String"),EmptyTag,0));
 }
 
 function e59(px){
-  return px.inputs[px.pos++] == 39 && px.inputs[px.pos++] == 39 && px.inputs[px.pos++] == 39 && newtree(px,0,(p181) => many11(p181,(p180) => linktree(p180,"",e69)) && tagtree(p181,"Template"),EmptyTag,0) && px.inputs[px.pos++] == 39 && px.inputs[px.pos++] == 39 && px.inputs[px.pos++] == 39;
+  return px.inputs[px.pos++] == 39 && px.inputs[px.pos++] == 39 && px.inputs[px.pos++] == 39 && newtree(px,0,(p182) => many11(p182,(p181) => linktree(p181,"",e70)) && tagtree(p182,"Template"),EmptyTag,0) && px.inputs[px.pos++] == 39 && px.inputs[px.pos++] == 39 && px.inputs[px.pos++] == 39;
+}
+
+function e69(px){
+  return newtree(px,0,(p216) => p216.inputs[p216.pos++] == 226 && p216.inputs[p216.pos++] == 151 && p216.inputs[p216.pos++] == 143 && tagtree(p216,"Pictogram"),EmptyTag,0) && e16(px);
 }
 
 function e49(px){
-  return or3(px,e59,(p159) => or3(p159,e60,(p158) => or3(p158,e61,(p157) => or3(p157,e62,(p156) => or3(p156,e63,(p155) => or3(p155,e64,(p154) => or3(p154,e65,(p153) => or3(p153,e66,(p152) => or3(p152,e67,e68)))))))));
+  return or3(px,e59,(p160) => or3(p160,e60,(p159) => or3(p159,e61,(p158) => or3(p158,e62,(p157) => or3(p157,e63,(p156) => or3(p156,e64,(p155) => or3(p155,e65,(p154) => or3(p154,e66,(p153) => or3(p153,e67,(p152) => or3(p152,e68,e69))))))))));
 }
 
 function e39(px){

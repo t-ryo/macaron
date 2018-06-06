@@ -51,7 +51,8 @@ const ttag = {
     Double: "Double",
     True: "True",
     False: "False",
-    Null: "Null"
+    Null: "Null",
+    Pictogram: "Pictogram"
 };
 
 const objh = 64;
@@ -99,6 +100,41 @@ class MImage extends MObject {
         this.h = this.ih;
         this.w = this.iw;
         this.a = this.ia;
+    }
+}
+class MPictogram extends MObject {
+    constructor(value) {
+        super(value);
+        this.img = new Image();
+        this.visible = true;
+        this.type = motype.IMAGE;
+
+        this.x = objPos[0];
+        this.y = objPos[1];
+        nextPos();
+        this.h = objh;
+        this.w = objw;
+        this.a = 0;
+        this.ix = this.x;
+        this.iy = this.y;
+        this.ih = this.h;
+        this.iw = this.w;
+        this.ia = this.a;
+    }
+
+    init(){
+        // console.log("a");
+        this.x = this.ix;
+        this.y = this.iy;
+        this.h = this.ih;
+        this.w = this.iw;
+        this.a = this.ia;
+    }
+}
+class MCircle extends MPictogram{
+    constructor(value) {
+        super (value);
+        this.img.src = "image/circle.png";
     }
 }
 class MNumber extends MObject {
@@ -396,6 +432,11 @@ function evalTree(tree,info){
             return false;
         case ttag.Null:
             return null;
+        case ttag.Pictogram:
+            if(info.createNew){
+                return new MCircle("circle");
+            }
+            return new MEmpty("circle");
         case ttag.Name:
             var val = getValue(tree);
             if(info.isKey){
@@ -541,6 +582,13 @@ function plot() {
             ctx.drawImage(globalField[obj].img, 0, 0, globalField[obj].w, globalField[obj].h);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
+        if(MPictogram.prototype.isPrototypeOf(globalField[obj])){
+            cos = Math.cos(globalField[obj].a * rad);
+            sin = Math.sin(globalField[obj].a * rad);
+            ctx.setTransform(cos, sin, -1 * sin, cos, globalField[obj].x, globalField[obj].y);
+            ctx.drawImage(globalField[obj].img, 0, 0, globalField[obj].w, globalField[obj].h);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
     }
 }
 const initFuncs = ["POS", "RAND", "CENTER"];
@@ -550,6 +598,14 @@ function flow() {
     }
     for(var obj in globalField) {
         if(MImage.prototype.isPrototypeOf(globalField[obj])){
+            if(globalField[obj].x > cvsw) globalField[obj].x -= cvsw;
+            if(globalField[obj].x < 0) globalField[obj].x += cvsw;
+            if(globalField[obj].y > cvsh) globalField[obj].y -= cvsh;
+            if(globalField[obj].y < 0) globalField[obj].y += cvsh;
+            if(globalField[obj].a > 360) globalField[obj].a -= 360;
+            if(globalField[obj].a < 0) globalField[obj].a += 360;
+        }
+        if(MPictogram.prototype.isPrototypeOf(globalField[obj])){
             if(globalField[obj].x > cvsw) globalField[obj].x -= cvsw;
             if(globalField[obj].x < 0) globalField[obj].x += cvsw;
             if(globalField[obj].y > cvsh) globalField[obj].y -= cvsh;
@@ -577,7 +633,12 @@ function init() {
         if(MImage.prototype.isPrototypeOf(globalField[obj])){
             globalField[obj].init();
         }
+        if(MPictogram.prototype.isPrototypeOf(globalField[obj])){
+            //console.log("a");
+            globalField[obj].init();
+        }
     }
+    console.log(globalField);
     plot();
     timeCounter = 0;
     $(function(){
