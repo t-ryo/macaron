@@ -79,7 +79,7 @@ Context = {
 }
 
 Premise = {
-  $(Timing) (_ (",")? $(Expression))*
+  $timing(Timing) (_ (",")? $(Expression))*
   #TimingPremise
 } / {
 	$(Expression) (_ (",")? $(Expression))*
