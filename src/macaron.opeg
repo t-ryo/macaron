@@ -236,6 +236,7 @@ Constant =
 	/ TrueExpr
 	/ FalseExpr
 	/ NullExpr
+	/ PictogramExpr
 
 /* Literal */
 
@@ -307,6 +308,7 @@ EXPONENT =
 TrueExpr  = { [Tt] 'rue' (&W !W)?  #True } _
 FalseExpr = { [Ff] 'alse' (&W !W)? #False } _
 NullExpr  = { [Nn] ('ull' / 'one' / 'il' / 'ULL' / 'othing' )  (&W !W)? #Null } _
+PictogramExpr = { '●' #Pictogram } _
 
 /* Identifier */
 
