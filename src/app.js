@@ -57,16 +57,29 @@ const ttag = {
 
 const objh = 64;
 const objw = 64;
-var objPos = [0,0];
 
-function nextPos (){
-    if(objPos[0] + objw <= cvsw){
-        objPos[0] = objPos[0] + objw;
-    }else{
-        objPos[0] = 0;
-        objPos[1] = objPos[1] + objh;
+class Cursor{
+    constructor(){
+        this.x = 0;
+        this.y = 0;
+    }
+
+    next(){
+        if(this.x + objw <= cvsw){
+            this.x = this.x + objw;
+        }else{
+            this.x = 0;
+            this.y = this.y + objh;
+        }
+    }
+
+    reset(){
+        this.x = 0;
+        this.y = 0;
     }
 }
+
+var cursor = new Cursor();
 
 class MObject {
     constructor(value) {
@@ -81,9 +94,9 @@ class MImage extends MObject {
         this.visible = true;
         this.type = motype.IMAGE;
 
-        this.x = objPos[0];
-        this.y = objPos[1];
-        nextPos();
+        this.x = cursor.x;
+        this.y = cursor.y;
+        cursor.next();
         this.h = objh;
         this.w = objw;
         this.a = 0;
@@ -188,16 +201,38 @@ function evalTree(tree,info){
             if(info.inFlow){
                 var before = currentField;
                 currentField = {};
-                evalLabeledTree(tree.child,"context",info); // TODO
+                var inContext = evalLabeledTree(tree.child,"context",info);
                 if(getLabeledTag(tree.child,"cond") === ttag.TimingPremise){
-                    info.counter = 0;
-                    while(true){
-                        var bool = evalLabeledTree(tree.child,"cond",info);
-                        if(bool){
-                            info.isKey = false;
-                            evalLabeledTree(tree.child,"body",info);
-                        }else{
-                            break;
+                    if(inContext == null){
+                        var timingTag = getLabeledTag(getChild(tree, 0).child,"timing");
+                    }else{
+                        var timingTag = getLabeledTag(getChild(tree, 1).child,"timing");
+                    }
+                    if(timingTag === ttag.Event){
+                        for(var obj in globalField){
+                            info.currentObject = globalField[obj];
+                            var targets = evalLabeledTree(tree.child,"cond",info);
+                            var event = targets["event"];
+                            var body = tree.child;
+                            if(event == "Click"){
+                                var clickFunc = function(evt){
+                                    if(onDown(canvas, evt, targets["target"])){
+                                        evalLabeledTree(body,"body",info);
+                                    }
+                                };
+                                canvas.addEventListener("mousedown",clickFunc,false);
+                            }
+                        }
+                    }else{
+                        info.counter = 0;
+                        while(true){
+                            var bool = evalLabeledTree(tree.child,"cond",info);
+                            if(bool){
+                                info.isKey = false;
+                                evalLabeledTree(tree.child,"body",info);
+                            }else{
+                                break;
+                            }
                         }
                     }
                 }else{
@@ -210,10 +245,18 @@ function evalTree(tree,info){
             }
             return null;
         case ttag.Context:
-            return null; // TODO
+            var length = getLength(tree.child);
+            var inContext = true;
+            for(var i = 0;i<length;i++){
+                inContext = inContext && evalElement(tree.child,i,{inFlow:true,isKey:true}); // TODO 子ノードのeval結果はbool?
+            }
+            return inContext;
         case ttag.TimingPremise:
             var length = getLength(tree.child);
             var targets = evalElement(tree.child,0,info);
+            if(getLabeledTag(tree.child,"timing") === ttag.Event){
+                return targets;
+            }
             while(targetsSetter(targets,info.counter,[],{index:0})){
                 var isContinue = false;
                 for(var i = 1;i<length;i++){
@@ -250,8 +293,14 @@ function evalTree(tree,info){
                 targets.push(evalElement(tree.child,i,{inFlow:true,isKey:true}));
             }
             return targets;
-        case ttag.Event:
-            return null; // TODO
+        case ttag.Event: // FIXME 現状決め打ち
+            info.isKey = true;
+            var event = evalLabeledTree(tree.child,"recv",info);
+            var target = evalLabeledTree(tree.child,"param",info);
+            info.isKey = false;
+            return {"event":event,"target":target};
+
+            // return null; // TODO
         case ttag.Body:
             evalList(tree.child,info);
             return null;
@@ -392,23 +441,58 @@ function evalTree(tree,info){
             info.isKey = false;
             return val;
         case ttag.Tuple:
-            evalList(tree.child,info);
-            return null; // TODO
+             // evalList(tree.child,info);
+             var length = getLength(tree.child);
+             var tuple = [];
+             for(var i = 0;i<length;i++){
+                 tuple.push(evalElement(tree.child,i,{inFlow:true,isKey:true}));
+             }
+             return tuple;
         case ttag.Empty:
             return null;
         case ttag.List:
-            evalList(tree.child,info);
-            return null; // TODO
+            // evalList(tree.child,info);
+            var length = getLength(tree.child);
+            var list = [];
+            for(var i = 0;i<length;i++){
+                list.push(evalElement(tree.child,i,{inFlow:true,isKey:true}));
+            }
+            return list;
         case ttag.RangeUntilExpr:
-            return null; // TODO
+            var list = [];
+            var start = evalLabeledTree(target.child,"left",{inFlow:false,isKey:true});
+            var end = evalLabeledTree(target.child,"right",{inFlow:false,createNew:true});
+            for(var i = start;i<end-1;i++){
+                list.push(i);
+            }
+            return list;
         case ttag.RangeExpr:
-            return null; // TODO
+            var list = [];
+            var start = evalLabeledTree(target.child,"left",{inFlow:false,isKey:true});
+            var end = evalLabeledTree(target.child,"right",{inFlow:false,createNew:true});
+            for(var i = start;i<end;i++){
+                list.push(i);
+            }
+            return list;
         case ttag.Data:
             return null; // TODO
         case ttag.Dict:
-            return null; // TODO
+            var length = getLength(tree.child);
+            var dict = {};
+            for(var i = 0;i<length;i++){
+                var target = getChild(tree.child,i);
+                dict[evalLabeledTree(target.child,"name",{inFlow:false,isKey:true})] = evalLabeledTree(target.child,"value",{inFlow:false,createNew:true});
+            }
+            return dict;
         case ttag.Tamplete:
-            return null; // TODO
+            var length = getLength(tree.child);
+            var template = "\`";
+            for(var i = 0;i<length;i++){ // TODO ${Expression} の処理
+                var target = getChild(tree.child,i);
+                template = template + getValue(target);
+            }
+            template = template +  "\`";
+            return template;
         case ttag.String:
             return "\"" + getValue(tree) + "\"";
         case ttag.Char:
@@ -476,6 +560,16 @@ function evalElement(tree,index,info){
         i--;
     }
     return evalTree(target.child,info);
+}
+
+function getChild(tree,index){
+    var i = getLength(tree) - index;
+    var target = tree;
+    while(i>0){
+        target = target.prev;
+        i--;
+    }
+    return target;
 }
 
 function getLength(tree){
@@ -571,6 +665,20 @@ function getMousePosition(canvas, evt) {
         x: evt.clientX - rect.left,
         y: evt.clientY - rect.top
     };
+}
+// FIXME 個別に指定する場合
+function onDown(canvas, evt, target){
+    var mousePos = getMousePosition(canvas, evt);
+    for(var obj in globalField) {
+        if(MImage.prototype.isPrototypeOf(globalField[obj])){
+            if(globalField[obj].value == target){
+                if (globalField[obj].x < mousePos[x] && (globalField[obj].x + globalField[obj].width) > mousePos[x] && globalField[obj].y < mousePos[y] && (globalField[obj].y + globalField[obj].height) > mousePos[y]) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 function plot() {
     ctx.clearRect(0, 0, cvsw, cvsh);
@@ -670,13 +778,14 @@ $(function () {
     $('#parse').click(function () {
         console.log("parse");
         jsEditor.toTextArea();
+        cursor.reset(); // FIXME
         var inputs = (new TextEncoder).encode($('#source-text').val().toString());
         result = parse(inputs,inputs.length-1);
         jsEditor = makeEditor();
     });
     $('#eval').click(function () {
         console.log("eval");
-        objPos = [0,0];
+        cursor.reset();
         globalField = {};
         currentField = globalField;
         evalTree(result,{inFlow:false});
