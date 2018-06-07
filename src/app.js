@@ -136,7 +136,6 @@ class MPictogram extends MObject {
     }
 
     init(){
-        // console.log("a");
         this.x = this.ix;
         this.y = this.iy;
         this.h = this.ih;
@@ -338,8 +337,7 @@ function evalTree(tree,info){
             if(MObject.prototype.isPrototypeOf(right)){
                 right = right.value;
             }
-            var ret = left + evalLabeledTree(tree.child,"op",{isKey:true}) + right;
-            return eval(ret);
+            return eval("left" + evalLabeledTree(tree.child,"op",{isKey:true}) + "right");
         case ttag.Cast:
             if(info.isKey){
                 return "(" + evalLabeledTree(tree.child,"type",info) + ")" + evalLabeledTree(tree.child,"recv",info);
@@ -503,13 +501,13 @@ function evalTree(tree,info){
             }
             return new MEmpty(getValue(tree));
         case ttag.Double:
-            return getValue(tree);
+            return parseFloat(getValue(tree));
         case ttag.Unit:
             return null; // TODO
         case ttag.Rational:
             return eval(getValue(tree));
         case ttag.Int:
-            return getValue(tree);
+            return parseInt(getValue(tree));
         case ttag.True:
             return true;
         case ttag.False:
@@ -742,11 +740,9 @@ function init() {
             globalField[obj].init();
         }
         if(MPictogram.prototype.isPrototypeOf(globalField[obj])){
-            //console.log("a");
             globalField[obj].init();
         }
     }
-    console.log(globalField);
     plot();
     timeCounter = 0;
     $(function(){
