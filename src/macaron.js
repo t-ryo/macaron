@@ -512,7 +512,7 @@ function e17(px){
 }
 
 function e10(px){
-  return or3(px,(p27) => newtree(p27,0,(p26) => linktree(p26,"",e17) && many3(p26,(p25) => e16(p25) && or1(p25,e15,(p24) => true) && linktree(p25,"",e14)) && tagtree(p26,"TimingPremise"),EmptyTag,0),(p31) => newtree(p31,0,(p30) => linktree(p30,"",e14) && many3(p30,(p29) => e16(p29) && or1(p29,e15,(p28) => true) && linktree(p29,"",e14)) && tagtree(p30,"Premise"),EmptyTag,0));
+  return or3(px,(p27) => newtree(p27,0,(p26) => linktree(p26,"timing",e17) && many3(p26,(p25) => e16(p25) && or1(p25,e15,(p24) => true) && linktree(p25,"",e14)) && tagtree(p26,"TimingPremise"),EmptyTag,0),(p31) => newtree(p31,0,(p30) => linktree(p30,"",e14) && many3(p30,(p29) => e16(p29) && or1(p29,e15,(p28) => true) && linktree(p29,"",e14)) && tagtree(p30,"Premise"),EmptyTag,0));
 }
 
 function e9(px){
@@ -543,7 +543,7 @@ function parse(inputs,length){
 }
 
 // var fs = require('fs');
-
+// 
 // (function main(){
 //     for(var i = 2;i < process.argv.length;i++){
 //       var inputs = fs.readFileSync('./' + process.argv[i]);
