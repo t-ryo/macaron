@@ -460,18 +460,34 @@ function evalTree(tree,info){
             return list;
         case ttag.RangeUntilExpr:
             var list = [];
-            var start = evalLabeledTree(target.child,"left",{inFlow:false,isKey:true});
-            var end = evalLabeledTree(target.child,"right",{inFlow:false,createNew:true});
-            for(var i = start;i<end-1;i++){
-                list.push(i);
+            var start = evalLabeledTree(tree.child,"left",{inFlow:false,isKey:true});
+            var end = evalLabeledTree(tree.child,"right",{inFlow:false,createNew:true});
+            if(typeof start == "number" && typeof end == "number"){
+                for(var i = start; i < end; i++){
+                    list.push(i);
+                }
+            }else if(typeof start == "string" && typeof end == "string"){
+                var startByte = start.charCodeAt(0);
+                var endByte = end.charCodeAt(0);
+                for(var i = startByte; i < endByte; i++) {
+                    list.push(String.fromCodePoint(i));
+                }
             }
             return list;
         case ttag.RangeExpr:
             var list = [];
-            var start = evalLabeledTree(target.child,"left",{inFlow:false,isKey:true});
-            var end = evalLabeledTree(target.child,"right",{inFlow:false,createNew:true});
-            for(var i = start;i<end;i++){
-                list.push(i);
+            var start = evalLabeledTree(tree.child,"left",{inFlow:false,isKey:true});
+            var end = evalLabeledTree(tree.child,"right",{inFlow:false,createNew:true});
+            if(typeof start == "number" && typeof end == "number"){
+                for(var i = start; i <= end; i++){
+                    list.push(i);
+                }
+            }else if(typeof start == "string" && typeof end == "string"){
+                var startByte = start.charCodeAt(0);
+                var endByte = end.charCodeAt(0);
+                for(var i = startByte; i <= endByte; i++) {
+                    list.push(String.fromCodePoint(i));
+                }
             }
             return list;
         case ttag.Data:

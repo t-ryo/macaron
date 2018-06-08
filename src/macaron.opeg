@@ -188,6 +188,7 @@ Primary =
 	GroupExpr
   / EmptyExpr
   / ListExpr
+  / RangeExpr
   / DataExpr
   / DictExpr
   / Constant
