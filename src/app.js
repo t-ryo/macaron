@@ -201,6 +201,7 @@ function evalTree(tree,info){
                 var before = currentField;
                 currentField = {};
                 var inContext = evalLabeledTree(tree.child,"context",info);
+                info.counter = 0;
                 if(getLabeledTag(tree.child,"cond") === ttag.TimingPremise){
                     var timingTag = inContext == null ? getLabeledTag(getChildTree(tree.child, 0).child,"timing") : getLabeledTag(getChildTree(tree.child, 1).child,"timing");
                     if(timingTag === ttag.Event){
@@ -208,10 +209,14 @@ function evalTree(tree,info){
                             info.currentObject = globalField[obj];
                             var targets = evalLabeledTree(tree.child,"cond",info);
                             var event = targets["event"];
+                            var targetVal = currentField[targets["target"]].value;
                             var body = tree.child;
+                            var eventField = currentField;
                             if(event == "Click"){
                                 var clickFunc = function(evt){
-                                    if(onDown(canvas, evt, currentField[targets["target"]])){
+                                    if(onDown(canvas, evt, targetVal)){
+                                        currentField = eventField;
+                                        info.isKey =false;
                                         evalLabeledTree(body,"body",info);
                                     }
                                 };
@@ -219,7 +224,6 @@ function evalTree(tree,info){
                             }
                         }
                     }else{
-                        info.counter = 0;
                         while(true){
                             var bool = evalLabeledTree(tree.child,"cond",info);
                             if(bool){
@@ -268,7 +272,6 @@ function evalTree(tree,info){
                 if(isContinue){
                     continue;
                 }else{
-                    console.log(currentField)
                     if(inEvent){
                         return target;
                     }else{
@@ -750,7 +753,7 @@ function init() {
 }
 
 $(function () {
-    var initCode = "s = <sakura>\nforeach a  a == <sakura>\n-------------------\n    $a.x = a.x + 10";
+    var initCode = "s = <sakura>\nforeach a  a == <sakura>\n-------------------\n    $a.x = a.x + 10\nwhen Click(a)  a == <sakura>\n-------------------\n    $a.img.src = \"image/fish.png\"";
     $('#source-text').val(initCode);
     var jsEditor = makeEditor();
     cvsw = $('#mapping-area').width();
