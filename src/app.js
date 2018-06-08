@@ -122,9 +122,9 @@ class MPictogram extends MObject {
         this.visible = true;
         this.type = motype.IMAGE;
 
-        this.x = objPos[0];
-        this.y = objPos[1];
-        nextPos();
+        this.x = cursor.x;
+        this.y = cursor.y;
+        cursor.next();
         this.h = objh;
         this.w = objw;
         this.a = 0;
@@ -203,11 +203,7 @@ function evalTree(tree,info){
                 currentField = {};
                 var inContext = evalLabeledTree(tree.child,"context",info);
                 if(getLabeledTag(tree.child,"cond") === ttag.TimingPremise){
-                    if(inContext == null){
-                        var timingTag = getLabeledTag(getChild(tree, 0).child,"timing");
-                    }else{
-                        var timingTag = getLabeledTag(getChild(tree, 1).child,"timing");
-                    }
+                    var timingTag = inContext == null ? getLabeledTag(getChildTree(tree.child, 0).child,"timing") : getLabeledTag(getChildTree(tree.child, 1).child,"timing");
                     if(timingTag === ttag.Event){
                         for(var obj in globalField){
                             info.currentObject = globalField[obj];
@@ -216,7 +212,7 @@ function evalTree(tree,info){
                             var body = tree.child;
                             if(event == "Click"){
                                 var clickFunc = function(evt){
-                                    if(onDown(canvas, evt, targets["target"])){
+                                    if(onDown(canvas, evt, currentField[targets["target"]])){
                                         evalLabeledTree(body,"body",info);
                                     }
                                 };
@@ -252,10 +248,14 @@ function evalTree(tree,info){
             }
             return inContext;
         case ttag.TimingPremise:
-            var length = getLength(tree.child);
-            var targets = evalElement(tree.child,0,info);
-            if(getLabeledTag(tree.child,"timing") === ttag.Event){
-                return targets;
+            var inEvent = getLabeledTag(tree.child,"timing") === ttag.Event;
+            if(inEvent){
+                var target = evalElement(tree.child,0,info);
+                var targets = [target["target"]];
+                var length = targets.length;
+            }else{
+                var length = getLength(tree.child);
+                var targets = evalElement(tree.child,0,info);
             }
             while(targetsSetter(targets,info.counter,[],{index:0})){
                 var isContinue = false;
@@ -269,7 +269,12 @@ function evalTree(tree,info){
                 if(isContinue){
                     continue;
                 }else{
-                    return true;
+                    console.log(currentField)
+                    if(inEvent){
+                        return target;
+                    }else{
+                        return true;
+                    }
                 }
             }
             return false;
@@ -294,13 +299,7 @@ function evalTree(tree,info){
             }
             return targets;
         case ttag.Event: // FIXME 現状決め打ち
-            info.isKey = true;
-            var event = evalLabeledTree(tree.child,"recv",info);
-            var target = evalLabeledTree(tree.child,"param",info);
-            info.isKey = false;
-            return {"event":event,"target":target};
-
-            // return null; // TODO
+            return {"event":evalElement(getChildTree(tree.child,0).child,0,{inFlow:true,isKey:true}),"target":getValue(getChildTree(getChildTree(tree.child,0).child,1))};
         case ttag.Body:
             evalList(tree.child,info);
             return null;
@@ -480,7 +479,7 @@ function evalTree(tree,info){
             var length = getLength(tree.child);
             var dict = {};
             for(var i = 0;i<length;i++){
-                var target = getChild(tree.child,i);
+                var target = getChildTree(tree.child,i);
                 dict[evalLabeledTree(target.child,"name",{inFlow:false,isKey:true})] = evalLabeledTree(target.child,"value",{inFlow:false,createNew:true});
             }
             return dict;
@@ -488,7 +487,7 @@ function evalTree(tree,info){
             var length = getLength(tree.child);
             var template = "\`";
             for(var i = 0;i<length;i++){ // TODO ${Expression} の処理
-                var target = getChild(tree.child,i);
+                var target = getChildTree(tree.child,i);
                 template = template + getValue(target);
             }
             template = template +  "\`";
@@ -562,14 +561,14 @@ function evalElement(tree,index,info){
     return evalTree(target.child,info);
 }
 
-function getChild(tree,index){
+function getChildTree(tree,index){
     var i = getLength(tree) - index;
     var target = tree;
     while(i>0){
         target = target.prev;
         i--;
     }
-    return target;
+    return target.child;
 }
 
 function getLength(tree){
@@ -672,7 +671,7 @@ function onDown(canvas, evt, target){
     for(var obj in globalField) {
         if(MImage.prototype.isPrototypeOf(globalField[obj])){
             if(globalField[obj].value == target){
-                if (globalField[obj].x < mousePos[x] && (globalField[obj].x + globalField[obj].width) > mousePos[x] && globalField[obj].y < mousePos[y] && (globalField[obj].y + globalField[obj].height) > mousePos[y]) {
+                if (globalField[obj].x < mousePos.x && (globalField[obj].x + globalField[obj].w) > mousePos.x && globalField[obj].y < mousePos.y && (globalField[obj].y + globalField[obj].h) > mousePos.y) {
                     return true;
                 }
             }
