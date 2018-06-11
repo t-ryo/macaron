@@ -280,7 +280,7 @@ function evalTree(tree,info){
                 }
             }
             return false;
-        case ttag.Premise:
+        case ttag.Premise: // FIXME
             var length = getLength(tree.child);
             for(var i = 0;i<length;i++){
                 if(!evalElement(tree.child,i,info)){
@@ -361,13 +361,40 @@ function evalTree(tree,info){
             }
             info.isKey = true;
             var val = null;
+
+            var recv = evalLabeledTree(tree.child,"recv",info);
+            var name = evalLabeledTree(tree.child,"name",info);
+            var params = evalLabeledTree(tree.child,"param",info);
+            var paramStr = "";
+
+            if(Array.isArray(params)){
+                var length = params.length;
+                for(var i = 0;i<length;i++){
+                    if(params[i] in currentField){
+                        params[i] = currentField[params[i]];
+                    }
+                    if(params[i] in globalField){
+                        params[i] = globalField[params[i]];
+                    }
+                    paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
+                }
+            }else{
+                if(params in currentField){
+                    params = currentField[params];
+                }
+                if(params in globalField){
+                    params = globalField[params];
+                }
+                paramStr = "params"
+            }
+
             try{
-                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                val = eval("currentField." + recv + "." + name + "(" + paramStr + ")");
             }catch(e){
                 try{
-                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                    val = eval("globalField." + recv + "." + name + "(" + paramStr + ")");
                 }catch(e){
-                    val = eval(evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                    val = eval(recv + "." + name + "(" + paramStr + ")");
                 }
             }
             info.isKey = false;
@@ -393,15 +420,40 @@ function evalTree(tree,info){
             if(info.isKey){
                 return evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")";
             }
+
             info.isKey = true;
             var val = null;
+            var recv = evalLabeledTree(tree.child,"recv",info);
+            var params = evalLabeledTree(tree.child,"param",info);
+            var paramStr = "";
+            if(Array.isArray(params)){
+                var length = params.length;
+                for(var i = 0;i<length;i++){
+                    if(params[i] in currentField){
+                        params[i] = currentField[params[i]];
+                    }
+                    if(params[i] in globalField){
+                        params[i] = globalField[params[i]];
+                    }
+                    paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
+                }
+            }else{
+                if(params in currentField){
+                    params = currentField[params];
+                }
+                if(params in globalField){
+                    params = globalField[params];
+                }
+                paramStr = "params"
+            }
+
             try{
-                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                val = eval("currentField." + recv + "(" + paramStr + ")");
             }catch(e){
                 try{
-                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                    val = eval("globalField." + recv + "(" + paramStr + ")");
                 }catch(e){
-                    val = eval(evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")");
+                    val = eval(recv + "(" + paramStr + ")");
                 }
             }
             info.isKey = false;
@@ -503,7 +555,7 @@ function evalTree(tree,info){
         case ttag.Tamplete:
             var length = getLength(tree.child);
             var template = "\`";
-            for(var i = 0;i<length;i++){ // TODO ${Expression} の処理
+            for(var i = 0;i<length;i++){ // TODO ${Expression} の処理 
                 var target = getChildTree(tree.child,i);
                 template = template + getValue(target);
             }
@@ -549,7 +601,18 @@ function evalTree(tree,info){
                 return globalField[val];
             }
             return val;
-        default:
+        default: // 仮
+            var length = getLength(tree.child);
+            if(length == 0){
+                return evalElement(tree.child,0,info);
+            }else if (length > 0){
+                var list = [];
+                for(var i = 0;i<=length;i++){
+                    list.push(evalElement(tree.child,i,info));
+                }
+                return list;
+            }
+            return false;
     }
 }
 
@@ -715,7 +778,7 @@ function plot() {
         }
     }
 }
-const initFuncs = ["POS", "RAND", "CENTER"];
+
 function flow() {
     if(result !== null){
         evalTree(result,{inFlow:true});
