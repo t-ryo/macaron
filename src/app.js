@@ -174,6 +174,14 @@ class Transition {
     }
 }
 
+class MFunc{
+    constructor(func, params, body) {
+        this.func = func;
+        this.params = params;
+        this.body = body;
+    }
+}
+
 var globalField = {};
 var currentField = globalField;
 var Transitions = [];
@@ -197,33 +205,14 @@ function evalTree(tree,info){
             evalList(tree.child,info);
             return null;
         case ttag.Rule:
+            var before = currentField;
+            currentField = {};
+            var inContext = evalLabeledTree(tree.child,"context",info);
+            info.counter = 0;
+            var timingTag = inContext == null ? getLabeledTag(getChildTree(tree.child, 0).child,"timing") : getLabeledTag(getChildTree(tree.child, 1).child,"timing");
             if(info.inFlow){
-                var before = currentField;
-                currentField = {};
-                var inContext = evalLabeledTree(tree.child,"context",info);
-                info.counter = 0;
                 if(getLabeledTag(tree.child,"cond") === ttag.TimingPremise){
-                    var timingTag = inContext == null ? getLabeledTag(getChildTree(tree.child, 0).child,"timing") : getLabeledTag(getChildTree(tree.child, 1).child,"timing");
-                    if(timingTag === ttag.Event){
-                        for(var obj in globalField){
-                            info.currentObject = globalField[obj];
-                            var targets = evalLabeledTree(tree.child,"cond",info);
-                            var event = targets["event"];
-                            var targetVal = currentField[targets["target"]].value;
-                            var body = tree.child;
-                            var eventField = currentField;
-                            if(event == "Click"){
-                                var clickFunc = function(evt){
-                                    if(onDown(canvas, evt, targetVal)){
-                                        currentField = eventField;
-                                        info.isKey =false;
-                                        evalLabeledTree(body,"body",info);
-                                    }
-                                };
-                                canvas.addEventListener("mousedown",clickFunc,false);
-                            }
-                        }
-                    }else{
+                    if(!(timingTag === ttag.Event)){
                         while(true){
                             var bool = evalLabeledTree(tree.child,"cond",info);
                             if(bool){
@@ -234,14 +223,51 @@ function evalTree(tree,info){
                             }
                         }
                     }
+                }
+            }else{
+                if(getLabeledTag(tree.child,"cond") === ttag.TimingPremise){
+                    if(timingTag === ttag.Event){
+                        var targets = evalLabeledTree(tree.child,"cond",info);
+                        var event = targets["event"];
+                        var targetVal = currentField[targets["target"]].value;
+                        var body = tree.child;
+                        var eventField = currentField;
+                        if(event == "Click"){
+                            var clickFunc = function(evt){
+                                if(onDown(canvas, evt, targetVal)){
+                                    currentField = eventField;
+                                    info.isKey =false;
+                                    evalLabeledTree(body,"body",info);
+                                }
+                            };
+                            canvas.addEventListener("mousedown",clickFunc,false);
+                        }
+                    }
                 }else{
-                    if(evalLabeledTree(tree.child,"cond",info)){
-                        info.isKey = false;
-                        evalLabeledTree(tree.child,"body",info);
+                    info.isKey = true;
+                    var funcInfo = evalLabeledTree(tree.child,"cond",info);
+                    if(funcInfo.name in globalField){
+                        var mfunc = globalField[funcInfo.name];
+                        if(mfunc.params.length == funcInfo.params.length){
+                            var body = "if(" + funcInfo.conds.join(' && ') + "){" + evalLabeledTree(tree.child,"body",info) + "}"
+                            for(var i = 0; i < mfunc.params.length; i++){
+                                body = body.replace(new RegExp(funcInfo.params[i], 'g'),mfunc.params[i]); // FIXME 変数だけを置換したい
+                            }
+                            body = mfunc.body + body;
+                            mfunc.body = body;
+                            mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
+                            globalField[funcInfo.name] = mfunc;
+                        }else{ // TODO 引数の数が異なる時
+                            return false;
+                        }
+                    }else{
+                        var body = "if(" + funcInfo.conds.join(' && ') + "){" + evalLabeledTree(tree.child,"body",info) + "}"
+                        var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
+                        globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
                     }
                 }
-                currentField = before;
             }
+            currentField = before;
             return null;
         case ttag.Context:
             var length = getLength(tree.child);
@@ -280,14 +306,30 @@ function evalTree(tree,info){
                 }
             }
             return false;
-        case ttag.Premise: // FIXME
+        case ttag.Premise:
+            var funcInfo = {};
             var length = getLength(tree.child);
-            for(var i = 0;i<length;i++){
-                if(!evalElement(tree.child,i,info)){
-                    return false;
+            var funcTree = getChildTree(tree.child, 0);
+            funcInfo.name = evalLabeledTree(funcTree.child,"recv",{inFlow:false,isKey:true});
+            var funcParams = getValue(getChildTree(funcTree.child, 1)).split(',');
+            var conds = [];
+            if(length == 1){
+                var paramLen = funcParams.length;
+                var params = [];
+                for(var i = 0;i<paramLen;i++){
+                    params.push("p" + i); // FIXME funcParams が変数の場合ある？
+                    conds.push("p" + i + " == " + funcParams[i]); 
                 }
+                funcInfo.params = params;
+                funcInfo.conds = conds;
+            }else{
+                funcInfo.params = funcParams;
+                for(var i = 1;i<length;i++){
+                    conds.push(evalElement(tree.child,i,{inFlow:false,isKey:true}));
+                }
+                funcInfo.conds = conds;
             }
-            return true;
+            return funcInfo;
         case ttag.PeriodicSome: // TODO
             var targets = [];
             targets.push(evalElement(tree.child,0,{inFlow:true,isKey:true}));
@@ -303,6 +345,14 @@ function evalTree(tree,info){
         case ttag.Event: // FIXME 現状決め打ち
             return {"event":evalElement(getChildTree(tree.child,0).child,0,{inFlow:true,isKey:true}),"target":getValue(getChildTree(getChildTree(tree.child,0).child,1))};
         case ttag.Body:
+            if(info.isKey){
+                var length = getLength(tree.child);
+                var body = "";
+                for(var i = 0;i<length;i++){
+                    body = body + evalElement(tree.child,i,{inFlow:true,isKey:true});
+                }
+                return body;
+            }
             evalList(tree.child,info);
             return null;
         case ttag.Assign:
@@ -321,7 +371,12 @@ function evalTree(tree,info){
             info.isKey = false;
             return null;
         case ttag.Return:
-            return null; // TODO
+            if(info.isKey){
+                var returnExp = "return ";
+                returnExp = returnExp + getValue(tree).replace('=>','') + ";";
+                return returnExp;
+            }
+            return evalLabeledTree(tree.child,"expr",info);// 仮
         case ttag.Let:
             if(!(info.inFlow)){
                 currentField[evalLabeledTree(tree.child,"left",{inFlow:false,isKey:true})] = evalLabeledTree(tree.child,"right",{inFlow:false,createNew:true});
@@ -388,7 +443,7 @@ function evalTree(tree,info){
                 paramStr = "params"
             }
 
-            try{
+            try{ // TODO
                 val = eval("currentField." + recv + "." + name + "(" + paramStr + ")");
             }catch(e){
                 try{
@@ -447,11 +502,13 @@ function evalTree(tree,info){
                 paramStr = "params"
             }
 
-            try{
-                val = eval("currentField." + recv + "(" + paramStr + ")");
+            try{ // FIXME
+                var mfunc = eval("currentField." + recv)
+                val = eval(mfunc.func + "(" + paramStr + ")");
             }catch(e){
                 try{
-                    val = eval("globalField." + recv + "(" + paramStr + ")");
+                    var mfunc = eval("globalField." + recv)
+                    val = eval(mfunc.func + "(" + paramStr + ")");
                 }catch(e){
                     val = eval(recv + "(" + paramStr + ")");
                 }
@@ -493,7 +550,6 @@ function evalTree(tree,info){
             info.isKey = false;
             return val;
         case ttag.Tuple:
-             // evalList(tree.child,info);
              var length = getLength(tree.child);
              var tuple = [];
              for(var i = 0;i<length;i++){
@@ -503,7 +559,6 @@ function evalTree(tree,info){
         case ttag.Empty:
             return null;
         case ttag.List:
-            // evalList(tree.child,info);
             var length = getLength(tree.child);
             var list = [];
             for(var i = 0;i<length;i++){
@@ -555,7 +610,7 @@ function evalTree(tree,info){
         case ttag.Tamplete:
             var length = getLength(tree.child);
             var template = "\`";
-            for(var i = 0;i<length;i++){ // TODO ${Expression} の処理 
+            for(var i = 0;i<length;i++){
                 var target = getChildTree(tree.child,i);
                 template = template + getValue(target);
             }
