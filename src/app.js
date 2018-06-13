@@ -243,7 +243,7 @@ function evalTree(tree,info){
                             canvas.addEventListener("mousedown",clickFunc,false);
                         }
                     }
-                }else{
+                }else{// FIXME 現状関数のみ オブジェクト指定のループもこっち？
                     info.isKey = true;
                     var funcInfo = evalLabeledTree(tree.child,"cond",info);
                     if(funcInfo.name in globalField){
@@ -317,8 +317,13 @@ function evalTree(tree,info){
                 var paramLen = funcParams.length;
                 var params = [];
                 for(var i = 0;i<paramLen;i++){
-                    params.push("p" + i); // FIXME funcParams が変数の場合ある？
-                    conds.push("p" + i + " == " + funcParams[i]); 
+                    if(Number(funcParams[i]) == NaN){
+                        params.push(funcParams[i]);
+                        conds.push("true");
+                    }else{
+                        params.push("p" + i); 
+                        conds.push("p" + i + " == " + funcParams[i]); 
+                    }
                 }
                 funcInfo.params = params;
                 funcInfo.conds = conds;
@@ -373,7 +378,7 @@ function evalTree(tree,info){
         case ttag.Return:
             if(info.isKey){
                 var returnExp = "return ";
-                returnExp = returnExp + getValue(tree).replace('=>','') + ";";
+                returnExp = returnExp + evalLabeledTree(tree.child,"expr",info) + ";";
                 return returnExp;
             }
             return evalLabeledTree(tree.child,"expr",info);// 仮
@@ -473,7 +478,7 @@ function evalTree(tree,info){
             return val;
         case ttag.Apply:
             if(info.isKey){
-                return evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")";
+                return "callFunc(\"" + evalLabeledTree(tree.child,"recv",info) + "\")(" + evalLabeledTree(tree.child,"param",info) + ")";
             }
 
             info.isKey = true;
@@ -502,7 +507,7 @@ function evalTree(tree,info){
                 paramStr = "params"
             }
 
-            try{ // FIXME
+            try{
                 var mfunc = eval("currentField." + recv)
                 val = eval(mfunc.func + "(" + paramStr + ")");
             }catch(e){
@@ -612,7 +617,7 @@ function evalTree(tree,info){
             var template = "\`";
             for(var i = 0;i<length;i++){
                 var target = getChildTree(tree.child,i);
-                template = template + getValue(target);
+                template = template + getValue(target); // TODO 確認
             }
             template = template +  "\`";
             return template;
@@ -753,6 +758,15 @@ function targetsSetter(targets,index,setted,counter){
         }
     }
     return false;
+}
+
+function callFunc(funcName){
+    if(funcName in currentField){
+        return eval(currentField[funcName].func);
+    }else if(funcName in globalField){
+        return eval(globalField[funcName].func);
+    }
+    return eval(funcName);
 }
 
 function showTree(tree,depth){
