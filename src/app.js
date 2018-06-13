@@ -199,539 +199,631 @@ function createTransition(){
     TransitionCount++;
     return transition;
 }
-function evalTree(tree,info){
-    switch(tree.tag){
-        case ttag.Source:
-            evalList(tree.child,info);
-            return null;
-        case ttag.Rule:
-            var before = currentField;
-            currentField = {};
-            var inContext = evalLabeledTree(tree.child,"context",info);
-            info.counter = 0;
-            var timingTag = inContext == null ? getLabeledTag(getChildTree(tree.child, 0).child,"timing") : getLabeledTag(getChildTree(tree.child, 1).child,"timing");
-            if(info.inFlow){
-                if(getLabeledTag(tree.child,"cond") === ttag.TimingPremise){
-                    if(!(timingTag === ttag.Event)){
-                        while(true){
-                            var bool = evalLabeledTree(tree.child,"cond",info);
-                            if(bool){
-                                info.isKey = false;
-                                evalLabeledTree(tree.child,"body",info);
-                            }else{
-                                break;
-                            }
-                        }
-                    }
-                }
-            }else{
-                if(getLabeledTag(tree.child,"cond") === ttag.TimingPremise){
-                    if(timingTag === ttag.Event){
-                        var targets = evalLabeledTree(tree.child,"cond",info);
-                        var event = targets["event"];
-                        var targetVal = currentField[targets["target"]].value;
-                        var body = tree.child;
-                        var eventField = currentField;
-                        if(event == "Click"){
-                            var clickFunc = function(evt){
-                                if(onDown(canvas, evt, targetVal)){
-                                    currentField = eventField;
-                                    info.isKey =false;
-                                    evalLabeledTree(body,"body",info);
-                                }
-                            };
-                            canvas.addEventListener("mousedown",clickFunc,false);
-                        }
-                    }
-                }else{
-                    info.isKey = true;
-                    var funcInfo = evalLabeledTree(tree.child,"cond",info);
-                    if(funcInfo.name in globalField){
-                        var mfunc = globalField[funcInfo.name];
-                        if(mfunc.params.length == funcInfo.params.length){
-                            var body = "if(" + funcInfo.conds.join(' && ') + "){" + evalLabeledTree(tree.child,"body",info) + "}"
-                            for(var i = 0; i < mfunc.params.length; i++){
-                                body = body.replace(new RegExp(funcInfo.params[i], 'g'),mfunc.params[i]); // FIXME 変数だけを置換したい
-                            }
-                            body = mfunc.body + body;
-                            mfunc.body = body;
-                            mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
-                            globalField[funcInfo.name] = mfunc;
-                        }else{ // TODO 引数の数が異なる時
-                            return false;
-                        }
-                    }else{
-                        var body = "if(" + funcInfo.conds.join(' && ') + "){" + evalLabeledTree(tree.child,"body",info) + "}"
-                        var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
-                        globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
-                    }
-                }
-            }
-            currentField = before;
-            return null;
-        case ttag.Context:
-            var length = getLength(tree.child);
-            var inContext = true;
-            for(var i = 0;i<length;i++){
-                inContext = inContext && evalElement(tree.child,i,{inFlow:true,isKey:true}); // TODO 子ノードのeval結果はbool?
-            }
-            return inContext;
-        case ttag.TimingPremise:
-            var inEvent = getLabeledTag(tree.child,"timing") === ttag.Event;
-            if(inEvent){
-                var target = evalElement(tree.child,0,info);
-                var targets = [target["target"]];
-                var length = targets.length;
-            }else{
-                var length = getLength(tree.child);
-                var targets = evalElement(tree.child,0,info);
-            }
-            while(targetsSetter(targets,info.counter,[],{index:0})){
-                var isContinue = false;
-                for(var i = 1;i<length;i++){
-                    if(!evalElement(tree.child,i,info)){
-                        isContinue = true;
-                        break;
-                    }
-                }
-                info.counter++;
-                if(isContinue){
-                    continue;
-                }else{
-                    if(inEvent){
-                        return target;
-                    }else{
-                        return true;
-                    }
-                }
-            }
-            return false;
-        case ttag.Premise:
-            var funcInfo = {};
-            var length = getLength(tree.child);
-            var funcTree = getChildTree(tree.child, 0);
-            funcInfo.name = evalLabeledTree(funcTree.child,"recv",{inFlow:false,isKey:true});
-            var funcParams = getValue(getChildTree(funcTree.child, 1)).split(',');
-            var conds = [];
-            if(length == 1){
-                var paramLen = funcParams.length;
-                var params = [];
-                for(var i = 0;i<paramLen;i++){
-                    params.push("p" + i); // FIXME funcParams が変数の場合ある？
-                    conds.push("p" + i + " == " + funcParams[i]); 
-                }
-                funcInfo.params = params;
-                funcInfo.conds = conds;
-            }else{
-                funcInfo.params = funcParams;
-                for(var i = 1;i<length;i++){
-                    conds.push(evalElement(tree.child,i,{inFlow:false,isKey:true}));
-                }
-                funcInfo.conds = conds;
-            }
-            return funcInfo;
-        case ttag.PeriodicSome: // TODO
-            var targets = [];
-            targets.push(evalElement(tree.child,0,{inFlow:true,isKey:true}));
-            targets.push(evalElement(tree.child,1,{inFlow:true,isKey:true}));
-            return targets;
-        case ttag.Periodic:
-            var length = getLength(tree.child);
-            var targets = []
-            for(var i = 0;i<length;i++){
-                targets.push(evalElement(tree.child,i,{inFlow:true,isKey:true}));
-            }
-            return targets;
-        case ttag.Event: // FIXME 現状決め打ち
-            return {"event":evalElement(getChildTree(tree.child,0).child,0,{inFlow:true,isKey:true}),"target":getValue(getChildTree(getChildTree(tree.child,0).child,1))};
-        case ttag.Body:
-            if(info.isKey){
-                var length = getLength(tree.child);
-                var body = "";
-                for(var i = 0;i<length;i++){
-                    body = body + evalElement(tree.child,i,{inFlow:true,isKey:true});
-                }
-                return body;
-            }
-            evalList(tree.child,info);
-            return null;
-        case ttag.Assign:
-            var right = evalLabeledTree(tree.child,"right",info);
-            info.isKey = true;
-            var val = null;
-            try{
-                val = eval("currentField." + evalLabeledTree(tree.child,"left",info) + " = " + right);
-            }catch(e){
-                try{
-                    val = eval("globalField." + evalLabeledTree(tree.child,"left",info) + " = " + right);
-                }catch(e){
-                    val = eval(evalLabeledTree(tree.child,"left",info) + " = " + right);
-                }
-            }
-            info.isKey = false;
-            return null;
-        case ttag.Return:
-            if(info.isKey){
-                var returnExp = "return ";
-                returnExp = returnExp + getValue(tree).replace('=>','') + ";";
-                return returnExp;
-            }
-            return evalLabeledTree(tree.child,"expr",info);// 仮
-        case ttag.Let:
-            if(!(info.inFlow)){
-                currentField[evalLabeledTree(tree.child,"left",{inFlow:false,isKey:true})] = evalLabeledTree(tree.child,"right",{inFlow:false,createNew:true});
-            }
-            return null;
-        case ttag.Infix:
-            if(info.isKey){
-                return evalLabeledTree(tree.child,"left",info) + evalLabeledTree(tree.child,"op",info) + evalLabeledTree(tree.child,"right",info);
-            }
-            var left = evalLabeledTree(tree.child,"left",info);
-            var right = evalLabeledTree(tree.child,"right",info);
-            if(MObject.prototype.isPrototypeOf(left)){
-                left = left.value;
-            }
-            if(MObject.prototype.isPrototypeOf(right)){
-                right = right.value;
-            }
-            return eval("left" + evalLabeledTree(tree.child,"op",{isKey:true}) + "right");
-        case ttag.Cast:
-            if(info.isKey){
-                return "(" + evalLabeledTree(tree.child,"type",info) + ")" + evalLabeledTree(tree.child,"recv",info);
-            }
-            return eval("(" + evalLabeledTree(tree.child,"type",info) + ")" + evalLabeledTree(tree.child,"recv",info));
-        case ttag.Unary:
-            if(info.isKey){
-                return evalLabeledTree(tree.child,"op",info) + evalLabeledTree(tree.child,"expr",info);
-            }
-            return eval(evalLabeledTree(tree.child,"op",info) + evalLabeledTree(tree.child,"expr",info));
-        case ttag.Norm:
-            if(info.isKey){
-                return "|" + evalLabeledTree(tree.child,"expr",info) + "|";
-            }
-            return eval("|" + evalLabeledTree(tree.child,"expr",info) + "|");
-        case ttag.Method:
-            if(info.isKey){
-                return evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")";
-            }
-            info.isKey = true;
-            var val = null;
 
-            var recv = evalLabeledTree(tree.child,"recv",info);
-            var name = evalLabeledTree(tree.child,"name",info);
-            var params = evalLabeledTree(tree.child,"param",info);
-            var paramStr = "";
+ctree.prototype.getLength = function(){
+    return this.child.calcLength();
+}
 
-            if(Array.isArray(params)){
-                var length = params.length;
-                for(var i = 0;i<length;i++){
-                    if(params[i] in currentField){
-                        params[i] = currentField[params[i]];
-                    }
-                    if(params[i] in globalField){
-                        params[i] = globalField[params[i]];
-                    }
-                    paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
-                }
-            }else{
-                if(params in currentField){
-                    params = currentField[params];
-                }
-                if(params in globalField){
-                    params = globalField[params];
-                }
-                paramStr = "params"
-            }
-
-            try{ // TODO
-                val = eval("currentField." + recv + "." + name + "(" + paramStr + ")");
-            }catch(e){
-                try{
-                    val = eval("globalField." + recv + "." + name + "(" + paramStr + ")");
-                }catch(e){
-                    val = eval(recv + "." + name + "(" + paramStr + ")");
-                }
-            }
-            info.isKey = false;
-            return val;
-        case ttag.Get:
-            if(info.isKey){
-                return evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info);
-            }
-            info.isKey = true;
-            var val = null;
-            try{
-                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info));
-            }catch(e){
-                try{
-                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info));
-                }catch(e){
-                    val = eval(evalLabeledTree(tree.child,"recv",info) + "." + evalLabeledTree(tree.child,"name",info));
-                }
-            }
-            info.isKey = false;
-            return val;
-        case ttag.Apply:
-            if(info.isKey){
-                return evalLabeledTree(tree.child,"recv",info) + "(" + evalLabeledTree(tree.child,"param",info) + ")";
-            }
-
-            info.isKey = true;
-            var val = null;
-            var recv = evalLabeledTree(tree.child,"recv",info);
-            var params = evalLabeledTree(tree.child,"param",info);
-            var paramStr = "";
-            if(Array.isArray(params)){
-                var length = params.length;
-                for(var i = 0;i<length;i++){
-                    if(params[i] in currentField){
-                        params[i] = currentField[params[i]];
-                    }
-                    if(params[i] in globalField){
-                        params[i] = globalField[params[i]];
-                    }
-                    paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
-                }
-            }else{
-                if(params in currentField){
-                    params = currentField[params];
-                }
-                if(params in globalField){
-                    params = globalField[params];
-                }
-                paramStr = "params"
-            }
-
-            try{ // FIXME
-                var mfunc = eval("currentField." + recv)
-                val = eval(mfunc.func + "(" + paramStr + ")");
-            }catch(e){
-                try{
-                    var mfunc = eval("globalField." + recv)
-                    val = eval(mfunc.func + "(" + paramStr + ")");
-                }catch(e){
-                    val = eval(recv + "(" + paramStr + ")");
-                }
-            }
-            info.isKey = false;
-            return val;
-        case ttag.Index:
-            if(info.isKey){
-                return evalLabeledTree(tree.child,"recv",info) + "[" + evalLabeledTree(tree.child,"param",info) + "]";
-            }
-            info.isKey = true;
-            var val = null;
-            try{
-                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "[" + evalLabeledTree(tree.child,"param",info) + "]");
-            }catch(e){
-                try{
-                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "[" + evalLabeledTree(tree.child,"param",info) + "]");
-                }catch(e){
-                    val = eval(evalLabeledTree(tree.child,"recv",info) + "[" + evalLabeledTree(tree.child,"param",info) + "]");
-                }
-            }
-            info.isKey = false;
-            return val;
-        case ttag.CastExpr:
-            if(info.isKey){
-                return evalLabeledTree(tree.child,"recv",info) + "=>" + evalLabeledTree(tree.child,"type",info);
-            }
-            info.isKey = true;
-            var val = null;
-            try{
-                val = eval("currentField." + evalLabeledTree(tree.child,"recv",info) + "=>" + evalLabeledTree(tree.child,"type",info));
-            }catch(e){
-                try{
-                    val = eval("globalField." + evalLabeledTree(tree.child,"recv",info) + "=>" + evalLabeledTree(tree.child,"type",info));
-                }catch(e){
-                    val = eval(evalLabeledTree(tree.child,"recv",info) + "=>" + evalLabeledTree(tree.child,"type",info));
-                }
-            }
-            info.isKey = false;
-            return val;
-        case ttag.Tuple:
-             var length = getLength(tree.child);
-             var tuple = [];
-             for(var i = 0;i<length;i++){
-                 tuple.push(evalElement(tree.child,i,{inFlow:true,isKey:true}));
-             }
-             return tuple;
-        case ttag.Empty:
-            return null;
-        case ttag.List:
-            var length = getLength(tree.child);
-            var list = [];
-            for(var i = 0;i<length;i++){
-                list.push(evalElement(tree.child,i,{inFlow:true,isKey:true}));
-            }
-            return list;
-        case ttag.RangeUntilExpr:
-            var list = [];
-            var start = evalLabeledTree(tree.child,"left",{inFlow:false,isKey:true});
-            var end = evalLabeledTree(tree.child,"right",{inFlow:false,createNew:true});
-            if(typeof start == "number" && typeof end == "number"){
-                for(var i = start; i < end; i++){
-                    list.push(i);
-                }
-            }else if(typeof start == "string" && typeof end == "string"){
-                var startByte = start.charCodeAt(0);
-                var endByte = end.charCodeAt(0);
-                for(var i = startByte; i < endByte; i++) {
-                    list.push(String.fromCodePoint(i));
-                }
-            }
-            return list;
-        case ttag.RangeExpr:
-            var list = [];
-            var start = evalLabeledTree(tree.child,"left",{inFlow:false,isKey:true});
-            var end = evalLabeledTree(tree.child,"right",{inFlow:false,createNew:true});
-            if(typeof start == "number" && typeof end == "number"){
-                for(var i = start; i <= end; i++){
-                    list.push(i);
-                }
-            }else if(typeof start == "string" && typeof end == "string"){
-                var startByte = start.charCodeAt(0);
-                var endByte = end.charCodeAt(0);
-                for(var i = startByte; i <= endByte; i++) {
-                    list.push(String.fromCodePoint(i));
-                }
-            }
-            return list;
-        case ttag.Data:
-            return null; // TODO
-        case ttag.Dict:
-            var length = getLength(tree.child);
-            var dict = {};
-            for(var i = 0;i<length;i++){
-                var target = getChildTree(tree.child,i);
-                dict[evalLabeledTree(target.child,"name",{inFlow:false,isKey:true})] = evalLabeledTree(target.child,"value",{inFlow:false,createNew:true});
-            }
-            return dict;
-        case ttag.Tamplete:
-            var length = getLength(tree.child);
-            var template = "\`";
-            for(var i = 0;i<length;i++){
-                var target = getChildTree(tree.child,i);
-                template = template + getValue(target);
-            }
-            template = template +  "\`";
-            return template;
-        case ttag.String:
-            return "\"" + getValue(tree) + "\"";
-        case ttag.Char:
-            return "\'" + getValue(tree) + "\'";
-        case ttag.Image:
-            if(info.createNew){
-                return createImage(getValue(tree));
-            }
-            return new MEmpty(getValue(tree));
-        case ttag.Double:
-            return parseFloat(getValue(tree));
-        case ttag.Unit:
-            return null; // TODO
-        case ttag.Rational:
-            return eval(getValue(tree));
-        case ttag.Int:
-            return parseInt(getValue(tree));
-        case ttag.True:
-            return true;
-        case ttag.False:
-            return false;
-        case ttag.Null:
-            return null;
-        case ttag.Pictogram:
-            if(info.createNew){
-                return new MCircle("circle");
-            }
-            return new MEmpty("circle");
-        case ttag.Name:
-            var val = getValue(tree);
-            if(info.isKey){
-                return val;
-            }
-            if(val in currentField){
-                return currentField[val];
-            }
-            if(val in globalField){
-                return globalField[val];
-            }
-            return val;
-        default: // 仮
-            var length = getLength(tree.child);
-            if(length == 0){
-                return evalElement(tree.child,0,info);
-            }else if (length > 0){
-                var list = [];
-                for(var i = 0;i<=length;i++){
-                    list.push(evalElement(tree.child,i,info));
-                }
-                return list;
-            }
-            return false;
+ctree.prototype.getChild = function(index){
+    try{
+        var length = this.getLength();
+        var i = length - index;
+        if(i > length || i <= 0) throw new RangeError('IndexError in ctree.getChild');
+        return this.child.passChild(i);
+    }catch(e){
+        console.error("RangeError:", e.message);
     }
 }
 
-// :string
-function getValue(tree){
-    var inputs = tree.inputs.slice(tree.spos,tree.epos);
+ctree.prototype.getValue = function(){
+    var inputs = this.inputs.slice(this.spos,this.epos);
     return (new TextDecoder).decode(inputs);
 }
 
-function evalLabeledTree(tree,label,info){
-    if(tree.tag === label){
-        return evalTree(tree.child,info);
-    }else if(tree.prev !== null){
-        return evalLabeledTree(tree.prev,label,info);
+ctree.prototype.getLabeledChild = function(label){
+    return this.child.passLabeledChild(label);
+}
+
+ctree.prototype.visit = function(info){
+    return eval("eval" + this.tag + "(this,info)");
+}
+
+ctree.prototype.show = function(depth){
+    var indent = showFlipper ? "=".repeat(depth) : "-".repeat(depth);
+    showFlipper = !showFlipper;
+    console.log(indent + this.tag);
+    var length = this.getLength();
+    for(var i = 0;i<length;i++){
+        this.getChild(i).show(depth+1);
+    }
+}
+
+clink.prototype.calcLength = function(){
+    if(this.prev == null){
+        return 0;
+    }else{
+        return this.prev.calcLength() + 1;
+    }
+}
+
+clink.prototype.passChild = function(index){
+    if(index === 0){
+        return this.child;
+    }
+    return this.prev.passChild(index - 1);
+}
+
+clink.prototype.passLabeledChild = function(label){
+    if(this.tag === label){
+        return this.child;
+    }else if(this.prev !== null){
+        return this.prev.passLabeledChild(label);
     }
     return null;
 }
 
-function evalElement(tree,index,info){
-    var i = getLength(tree) - index;
-    var target = tree;
-    while(i>0){
-        target = target.prev;
-        i--;
+function evalSource(ctree,info){
+    var length = ctree.getLength();
+    for(var i = 0;i<length;i++){
+        ctree.getChild(i).visit(info);
     }
-    return evalTree(target.child,info);
+    return null;
 }
 
-function getChildTree(tree,index){
-    var i = getLength(tree) - index;
-    var target = tree;
-    while(i>0){
-        target = target.prev;
-        i--;
+function evalRule(ctree,info){
+    var before = currentField;
+    currentField = {};
+    var contextTree = ctree.getLabeledChild("context");
+    var inContext = contextTree != null ? contextTree.visit(info) : null;
+    info.counter = 0;
+    var timingTag = inContext == null ? ctree.getChild(0).getLabeledChild("timing").tag : ctree.getChild(1).getLabeledChild("timing").tag;
+    if(info.inFlow){
+        if(ctree.getLabeledChild("cond").tag === ttag.TimingPremise){
+            var timingTag = inContext == null ? ctree.getChild(0).getLabeledChild("timing").tag : ctree.getChild(1).getLabeledChild("timing").tag;
+            if(timingTag === ttag.Event){
+                for(var obj in globalField){
+                    info.currentObject = globalField[obj];
+                    var targets = ctree.getLabeledChild("cond").visit(info);
+                    var event = targets["event"];
+                    var body = ctree.getLabeledChild("body");
+                    if(event == "Click"){
+                        var clickFunc = function(evt){
+                            if(onDown(canvas, evt, currentField[targets["target"]])){
+                                body.visit(info);
+                            }
+                        };
+                        canvas.addEventListener("mousedown",clickFunc,false);
+                    }
+                }
+            }else{
+                info.counter = 0;
+                while(true){
+                    var bool = ctree.getLabeledChild("cond").visit(info);
+                    if(bool){
+                        info.isKey = false;
+                        ctree.getLabeledChild("body").visit(info);
+                    }else{
+                        break;
+                    }
+                }
+            }
+        }
+    }else{
+        if(ctree.getLabeledChild("cond").tag === ttag.TimingPremise){
+            if(timingTag === ttag.Event){
+                var targets = ctree.getLabeledChild("cond").visit(info);
+                var event = targets["event"];
+                var targetVal = currentField[targets["target"]].value;
+                var body = ctree.getLabeledChild("body");
+                var eventField = currentField;
+                if(event == "Click"){
+                    var clickFunc = function(evt){
+                        if(onDown(canvas, evt, targetVal)){
+                            currentField = eventField;
+                            info.isKey =false;
+                            body.visit(info);
+                        }
+                    };
+                    canvas.addEventListener("mousedown",clickFunc,false);
+                }
+            }
+        }else{
+            info.isKey = true;
+            var funcInfo = ctree.getLabeledChild("cond").visit(info);
+            if(funcInfo.name in globalField){
+                var mfunc = globalField[funcInfo.name];
+                if(mfunc.params.length == funcInfo.params.length){
+                    var body = "if(" + funcInfo.conds.join(' && ') + "){" + ctree.getLabeledChild("body").visit(info) + "}";
+                    for(var i = 0; i < mfunc.params.length; i++){
+                        body = body.replace(new RegExp(funcInfo.params[i], 'g'),mfunc.params[i]); // FIXME 変数だけを置換したい
+                    }
+                    body = mfunc.body + body;
+                    mfunc.body = body;
+                    mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
+                    globalField[funcInfo.name] = mfunc;
+                }else{ // TODO 引数の数が異なる時
+                    return false;
+                }
+            }else{
+                var body = "if(" + funcInfo.conds.join(' && ') + "){" + ctree.getLabeledChild("body").visit(info) + "}";
+                var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
+                globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
+            }
+        }
     }
-    return target.child;
+    currentField = before;
+    return null;
 }
 
-function getLength(tree){
-    var length = 0;
-    var target = tree;
-    while(target.prev !== null){
-        target = target.prev;
-        length++;
+function evalContext(ctree,info){
+    var length = ctree.getLength();
+    var inContext = true;
+    for(var i = 0;i<length;i++){
+        inContext = inContext && ctree.getChild(i).visit({inFlow:true,isKey:true}); // TODO 子ノードのeval結果はbool?
     }
-    return length;
+    return inContext;
 }
 
-function evalList(tree,info){
-    if(tree.prev !== null){
-        evalList(tree.prev,info);
+function evalTimingPremise(ctree,info){
+    var inEvent = ctree.getLabeledChild("timing").tag === ttag.Event;
+    if(inEvent){
+        var target = ctree.getChild(0).visit(info);
+
+        var targets = [target["target"]];
+        var length = targets.length;
+    }else{
+        var length = ctree.getLength();
+        var targets = ctree.getChild(0).visit(info);
     }
-    if(tree.child !== null){
-        evalTree(tree.child,info);
+    while(targetsSetter(targets,info.counter,[],{index:0})){
+        var isContinue = false;
+        for(var i = 1;i<length;i++){
+            if(!(ctree.getChild(i).visit(info))){
+                isContinue = true;
+                break;
+            }
+        }
+        info.counter++;
+        if(isContinue){
+            continue;
+        }else{
+            if(inEvent){
+                return target;
+            }else{
+                return true;
+            }
+        }
     }
+    return false;
 }
 
-function getLabeledTag(tree,label){
-    if(tree.tag === label){
-        return tree.child.tag;
-    }else if(tree.prev !== null){
-        return getLabeledTag(tree.prev,label);
+function evalPremise(ctree,info){
+    var funcInfo = {};
+    var length = ctree.getLength();
+    var funcTree = ctree.getChild(0);
+    funcInfo.name = funcTree.getLabeledChild("recv").visit({inFlow:false,isKey:true});
+    var funcParams = funcTree.getChild(1).getValue().split(',');
+    var conds = [];
+    if(length == 1){
+        var paramLen = funcParams.length;
+        var params = [];
+        for(var i = 0;i<paramLen;i++){
+            params.push("p" + i); // FIXME funcParams が変数の場合ある？
+            conds.push("p" + i + " == " + funcParams[i]); 
+        }
+        funcInfo.params = params;
+        funcInfo.conds = conds;
+    }else{
+        funcInfo.params = funcParams;
+        for(var i = 1;i<length;i++){
+            conds.push(ctree.getChild(i).visit({inFlow:false,isKey:true}));
+        }
+        funcInfo.conds = conds;
     }
-    return "";
+    return funcInfo;
+}
+
+function evalPeriodicSome(ctree,info){
+    var targets = [];
+    targets.push(ctree.getChild(0).visit({inFlow:true,isKey:true}));
+    targets.push(ctree.getChild(1).visit({inFlow:true,isKey:true}));
+    return targets;
+}
+
+function evalPeriodic(ctree,info){
+    var length = ctree.getLength();
+    var targets = []
+    for(var i = 0;i<length;i++){
+        targets.push(ctree.getChild(i).visit({inFlow:true,isKey:true}));
+    }
+    return targets;
+}
+
+function evalEvent(ctree,info){// FIXME 現状決め打ち
+    return {
+        "event":ctree.getChild(0).getChild(0).visit({inFlow:true,isKey:true}),
+        "target":ctree.getChild(0).getChild(1).getValue()
+    };
+}
+
+function evalBody(ctree,info){
+    var length = ctree.getLength();
+    if(info.isKey){
+        var body = "";
+        for(var i = 0;i<length;i++){
+            body = body + ctree.getChild(i).visit({inFlow:true,isKey:true});
+        }
+        return body;
+    }
+
+    for(var i = 0;i<length;i++){
+        ctree.getChild(i).visit(info);
+    }
+    return null;
+}
+
+function evalAssign(ctree,info){
+    var right = ctree.getLabeledChild("right").visit(info);
+    info.isKey = true;
+    var val = null;
+    try{
+        val = eval("currentField." + ctree.getLabeledChild("left").visit(info) + " = " + right);
+    }catch(e){
+        try{
+            val = eval("globalField." + ctree.getLabeledChild("left").visit(info) + " = " + right);
+        }catch(e){
+            val = eval(ctree.getLabeledChild("left").visit(info) + " = " + right);
+        }
+    }
+    info.isKey = false;
+    return null;
+}
+
+function evalReturn(ctree,info){
+    if(info.isKey){
+        var returnExp = "return ";
+        returnExp = returnExp + ctree.getValue().replace('=>','') + ";";
+        return returnExp;
+    }
+    return ctree.getLabeledChild("expr").visit(info);// 仮
+}
+
+function evalLet(ctree,info){
+    if(!(info.inFlow)){
+        currentField[ctree.getLabeledChild("left").visit({inFlow:false,isKey:true})] = ctree.getLabeledChild("right").visit({inFlow:false,createNew:true});
+    }
+    return null;
+}
+
+function evalName(ctree,info){
+    var val = ctree.getValue();
+    if(info.isKey){
+        return val;
+    }
+    if(val in currentField){
+        return currentField[val];
+    }
+    if(val in globalField){
+        return globalField[val];
+    }
+    return val;
+}
+
+function evalInfix(ctree,info){
+    if(info.isKey){
+        return ctree.getLabeledChild("left").visit(info) + ctree.getLabeledChild("op").visit(info) + ctree.getLabeledChild("right").visit(info);
+    }
+    var left = ctree.getLabeledChild("left").visit(info);
+    var right = ctree.getLabeledChild("right").visit(info);
+    if(MObject.prototype.isPrototypeOf(left)){
+        left = left.value;
+    }
+    if(MObject.prototype.isPrototypeOf(right)){
+        right = right.value;
+    }
+    return eval("left" + ctree.getLabeledChild("op").visit({isKey:true}) + "right");
+}
+
+function evalCast(ctree,info){
+    if(info.isKey){
+        return "(" + ctree.getLabeledChild("type").visit(info) + ")" + ctree.getLabeledChild("recv").visit(info);
+    }
+    return eval("(" + ctree.getLabeledChild("type").visit(info) + ")" + ctree.getLabeledChild("recv").visit(info));
+}
+
+function evalUnary(ctree,info){
+    if(info.isKey){
+        return ctree.getLabeledChild("op").visit(info) + ctree.getLabeledChild("expr").visit(info);
+    }
+    return eval(ctree.getLabeledChild("op").visit(info) + ctree.getLabeledChild("expr").visit(info));
+}
+
+function evalNorm(ctree,info){
+    if(info.isKey){
+        return "|" + ctree.getLabeledChild("expr").visit(info) + "|";
+    }
+    return eval("|" + ctree.getLabeledChild("expr").visit(info) + "|");
+}
+
+function evalMethod(ctree,info){
+    if(info.isKey){
+        return ctree.getLabeledChild("recv").visit(info) + "." + ctree.getLabeledChild("name").visit(info) + "(" + ctree.getLabeledChild("param").visit(info) + ")";
+    }
+    info.isKey = true;
+    var val = null;
+
+    var recv = ctree.getLabeledChild("recv").visit(info);
+    var name = ctree.getLabeledChild("name").visit(info);
+    var params = ctree.getLabeledChild("param").visit(info);
+    var paramStr = "";
+
+    if(Array.isArray(params)){
+        var length = params.length;
+        for(var i = 0;i<length;i++){
+            if(params[i] in currentField){
+                params[i] = currentField[params[i]];
+            }
+            if(params[i] in globalField){
+                params[i] = globalField[params[i]];
+            }
+            paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
+        }
+    }else{
+        if(params in currentField){
+            params = currentField[params];
+        }
+        if(params in globalField){
+            params = globalField[params];
+        }
+        paramStr = "params"
+    }
+
+    try{ // TODO
+        val = eval("currentField." + recv + "." + name + "(" + paramStr + ")");
+    }catch(e){
+        try{
+            val = eval("globalField." + recv + "." + name + "(" + paramStr + ")");
+        }catch(e){
+            val = eval(recv + "." + name + "(" + paramStr + ")");
+        }
+    }
+    info.isKey = false;
+    return val;
+}
+
+function evalGet(ctree,info){
+    if(info.isKey){
+        return ctree.getLabeledChild("recv").visit(info) + "." + ctree.getLabeledChild("name").visit(info);
+    }
+    info.isKey = true;
+    var val = null;
+    try{
+        val = eval("currentField." + ctree.getLabeledChild("recv").visit(info) + "." + ctree.getLabeledChild("name").visit(info));
+    }catch(e){
+        try{
+            val = eval("globalField." + ctree.getLabeledChild("recv").visit(info) + "." + ctree.getLabeledChild("name").visit(info));
+        }catch(e){
+            val = eval(ctree.getLabeledChild("recv").visit(info) + "." + ctree.getLabeledChild("name").visit(info));
+        }
+    }
+    info.isKey = false;
+    return val;
+}
+
+function evalApply(ctree,info){
+    if(info.isKey){
+        return ctree.getLabeledChild("recv").visit(info) + "(" + ctree.getLabeledChild("param").visit(info) + ")";
+    }
+
+    info.isKey = true;
+    var val = null;
+    var recv = ctree.getLabeledChild("recv").visit(info);
+    var params = ctree.getLabeledChild("param").visit(info);
+    var paramStr = "";
+    if(Array.isArray(params)){
+        var length = params.length;
+        for(var i = 0;i<length;i++){
+            if(params[i] in currentField){
+                params[i] = currentField[params[i]];
+            }
+            if(params[i] in globalField){
+                params[i] = globalField[params[i]];
+            }
+            paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
+        }
+    }else{
+        if(params in currentField){
+            params = currentField[params];
+        }
+        if(params in globalField){
+            params = globalField[params];
+        }
+        paramStr = "params"
+    }
+
+    try{ // FIXME
+        var mfunc = eval("currentField." + recv)
+        val = eval(mfunc.func + "(" + paramStr + ")");
+    }catch(e){
+        try{
+            var mfunc = eval("globalField." + recv)
+            val = eval(mfunc.func + "(" + paramStr + ")");
+        }catch(e){
+            val = eval(recv + "(" + paramStr + ")");
+        }
+    }
+    info.isKey = false;
+    return val;
+}
+
+function evalIndex(ctree,info){
+    if(info.isKey){
+        return ctree.getLabeledChild("recv").visit(info) + "[" + ctree.getLabeledChild("param").visit(info) + "]";
+    }
+    info.isKey = true;
+    var val = null;
+    try{
+        val = eval("currentField." + ctree.getLabeledChild("recv").visit(info) + "[" + ctree.getLabeledChild("param").visit(info) + "]");
+    }catch(e){
+        try{
+            val = eval("globalField." + ctree.getLabeledChild("recv").visit(info) + "[" + ctree.getLabeledChild("param").visit(info) + "]");
+        }catch(e){
+            val = eval(ctree.getLabeledChild("recv").visit(info) + "[" + ctree.getLabeledChild("param").visit(info) + "]");
+        }
+    }
+    info.isKey = false;
+    return val;
+}
+
+function evalCastExpr(ctree,info){
+    if(info.isKey){
+        return ctree.getLabeledChild("recv").visit(info) + "=>" + ctree.getLabeledChild("type").visit(info);
+    }
+    info.isKey = true;
+    var val = null;
+    try{
+        val = eval("currentField." + ctree.getLabeledChild("recv").visit(info) + "=>" + ctree.getLabeledChild("type").visit(info));
+    }catch(e){
+        try{
+            val = eval("globalField." + ctree.getLabeledChild("recv").visit(info) + "=>" + ctree.getLabeledChild("type").visit(info));
+        }catch(e){
+            val = eval(ctree.getLabeledChild("recv").visit(info) + "=>" + ctree.getLabeledChild("type").visit(info));
+        }
+    }
+    info.isKey = false;
+    return val;
+}
+
+function evalTuple(ctree,info){
+    var length = ctree.getLength();
+    var tuple = [];
+    for(var i = 0;i<length;i++){
+        tuple.push(ctree.getChild(i).visit({inFlow:true,isKey:true}));
+    }
+    return tuple;
+}
+
+function evalEmpty(ctree,info){
+    return null;
+}
+
+function evalList(ctree,info){
+    var length = ctree.getLength();
+    var list = [];
+    for(var i = 0;i<length;i++){
+        list.push(ctree.getChild(i).visit({inFlow:true,isKey:true}));
+    }
+    return list;
+}
+
+function evalRangeUntilExpr(ctree,info){
+    var list = [];
+    var start = ctree.getLabeledChild("left").visit({inFlow:false,isKey:true});
+    var end = ctree.getLabeledChild("right").visit({inFlow:false,createNew:true});
+    if(typeof start == "number" && typeof end == "number"){
+        for(var i = start; i < end; i++){
+            list.push(i);
+        }
+    }else if(typeof start == "string" && typeof end == "string"){
+        var startByte = start.charCodeAt(0);
+        var endByte = end.charCodeAt(0);
+        for(var i = startByte; i < endByte; i++) {
+            list.push(String.fromCodePoint(i));
+        }
+    }
+    return list;
+}
+
+function evalRangeExpr(ctree,info){
+    var list = [];
+    var start = ctree.getLabeledChild("left").visit({inFlow:false,isKey:true});
+    var end = ctree.getLabeledChild("right").visit({inFlow:false,createNew:true});
+    if(typeof start == "number" && typeof end == "number"){
+        for(var i = start; i <= end; i++){
+            list.push(i);
+        }
+    }else if(typeof start == "string" && typeof end == "string"){
+        var startByte = start.charCodeAt(0);
+        var endByte = end.charCodeAt(0);
+        for(var i = startByte; i <= endByte; i++) {
+            list.push(String.fromCodePoint(i));
+        }
+    }
+    return list;
+}
+
+function evalDict(ctree,info){
+    var length = ctree.getLength();
+    var dict = {};
+    for(var i = 0;i<length;i++){
+        var target = ctree.getChild(i);
+        dict[target.getLabeledChild("name").visit({inFlow:false,isKey:true})] = target.getLabeledChild("value").visit({inFlow:false,createNew:true});
+    }
+    return dict;
+}
+
+function evalData(ctree,info){
+    return null; // TODO
+}
+
+function evalTemplate(ctree,info){
+    var length = ctree.getLength();
+    var template = "\`";
+    for(var i = 0;i<length;i++){
+        template = template + ctree.getChild(i).getValue();
+    }
+    template = template +  "\`";
+    return template;
+}
+
+function evalString(ctree,info){
+    return "\"" + ctree.getValue() + "\"";
+}
+
+function evalChar(ctree,info){
+    return "\'" + ctree.getValue() + "\'";
+}
+
+function evalImage(ctree,info){
+    if(info.createNew){
+        return createImage(ctree.getValue());
+    }
+    return new MEmpty(ctree.getValue());
+}
+
+function evalRational(ctree,info){
+    return eval(ctree.getValue());
+}
+
+function evalUnit(ctree,info){
+    return null; // TODO
+}
+
+function evalInt(ctree,info){
+    return parseInt(ctree.getValue());
+}
+
+function evalDouble(ctree,info){
+    return parseFloat(ctree.getValue());
+}
+
+function evalTrue(ctree,info){
+    return true;
+}
+
+function evalFalse(ctree,info){
+    return false;
+}
+
+function evalNull(ctree,info){
+    return null;
+}
+
+function evalPictogram(ctree,info){
+    if(info.createNew){
+        return new MCircle("circle");
+    }
+    return new MEmpty("circle");
 }
 
 function targetsSetter(targets,index,setted,counter){
@@ -753,25 +845,6 @@ function targetsSetter(targets,index,setted,counter){
         }
     }
     return false;
-}
-
-function showTree(tree,depth){
-    var indent = showFlipper ? "=".repeat(depth) : "-".repeat(depth);
-    showFlipper = !showFlipper;
-    console.log(indent + tree.tag);
-    if(tree.child.prev !== null){
-        if(tree.child.prev.prev !== null){
-            showChild(tree.child.prev.prev,depth);
-        }
-        showTree(tree.child.prev.child,depth+1);
-    }
-}
-
-function showChild(tree,depth){
-    if(tree.prev !== null){
-        showChild(tree.prev,depth);
-    }
-    showTree(tree.child,depth+1);
 }
 
 var canvas = document.getElementById("cvs");
@@ -833,10 +906,9 @@ function plot() {
         }
     }
 }
-
-function flow() {
+function mainloop() {
     if(result !== null){
-        evalTree(result,{inFlow:true});
+        result.visit({inFlow:true});
     }
     for(var obj in globalField) {
         if(MImage.prototype.isPrototypeOf(globalField[obj])){
@@ -861,14 +933,14 @@ function flow() {
         $("#time-counter").text(++timeCounter);
     });
 }
-function flowStart() {
-    timer = setInterval(flow, 20);
+function start() {
+    timer = setInterval(mainloop, 20);
 }
-function flowPause() {
+function pause() {
     clearInterval(timer);
 }
 function incrementFrame() {
-    flow();
+    mainloop();
 }
 function init() {
     for(var obj in globalField){
@@ -920,23 +992,23 @@ $(function () {
         cursor.reset();
         globalField = {};
         currentField = globalField;
-        evalTree(result,{inFlow:false});
+        result.visit({inFlow:false});
         init();
     });
     $('#show').click(function() {
-        showTree(result,0);
+        result.show(0);
     });
     $('#start-plot').click(function () {
         console.log("start");
         $(this).removeClass("active");
         $($(this).attr("switch-link")).addClass("active");
-        flowStart();
+        start();
     });
     $('#pause-plot').click(function (){
         console.log("pause");
         $(this).removeClass("active");
         $($(this).attr("switch-link")).addClass("active");
-        flowPause();
+        pause();
     });
     $('#increment-frame').click(function () {
         console.log("increment-frame");
