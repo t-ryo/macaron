@@ -279,24 +279,7 @@ function evalRule(ctree,info){
     var timingTag = inContext == null ? ctree.getChild(0).getLabeledChild("timing").tag : ctree.getChild(1).getLabeledChild("timing").tag;
     if(info.inFlow){
         if(ctree.getLabeledChild("cond").tag === ttag.TimingPremise){
-            var timingTag = inContext == null ? ctree.getChild(0).getLabeledChild("timing").tag : ctree.getChild(1).getLabeledChild("timing").tag;
-            if(timingTag === ttag.Event){
-                for(var obj in globalField){
-                    info.currentObject = globalField[obj];
-                    var targets = ctree.getLabeledChild("cond").visit(info);
-                    var event = targets["event"];
-                    var body = ctree.getLabeledChild("body");
-                    if(event == "Click"){
-                        var clickFunc = function(evt){
-                            if(onDown(canvas, evt, currentField[targets["target"]])){
-                                body.visit(info);
-                            }
-                        };
-                        canvas.addEventListener("mousedown",clickFunc,false);
-                    }
-                }
-            }else{
-                info.counter = 0;
+            if(!(timingTag === ttag.Event)){
                 while(true){
                     var bool = ctree.getLabeledChild("cond").visit(info);
                     if(bool){
@@ -314,26 +297,25 @@ function evalRule(ctree,info){
                 var targets = ctree.getLabeledChild("cond").visit(info);
                 var event = targets["event"];
                 var targetVal = currentField[targets["target"]].value;
-                var body = ctree.getLabeledChild("body");
                 var eventField = currentField;
                 if(event == "Click"){
                     var clickFunc = function(evt){
                         if(onDown(canvas, evt, targetVal)){
                             currentField = eventField;
                             info.isKey =false;
-                            body.visit(info);
+                            ctree.getLabeledChild("body").visit(info);
                         }
                     };
                     canvas.addEventListener("mousedown",clickFunc,false);
                 }
             }
-        }else{
+        }else{// FIXME 現状関数のみ オブジェクト指定のループもこっち？
             info.isKey = true;
             var funcInfo = ctree.getLabeledChild("cond").visit(info);
             if(funcInfo.name in globalField){
                 var mfunc = globalField[funcInfo.name];
                 if(mfunc.params.length == funcInfo.params.length){
-                    var body = "if(" + funcInfo.conds.join(' && ') + "){" + ctree.getLabeledChild("body").visit(info) + "}";
+                    var body = "if(" + funcInfo.conds.join(' && ') + "){" + ctree.getLabeledChild("body").visit(info) + "}"
                     for(var i = 0; i < mfunc.params.length; i++){
                         body = body.replace(new RegExp(funcInfo.params[i], 'g'),mfunc.params[i]); // FIXME 変数だけを置換したい
                     }
@@ -345,7 +327,7 @@ function evalRule(ctree,info){
                     return false;
                 }
             }else{
-                var body = "if(" + funcInfo.conds.join(' && ') + "){" + ctree.getLabeledChild("body").visit(info) + "}";
+                var body = "if(" + funcInfo.conds.join(' && ') + "){" + ctree.getLabeledChild("body").visit(info) + "}"
                 var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
                 globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
             }
@@ -368,7 +350,6 @@ function evalTimingPremise(ctree,info){
     var inEvent = ctree.getLabeledChild("timing").tag === ttag.Event;
     if(inEvent){
         var target = ctree.getChild(0).visit(info);
-
         var targets = [target["target"]];
         var length = targets.length;
     }else{
@@ -408,8 +389,13 @@ function evalPremise(ctree,info){
         var paramLen = funcParams.length;
         var params = [];
         for(var i = 0;i<paramLen;i++){
-            params.push("p" + i); // FIXME funcParams が変数の場合ある？
-            conds.push("p" + i + " == " + funcParams[i]); 
+            if(Number(funcParams[i]) == NaN){
+                params.push(funcParams[i]);
+                conds.push("true");
+            }else{
+                params.push("p" + i); 
+                conds.push("p" + i + " == " + funcParams[i]); 
+            }
         }
         funcInfo.params = params;
         funcInfo.conds = conds;
@@ -482,7 +468,7 @@ function evalAssign(ctree,info){
 function evalReturn(ctree,info){
     if(info.isKey){
         var returnExp = "return ";
-        returnExp = returnExp + ctree.getValue().replace('=>','') + ";";
+        returnExp = returnExp + ctree.getLabeledChild("expr").visit(info) + ";";
         return returnExp;
     }
     return ctree.getLabeledChild("expr").visit(info);// 仮
@@ -612,7 +598,8 @@ function evalGet(ctree,info){
 
 function evalApply(ctree,info){
     if(info.isKey){
-        return ctree.getLabeledChild("recv").visit(info) + "(" + ctree.getLabeledChild("param").visit(info) + ")";
+        return "callFunc(\"" + ctree.getLabeledChild("recv").visit(info) + "\")(" + ctree.getLabeledChild("param").visit(info) + ")";
+        
     }
 
     info.isKey = true;
@@ -641,7 +628,7 @@ function evalApply(ctree,info){
         paramStr = "params"
     }
 
-    try{ // FIXME
+    try{
         var mfunc = eval("currentField." + recv)
         val = eval(mfunc.func + "(" + paramStr + ")");
     }catch(e){
@@ -770,7 +757,7 @@ function evalTemplate(ctree,info){
     var length = ctree.getLength();
     var template = "\`";
     for(var i = 0;i<length;i++){
-        template = template + ctree.getChild(i).getValue();
+        template = template + ctree.getChild(i).getValue(); // TODO 確認
     }
     template = template +  "\`";
     return template;
@@ -845,6 +832,15 @@ function targetsSetter(targets,index,setted,counter){
         }
     }
     return false;
+}
+
+function callFunc(funcName){
+    if(funcName in currentField){
+        return eval(currentField[funcName].func);
+    }else if(funcName in globalField){
+        return eval(globalField[funcName].func);
+    }
+    return eval(funcName);
 }
 
 var canvas = document.getElementById("cvs");
