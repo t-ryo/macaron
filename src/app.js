@@ -276,10 +276,9 @@ function evalRule(ctree,info){
     var contextTree = ctree.getLabeledChild("context");
     var inContext = contextTree != null ? contextTree.visit(info) : null;
     info.counter = 0;
-    var timingTag = inContext == null ? ctree.getChild(0).getLabeledChild("timing").tag : ctree.getChild(1).getLabeledChild("timing").tag;
     if(info.inFlow){
         if(ctree.getLabeledChild("cond").tag === ttag.TimingPremise){
-            if(!(timingTag === ttag.Event)){
+            if(!(ctree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event)){
                 while(true){
                     var bool = ctree.getLabeledChild("cond").visit(info);
                     if(bool){
@@ -293,7 +292,7 @@ function evalRule(ctree,info){
         }
     }else{
         if(ctree.getLabeledChild("cond").tag === ttag.TimingPremise){
-            if(timingTag === ttag.Event){
+            if(ctree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event){
                 var targets = ctree.getLabeledChild("cond").visit(info);
                 var event = targets["event"];
                 var targetVal = currentField[targets["target"]].value;
@@ -660,6 +659,19 @@ function evalIndex(ctree,info){
     }
     info.isKey = false;
     return val;
+}
+
+function evalArguments(ctree,info){
+    var length = ctree.getLength();
+    if(length == 1){
+        return ctree.getChild(0).visit(info)
+    }else{
+        var list = [];
+        for(var i = 0;i<length;i++){
+            list.push(ctree.getChild(i).visit(info));
+        }
+        return list;
+    }
 }
 
 function evalCastExpr(ctree,info){
