@@ -173,7 +173,7 @@ POSTOP =
 	
 TO = 'to' EOT / 'as' EOT / '=>' _
 
-Arguments = { $(Expression)? ( "," $(Expression) )* }
+Arguments = { $(Expression)? ( "," $(Expression) )* #Arguments}
 
 /* Primary */
 
