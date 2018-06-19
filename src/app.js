@@ -79,8 +79,6 @@ class Cursor{
     }
 }
 
-var cursor = new Cursor();
-
 class MObject {
     constructor(value) {
         this.value = value;
@@ -189,6 +187,8 @@ var TransitionCount = 0;
 var currentTransition = -1;
 var svariableCount = 0;
 var showFlipper = false;
+var cursor = new Cursor();
+var events = [];
 function createImage(input) {
     return new MImage(input);
 }
@@ -295,17 +295,19 @@ function evalRule(tree,info){
             if(tree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event){
                 var targets = tree.getLabeledChild("cond").visit(info);
                 var event = targets["event"];
-                var targetVal = currentField[targets["target"]].value;
-                var eventField = currentField;
+                var targetVal = targets["target"];
                 if(event == "Click"){
                     var clickFunc = function(evt){
+                        var before = currentField;
+                        currentField = {};
                         if(onDown(canvas, evt, targetVal)){
-                            currentField = eventField;
                             info.isKey =false;
                             tree.getLabeledChild("body").visit(info);
                         }
+                        currentField = before;
                     };
                     canvas.addEventListener("mousedown",clickFunc,false);
+                    events.push(["mousedown",clickFunc]);
                 }
             }
         }else{// FIXME 現状関数のみ オブジェクト指定のループもこっち？
@@ -330,7 +332,8 @@ function evalRule(tree,info){
                     mfunc.body = body;
                     mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
                     globalField[funcInfo.name] = mfunc;
-                }else{ // TODO 引数の数が異なる時
+                }else{
+                    throw new Error('wrong number of arguments');
                     return false;
                 }
             }else{
@@ -354,29 +357,34 @@ function evalContext(tree,info){
 }
 
 function evalTimingPremise(tree,info){
-    var inEvent = tree.getLabeledChild("timing").tag === ttag.Event;
-    if(inEvent){
+    var length = tree.getLength();
+    if(tree.getLabeledChild("timing").tag === ttag.Event){
         var target = tree.getChild(0).visit(info);
-        var targets = [target["target"]];
-        var length = targets.length;
-    }else{
-        var length = tree.getLength();
-        var targets = tree.getChild(0).visit(info);
-    }
-    while(targetsSetter(targets,info.counter,[],{index:0})){
-        var isContinue = false;
-        for(var i = 1;i<length;i++){
-            if(!(tree.getChild(i).visit(info))){
-                isContinue = true;
-                break;
+        var targets = target["target"];
+        var targetMap = {};
+        for(var i = 1; i < length; i++){
+            var left = tree.getChild(i).getLabeledChild("left").visit({inFlow:false,isKey:true});
+            if(!(targets.indexOf(left) === -1)){
+                targetMap[left] = tree.getChild(i).getLabeledChild("right").visit({inFlow:false,isKey:true}).value;
+            }else{
+                throw new Error('wrong parameters');
             }
         }
-        info.counter++;
-        if(isContinue){
-            continue;
-        }else{
-            if(inEvent){
-                return target;
+        target["target"] = targetMap
+        return target;
+    }else{
+        var targets = tree.getChild(0).visit(info);
+        while(targetsSetter(targets,info.counter,[],{index:0})){
+            var isContinue = false;
+            for(var i = 1;i<length;i++){
+                if(!(tree.getChild(i).visit(info))){
+                    isContinue = true;
+                    break;
+                }
+            }
+            info.counter++;
+            if(isContinue){
+                continue;
             }else{
                 return true;
             }
@@ -432,11 +440,18 @@ function evalPeriodic(tree,info){
     return targets;
 }
 
-function evalEvent(tree,info){// FIXME 現状決め打ち
-    return {
-        "event":tree.getChild(0).getChild(0).visit({inFlow:true,isKey:true}),
-        "target":tree.getChild(0).getChild(1).getValue()
-    };
+function evalEvent(tree,info){
+    try{
+        var event = {"event":tree.getChild(0).getLabeledChild("recv").visit({inFlow:false,isKey:true})};
+        var target = tree.getChild(0).getLabeledChild("param").visit({inFlow:false,isKey:true});
+        if(!(target instanceof Array)){
+            target = [target];
+        }
+        event["target"] = target;
+    }catch(e){
+        console.error("EventError:", e.message);
+    }
+    return event;
 }
 
 function evalBody(tree,info){
@@ -458,6 +473,15 @@ function evalBody(tree,info){
 function evalAssign(tree,info){
     var right = tree.getLabeledChild("right").visit(info);
     info.isKey = true;
+    var left = tree.getLabeledChild("left").visit(info);
+    if(MEmpty.prototype.isPrototypeOf(right)){
+        try{
+            currentField[left].img.src = "image/" + right.value + ".png";
+        }catch(e){
+            globalField[left].img.src = "image/" + right.value + ".png";
+        }
+        return null;
+    }
     var val = null;
     try{
         val = eval("currentField." + tree.getLabeledChild("left").visit(info) + " = " + right);
@@ -478,7 +502,7 @@ function evalReturn(tree,info){
         returnExp = returnExp + tree.getLabeledChild("expr").visit(info) + ";";
         return returnExp;
     }
-    return tree.getLabeledChild("expr").visit(info);// 仮
+    return tree.getLabeledChild("expr").visit(info);
 }
 
 function evalLet(tree,info){
@@ -576,7 +600,7 @@ function evalMethod(tree,info){
         paramStr = "params"
     }
 
-    try{ // TODO
+    try{
         val = eval("currentField." + recv + "." + name + "(" + paramStr + ")");
     }catch(e){
         try{
@@ -897,16 +921,21 @@ function getMousePosition(canvas, evt) {
 // FIXME 個別に指定する場合
 function onDown(canvas, evt, target){
     var mousePos = getMousePosition(canvas, evt);
+    var targetKey = Object.keys(target);
+    var ondown = false;
     for(var obj in globalField) {
         if(MImage.prototype.isPrototypeOf(globalField[obj])){
-            if(globalField[obj].value == target){
-                if (globalField[obj].x < mousePos.x && (globalField[obj].x + globalField[obj].w) > mousePos.x && globalField[obj].y < mousePos.y && (globalField[obj].y + globalField[obj].h) > mousePos.y) {
-                    return true;
+            for(key of targetKey){
+                if(globalField[obj].value == target[key]){
+                    if (globalField[obj].x < mousePos.x && (globalField[obj].x + globalField[obj].w) > mousePos.x && globalField[obj].y < mousePos.y && (globalField[obj].y + globalField[obj].h) > mousePos.y) {
+                        currentField[key] = globalField[obj];
+                        ondown = true;
+                    }
                 }
             }
         }
     }
-    return false;
+    return ondown;
 }
 function plot() {
     ctx.clearRect(0, 0, cvsw, cvsh);
@@ -980,7 +1009,7 @@ function init() {
 }
 
 $(function () {
-    var initCode = "s = <sakura>\nforeach a  a == <sakura>\n-------------------\n    $a.x = a.x + 10\nwhen Click(a)  a == <sakura>\n-------------------\n    $a.img.src = \"image/fish.png\"";
+    var initCode = "s = <sakura>\nforeach a  a == <sakura>\n-------------------\n    $a.x = a.x + 10\nwhen Click(a)  a == <sakura>\n-------------------\n    $a = <fish>";
     $('#source-text').val(initCode);
     var jsEditor = makeEditor();
     cvsw = $('#mapping-area').width();
@@ -1003,7 +1032,11 @@ $(function () {
     $('#parse').click(function () {
         console.log("parse");
         jsEditor.toTextArea();
-        cursor.reset(); // FIXME
+        cursor.reset();
+        for(event of events){
+            canvas.removeEventListener(event[0], event[1]);
+        }
+        events = [];
         var inputs = (new TextEncoder).encode($('#source-text').val().toString());
         result = parse(inputs,inputs.length-1);
         jsEditor = makeEditor();
