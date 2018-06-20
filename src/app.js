@@ -293,14 +293,15 @@ function evalRule(tree,info){
     }else{
         if(tree.getLabeledChild("cond").tag === ttag.TimingPremise){
             if(tree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event){
-                var targets = tree.getLabeledChild("cond").visit(info);
-                var event = targets["event"];
-                var targetVal = targets["target"];
+                var eventInfo = tree.getLabeledChild("cond").visit(info);
+                var event = eventInfo["event"];
+                var targets = eventInfo["target"];
+                var conds = eventInfo["conds"];
                 if(event == "Click"){
                     var clickFunc = function(evt){
                         var before = currentField;
                         currentField = {};
-                        if(onDown(canvas, evt, targetVal)){
+                        if(onDown(canvas, evt, targets, conds)){
                             info.isKey =false;
                             tree.getLabeledChild("body").visit(info);
                         }
@@ -361,16 +362,11 @@ function evalTimingPremise(tree,info){
     if(tree.getLabeledChild("timing").tag === ttag.Event){
         var target = tree.getChild(0).visit(info);
         var targets = target["target"];
-        var targetMap = {};
+        var conds = [];
         for(var i = 1; i < length; i++){
-            var left = tree.getChild(i).getLabeledChild("left").visit({inFlow:false,isKey:true});
-            if(!(targets.indexOf(left) === -1)){
-                targetMap[left] = tree.getChild(i).getLabeledChild("right").visit({inFlow:false,isKey:true}).value;
-            }else{
-                throw new Error('wrong parameters');
-            }
+            conds.push(tree.getChild(i))
         }
-        target["target"] = targetMap
+        target["conds"] = conds;
         return target;
     }else{
         var targets = tree.getChild(0).visit(info);
@@ -919,17 +915,22 @@ function getMousePosition(canvas, evt) {
     };
 }
 // FIXME 個別に指定する場合
-function onDown(canvas, evt, target){
+function onDown(canvas, evt, targets, conds){
     var mousePos = getMousePosition(canvas, evt);
-    var targetKey = Object.keys(target);
+    var i = 0;
     var ondown = false;
     for(var obj in globalField) {
         if(MImage.prototype.isPrototypeOf(globalField[obj])){
-            for(key of targetKey){
-                if(globalField[obj].value == target[key]){
-                    if (globalField[obj].x < mousePos.x && (globalField[obj].x + globalField[obj].w) > mousePos.x && globalField[obj].y < mousePos.y && (globalField[obj].y + globalField[obj].h) > mousePos.y) {
-                        currentField[key] = globalField[obj];
-                        ondown = true;
+            if (globalField[obj].x < mousePos.x && (globalField[obj].x + globalField[obj].w) > mousePos.x && globalField[obj].y < mousePos.y && (globalField[obj].y + globalField[obj].h) > mousePos.y) {
+                currentField[targets[i]] = globalField[obj];
+                ondown = true;
+                i++;
+                for(var condTree of conds){
+                    if(!(condTree.visit({inFlow:false,isKey:false}))){
+                        delete currentField[targets[i]];
+                        ondown = false;
+                        i--;
+                        break;
                     }
                 }
             }
