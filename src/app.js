@@ -73,6 +73,15 @@ class Cursor{
         }
     }
 
+    // back(){
+    //     if(this.x - objw >= 0){
+    //         this.x = this.x - objw;
+    //     }else{
+    //         this.x = cvsw - cvsw%objw - objw;
+    //         this.y = this.y - objh;
+    //     }
+    // }
+
     reset(){
         this.x = 0;
         this.y = 0;
@@ -335,7 +344,7 @@ function evalRule(tree,info){
                     globalField[funcInfo.name] = mfunc;
                 }else{
                     throw new Error('wrong number of arguments');
-                    return false;
+                    // return false;
                 }
             }else{
                 var body = "if(" + funcInfo.conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
@@ -473,8 +482,10 @@ function evalAssign(tree,info){
     if(MEmpty.prototype.isPrototypeOf(right)){
         try{
             currentField[left].img.src = "image/" + right.value + ".png";
+            currentField[left].value = right.value;
         }catch(e){
             globalField[left].img.src = "image/" + right.value + ".png";
+            globalField[left].value = right.value;
         }
         return null;
     }
