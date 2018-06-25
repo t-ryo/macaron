@@ -298,6 +298,11 @@ function evalRule(tree,info){
                     }
                 }
             }
+        }else{
+            if(tree.getLabeledChild("cond").getChild(0).tag === ttag.Name){
+                info.isKey = false;
+                tree.getLabeledChild("body").visit(info);
+            }
         }
     }else{
         if(tree.getLabeledChild("cond").tag === ttag.TimingPremise){
@@ -320,36 +325,38 @@ function evalRule(tree,info){
                     events.push(["mousedown",clickFunc]);
                 }
             }
-        }else{// FIXME 現状関数のみ オブジェクト指定のループもこっち？
-            info.isKey = true;
-            var funcInfo = tree.getLabeledChild("cond").visit(info);
-            if(funcInfo.name in globalField){
-                var mfunc = globalField[funcInfo.name];
-                if(mfunc.params.length == funcInfo.params.length){
-                    for(var i = 0; i < mfunc.params.length; i++){
-                        currentField[funcInfo.params[i]] = mfunc.params[i];
-                    }
-                    info.inFuncDecl = true;
-                    var conds = funcInfo.conds;
-                    for(var i=0; i<conds.length; i++){
-                        if(ctree.prototype.isPrototypeOf(conds[i])){
-                            conds[i] = conds[i].visit(info);
+        }else{
+            if(tree.getLabeledChild("cond").getChild(0).tag === ttag.Apply){
+                info.isKey = true;
+                var funcInfo = tree.getLabeledChild("cond").visit(info);
+                if(funcInfo.name in globalField){
+                    var mfunc = globalField[funcInfo.name];
+                    if(mfunc.params.length == funcInfo.params.length){
+                        for(var i = 0; i < mfunc.params.length; i++){
+                            currentField[funcInfo.params[i]] = mfunc.params[i];
                         }
+                        info.inFuncDecl = true;
+                        var conds = funcInfo.conds;
+                        for(var i=0; i<conds.length; i++){
+                            if(ctree.prototype.isPrototypeOf(conds[i])){
+                                conds[i] = conds[i].visit(info);
+                            }
+                        }
+                        var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
+                        info.inFuncDecl = false;
+                        body = mfunc.body + body;
+                        mfunc.body = body;
+                        mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
+                        globalField[funcInfo.name] = mfunc;
+                    }else{
+                        throw new Error('wrong number of arguments');
+                        // return false;
                     }
-                    var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
-                    info.inFuncDecl = false;
-                    body = mfunc.body + body;
-                    mfunc.body = body;
-                    mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
-                    globalField[funcInfo.name] = mfunc;
                 }else{
-                    throw new Error('wrong number of arguments');
-                    // return false;
+                    var body = "if(" + funcInfo.conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
+                    var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
+                    globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
                 }
-            }else{
-                var body = "if(" + funcInfo.conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
-                var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
-                globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
             }
         }
     }
@@ -371,9 +378,13 @@ function evalTimingPremise(tree,info){
     if(tree.getLabeledChild("timing").tag === ttag.Event){
         var target = tree.getChild(0).visit(info);
         var targets = target["target"];
-        var conds = [];
-        for(var i = 1; i < length; i++){
-            conds.push(tree.getChild(i))
+        if(length > 1){
+            var conds = [];
+            for(var i = 1; i < length; i++){
+                conds.push(tree.getChild(i))
+            }
+        }else{
+            var conds = true;
         }
         target["conds"] = conds;
         return target;
@@ -515,6 +526,13 @@ function evalReturn(tree,info){
 function evalLet(tree,info){
     if(!(info.inFlow)){
         currentField[tree.getLabeledChild("left").visit({inFlow:false,isKey:true})] = tree.getLabeledChild("right").visit({inFlow:false,createNew:true});
+    }
+    return null;
+}
+
+function evalPosition(tree,info){
+    if(!(info.inFlow)){
+        tree.getChild(0).visit({inFlow:false});
     }
     return null;
 }
@@ -925,22 +943,36 @@ function getMousePosition(canvas, evt) {
         y: evt.clientY - rect.top
     };
 }
-// FIXME 個別に指定する場合
+
 function onDown(canvas, evt, targets, conds){
     var mousePos = getMousePosition(canvas, evt);
     var i = 0;
     var ondown = false;
-    for(var obj in globalField) {
-        if(MImage.prototype.isPrototypeOf(globalField[obj])){
-            if (globalField[obj].x < mousePos.x && (globalField[obj].x + globalField[obj].w) > mousePos.x && globalField[obj].y < mousePos.y && (globalField[obj].y + globalField[obj].h) > mousePos.y) {
-                currentField[targets[i]] = globalField[obj];
-                ondown = true;
-                i++;
-                for(var condTree of conds){
-                    if(!(condTree.visit({inFlow:false,isKey:false}))){
-                        delete currentField[targets[i]];
-                        ondown = false;
-                        i--;
+    if(conds instanceof Array){
+        for(var obj in globalField) {
+            if(MImage.prototype.isPrototypeOf(globalField[obj])){
+                if (globalField[obj].x < mousePos.x && (globalField[obj].x + globalField[obj].w) > mousePos.x && globalField[obj].y < mousePos.y && (globalField[obj].y + globalField[obj].h) > mousePos.y) {
+                    currentField[targets[i]] = globalField[obj];
+                    ondown = true;
+                    i++;
+                    for(var condTree of conds){
+                        if(!(condTree.visit({inFlow:false,isKey:false}))){
+                            delete currentField[targets[i]];
+                            ondown = false;
+                            i--;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }else{
+        for(var obj of targets) {
+            if(obj in globalField){
+                if(MImage.prototype.isPrototypeOf(globalField[obj])){
+                    if (globalField[obj].x < mousePos.x && (globalField[obj].x + globalField[obj].w) > mousePos.x && globalField[obj].y < mousePos.y && (globalField[obj].y + globalField[obj].h) > mousePos.y) {
+                        currentField = globalField;
+                        ondown = true;
                         break;
                     }
                 }
