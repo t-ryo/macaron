@@ -353,7 +353,13 @@ function evalRule(tree,info){
                         // return false;
                     }
                 }else{
-                    var body = "if(" + funcInfo.conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
+                    var conds = funcInfo.conds;
+                    for(var i=0; i<conds.length; i++){
+                        if(ctree.prototype.isPrototypeOf(conds[i])){
+                            conds[i] = conds[i].visit(info);
+                        }
+                    }
+                    var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
                     var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
                     globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
                 }
@@ -414,18 +420,23 @@ function evalPremise(tree,info){
     var length = tree.getLength();
     var funcTree = tree.getChild(0);
     funcInfo.name = funcTree.getLabeledChild("recv").visit(info);
-    var funcParams = funcTree.getChild(1).getValue().split(',');
+    var funcParams = funcTree.getLabeledChild("param").visit(info);
     var conds = [];
     if(length == 1){
-        var paramLen = funcParams.length;
-        var params = [];
-        for(var i = 0;i<paramLen;i++){
-            if(Number(funcParams[i]) == NaN){
-                params.push(funcParams[i]);
-                conds.push("true");
-            }else{
-                params.push("p" + i); 
-                conds.push("p" + i + " == " + funcParams[i]); 
+        if(funcParams.length == 0){
+            params = funcParams;
+            conds = ["true"];
+        }else{
+            var paramLen = funcParams.length;
+            var params = [];
+            for(var i = 0;i<paramLen;i++){
+                if(typeof funcParams[0] == "number" || funcParams[0].match("\"") != null){
+                    params.push("p" + i); 
+                    conds.push("p" + i + " == " + funcParams[i]); 
+                }else{
+                    params.push(funcParams[i]);
+                    conds.push("true");
+                }
             }
         }
         funcInfo.params = params;
@@ -544,7 +555,7 @@ function evalName(tree,info){
             return currentField[val];
         }
     }
-    if(info.isKey ){
+    if(info.isKey){
         return val;
     }
     if(val in currentField){
@@ -553,7 +564,8 @@ function evalName(tree,info){
     if(val in globalField){
         return globalField[val];
     }
-    return val;
+    throw new Error("Can't find variable: " + val); // FIXME
+    // return val;
 }
 
 function evalInfix(tree,info){
@@ -677,7 +689,11 @@ function evalApply(tree,info){
             if(params[i] in globalField){
                 params[i] = globalField[params[i]];
             }
-            paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
+            if(MObject.prototype.isPrototypeOf(params[i])){
+                paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
+            }else{
+                paramStr = i == 0 ? paramStr + params[i] : paramStr + "," + params[i];
+            }
         }
     }else{
         if(params in currentField){
@@ -725,15 +741,11 @@ function evalIndex(tree,info){
 
 function evalArguments(tree,info){
     var length = tree.getLength();
-    if(length == 1){
-        return tree.getChild(0).visit(info)
-    }else{
-        var list = [];
-        for(var i = 0;i<length;i++){
-            list.push(tree.getChild(i).visit(info));
-        }
-        return list;
+    var list = [];
+    for(var i = 0;i<length;i++){
+        list.push(tree.getChild(i).visit(info));
     }
+    return list;
 }
 
 function evalCastExpr(tree,info){
