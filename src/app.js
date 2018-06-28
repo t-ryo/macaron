@@ -1108,6 +1108,24 @@ $(function () {
     $('#show').click(function() {
         result.show(0);
     });
+    $('#load').click(function() {
+        console.log("load")
+        $('#loadfile').click();
+        $('#loadfile').change(function(){
+            var reader = new FileReader();
+            reader.onload = function () {
+                jsEditor.toTextArea();
+                $('#source-text').val(reader.result);
+                jsEditor = makeEditor();
+            }
+            var file = this.files[0];
+            if (!file.type.match(/text/)){
+                alert("対応ファイル macaron|txt");
+                return;
+            }
+            reader.readAsText(file);
+        });
+    });
     $('#start-plot').click(function () {
         console.log("start");
         $(this).removeClass("active");
@@ -1219,4 +1237,8 @@ function CENTER(){
             }
         }
     }
+}
+
+function LOG(arg){
+    console.log(arg);
 }
