@@ -40,11 +40,18 @@ h1{
 }
 
 #mapping-area {
+  position: relative;
   max-width: 900px;
   width: 60%;
   max-height: 900px;
   height: 90%;
   float: left;
+}
+
+#canvas-wrapper .canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 #code-editor {

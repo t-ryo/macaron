@@ -189,6 +189,18 @@ class MFunc{
     }
 }
 
+class Bubble {
+    constructor(r, x, y, vx, vy, stroke) {
+        this.r = r;
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = 100;
+        this.stroke = stroke;
+    }
+}
+
 var globalField = {};
 var currentField = globalField;
 var Transitions = [];
@@ -198,6 +210,17 @@ var svariableCount = 0;
 var showFlipper = false;
 var cursor = new Cursor();
 var events = [];
+var afterimage = false;
+var colorGrad = false;
+var color = ['#000000','#000000'];
+var colorPos = [0,0,cvsw,cvsh];
+var dinamicgrad = false;
+var hue = 0;
+var lightness = 40;
+var spotlight = [];
+var bubble = false;
+var bubbles = [];
+var bmax = 1000;
 function createImage(input) {
     return new MImage(input);
 }
@@ -931,6 +954,8 @@ function callFunc(funcName){
 
 var canvas = document.getElementById("cvs");
 var ctx = canvas.getContext("2d");
+var overlayCanvas = document.getElementById("overlay");
+var overlayCtx = overlayCanvas.getContext("2d");
 var cvsw = 900;
 var cvsh = 900;
 var cos = 0;
@@ -994,7 +1019,58 @@ function onDown(canvas, evt, targets, conds){
     return ondown;
 }
 function plot() {
-    ctx.clearRect(0, 0, cvsw, cvsh);
+
+    if(afterimage){
+        ctx.globalAlpha = 0.2;
+    }else{
+        ctx.clearRect(0, 0, cvsw, cvsh);
+    }
+    
+    if(colorGrad){
+        var grad = ctx.createLinearGradient(colorPos[0], colorPos[1], colorPos[2], colorPos[3]);
+        if(dinamicgrad){
+            var newColor = dinamicColor();
+            color[0] = newColor[0];
+            color[1] = newColor[1];
+        }
+        grad.addColorStop(0, color[0]);
+        grad.addColorStop(1, color[1]);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, cvsw, cvsh);
+    }else{
+        ctx.fillStyle = $('#cvs').css("background-color");
+        ctx.fillRect(0,0, cvsw, cvsh);
+    }
+    ctx.globalAlpha = 1;
+
+    for(var target of spotlight){
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.3;
+        var x = target.x;
+        var y = target.y;
+        if(MImage.prototype.isPrototypeOf(target)){
+            x = x + target.w / 2;
+            y = y + target.h / 2;
+        }
+        // TODO aの反映
+        // cos = Math.cos(target.a * rad);
+        // sin = Math.sin(target.a * rad);
+        // ctx.setTransform(cos, sin, -1 * sin, cos, x, y);
+        var grad  = ctx.createRadialGradient(x,y,20,x,y,70);
+        grad.addColorStop(0,"hsl(0,0%,100%)");
+        grad.addColorStop(1,"hsl(0,0%,0%)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, cvsw, cvsh);
+        // ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1;
+    }
+
+    if(bubble){
+        emitBubbles();
+        updatetBubbles();
+    }
+
     for(var obj in globalField) {
         if(MImage.prototype.isPrototypeOf(globalField[obj])){
             cos = Math.cos(globalField[obj].a * rad);
@@ -1011,6 +1087,7 @@ function plot() {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
         }
     }
+
 }
 function mainloop() {
     if(result !== null){
@@ -1057,6 +1134,7 @@ function init() {
             globalField[obj].init();
         }
     }
+    ctx.clearRect(0, 0, cvsw, cvsh);
     plot();
     timeCounter = 0;
     $(function(){
@@ -1087,12 +1165,8 @@ $(function () {
     });
     $('#parse').click(function () {
         console.log("parse");
+        resetState();
         jsEditor.toTextArea();
-        cursor.reset();
-        for(event of events){
-            canvas.removeEventListener(event[0], event[1]);
-        }
-        events = [];
         var inputs = (new TextEncoder).encode($('#source-text').val().toString());
         result = parse(inputs,inputs.length-1);
         jsEditor = makeEditor();
@@ -1201,6 +1275,25 @@ function makeEditor(){
     });
 }
 
+function resetState(){
+    afterimage = false;
+    colorGrad = false;
+    color = ['#000000','#000000'];
+    colorPos = [0,0,cvsw,cvsh];
+    dinamicgrad = false;
+    hue = 0;
+    lightness = 40;
+    $('#cvs').css("background-color", "#000000");
+    spotlight = [];
+    bubble = false;
+    bmax = 1000;
+    cursor.reset();
+    for(event of events){
+        canvas.removeEventListener(event[0], event[1]);
+    }
+    events = [];
+}
+
 function POS(posx,posy,obj){
     obj.x = posx;
     obj.y = posy;
@@ -1242,3 +1335,98 @@ function CENTER(){
 function LOG(arg){
     console.log(arg);
 }
+
+function AFTERIMAGE(){
+    afterimage = true;
+}
+
+function BACKCOLOR(color){
+    $('#cvs').css("background-color", color);
+}
+
+function GRADCOLOR(startColor, endColor){
+    color[0] = startColor;
+    color[1] = endColor;
+    colorGrad = true;
+}
+
+function GRADPOS(startx, starty, endx, endy){
+    colorPos[0] = startx;
+    colorPos[1] = starty;
+    colorPos[2] = endx;
+    colorPos[3] = endy;
+    colorGrad = true;
+}
+
+function DINAMICGRAD(){
+    colorGrad = true;
+    dinamicgrad = true;
+}
+
+function dinamicColor(){
+    hue = (hue + 1) % 360;
+    return ["hsl(" + ((hue + 40) % 360) + ",80%," + (lightness + 10) + "%)", "hsl(" + hue + ",80%," + lightness + "%)"];
+}
+
+function LIGHTNESS(l){
+    if(l < 0 || 100 < l){
+        throw new error("lightness must be 0-100");
+    }
+    if(90 < l){
+        lightness = l - 10;
+    }else{
+        lightness = l;
+    }
+}
+
+function SPOTLIGHT(){
+    for(target of arguments){
+        spotlight.push(target);
+    }
+}
+
+function BUBBLE(){
+    if(arguments.length > 0){
+        bmax = arguments[0];
+    }
+    bubble = true;
+}
+
+function emitBubbles() {
+    if(bubbles.length < bmax){
+        for (var i = 0; i < 2; i++) {
+            var p = new Bubble(30 * Math.random(), cvsw * Math.random(), 100 * Math.random() + 650, 10 * (Math.random() - 0.5), 10 * (Math.random() - 0.5), Math.random() < 0.5 ? true : false);
+            bubbles.push(p);
+          }
+    }
+}
+
+function updatetBubbles() {
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = "hsl(0,0%,50%)";
+    ctx.fillStyle = "hsl(0,0%,50%)";
+    for(var i = 0; i < bubbles.length; i++){
+      var b = bubbles[i];
+      b.vy -= 0.15;
+      b.vx *= 0.98;
+      b.vy *= 0.98;
+      b.x += b.vx;
+      b.y += b.vy;
+      if(b.y < 0){
+        b.life = 0;
+      }
+      b.life -= 1;
+      if(b.life < 1){
+        bubbles.splice(i, 1);
+      }else{
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI*2, false);
+        if(b.stroke){
+          ctx.stroke();
+        }else{
+          ctx.fill();
+        }
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
