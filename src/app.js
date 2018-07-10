@@ -338,13 +338,13 @@ function evalRule(tree,info){
                     var clickFunc = function(evt){
                         var before = currentField;
                         currentField = {};
-                        if(onDown(canvas, evt, targets, conds)){
+                        if(onDown(overlayCanvas, evt, targets, conds)){
                             info.isKey =false;
                             tree.getLabeledChild("body").visit(info);
                         }
                         currentField = before;
                     };
-                    canvas.addEventListener("mousedown",clickFunc,false);
+                    overlayCanvas.addEventListener("mousedown",clickFunc,false);
                     events.push(["mousedown",clickFunc]);
                 }
             }
@@ -956,6 +956,8 @@ var canvas = document.getElementById("cvs");
 var ctx = canvas.getContext("2d");
 var overlayCanvas = document.getElementById("overlay");
 var overlayCtx = overlayCanvas.getContext("2d");
+var afterimageCanvas = document.getElementById("afterimage");
+var afterimageCtx = afterimageCanvas.getContext("2d");
 var cvsw = 900;
 var cvsh = 900;
 var cos = 0;
@@ -968,8 +970,8 @@ var Mouse = {
     x:0,
     y:0
 };
-canvas.addEventListener('mousemove', function (evt) {
-    var mousePos = getMousePosition(canvas, evt);
+overlayCanvas.addEventListener('mousemove', function (evt) {
+    var mousePos = getMousePosition(overlayCanvas, evt);
     Mouse.x = mousePos.x;
     Mouse.y = mousePos.y;
 }, false);
@@ -1020,12 +1022,7 @@ function onDown(canvas, evt, targets, conds){
 }
 function plot() {
 
-    if(afterimage){
-        ctx.globalAlpha = 0.2;
-    }else{
-        ctx.clearRect(0, 0, cvsw, cvsh);
-    }
-    
+    ctx.clearRect(0, 0, cvsw, cvsh);
     if(colorGrad){
         var grad = ctx.createLinearGradient(colorPos[0], colorPos[1], colorPos[2], colorPos[3]);
         if(dinamicgrad){
@@ -1037,12 +1034,8 @@ function plot() {
         grad.addColorStop(1, color[1]);
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, cvsw, cvsh);
-    }else{
-        ctx.fillStyle = $('#cvs').css("background-color");
-        ctx.fillRect(0,0, cvsw, cvsh);
     }
-    ctx.globalAlpha = 1;
-
+    
     for(var target of spotlight){
         ctx.globalCompositeOperation = 'lighter';
         ctx.globalAlpha = 0.3;
@@ -1071,23 +1064,32 @@ function plot() {
         updatetBubbles();
     }
 
+    if(afterimage){
+        afterimageCtx.clearRect(0, 0, cvsw, cvsh);
+        afterimageCtx.globalAlpha = 0.8;
+        afterimageCtx.drawImage(overlayCanvas, 0, 0);
+        overlayCtx.clearRect(0, 0, cvsw, cvsh);
+        overlayCtx.drawImage(afterimageCanvas, 0, 0);
+    }else{
+        overlayCtx.clearRect(0, 0, cvsw, cvsh);
+    }
+
     for(var obj in globalField) {
         if(MImage.prototype.isPrototypeOf(globalField[obj])){
             cos = Math.cos(globalField[obj].a * rad);
             sin = Math.sin(globalField[obj].a * rad);
-            ctx.setTransform(cos, sin, -1 * sin, cos, globalField[obj].x, globalField[obj].y);
-            ctx.drawImage(globalField[obj].img, 0, 0, globalField[obj].w, globalField[obj].h);
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            overlayCtx.setTransform(cos, sin, -1 * sin, cos, globalField[obj].x, globalField[obj].y);
+            overlayCtx.drawImage(globalField[obj].img, 0, 0, globalField[obj].w, globalField[obj].h);
+            overlayCtx.setTransform(1, 0, 0, 1, 0, 0);
         }
         if(MPictogram.prototype.isPrototypeOf(globalField[obj])){
             cos = Math.cos(globalField[obj].a * rad);
             sin = Math.sin(globalField[obj].a * rad);
-            ctx.setTransform(cos, sin, -1 * sin, cos, globalField[obj].x, globalField[obj].y);
-            ctx.drawImage(globalField[obj].img, 0, 0, globalField[obj].w, globalField[obj].h);
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            overlayCtx.setTransform(cos, sin, -1 * sin, cos, globalField[obj].x, globalField[obj].y);
+            overlayCtx.drawImage(globalField[obj].img, 0, 0, globalField[obj].w, globalField[obj].h);
+            overlayCtx.setTransform(1, 0, 0, 1, 0, 0);
         }
     }
-
 }
 function mainloop() {
     if(result !== null){
@@ -1135,6 +1137,8 @@ function init() {
         }
     }
     ctx.clearRect(0, 0, cvsw, cvsh);
+    overlayCtx.clearRect(0, 0, cvsw, cvsh);
+    afterimageCtx.clearRect(0, 0, cvsw, cvsh);
     plot();
     timeCounter = 0;
     $(function(){
@@ -1150,6 +1154,10 @@ $(function () {
     cvsh = $('#mapping-area').height();
     $('#cvs').attr('width', cvsw);
     $('#cvs').attr('height', cvsh);
+    $('#overlay').attr('width', cvsw);
+    $('#overlay').attr('height', cvsh);
+    $('#afterimage').attr('width', cvsw);
+    $('#afterimage').attr('height', cvsh);
     var timer = false;
     $(window).resize(function() {
         if (timer !== false) {
@@ -1161,6 +1169,10 @@ $(function () {
             cvsh = $('#mapping-area').height();
             $('#cvs').attr('width', cvsw);
             $('#cvs').attr('height', cvsh);
+            $('#overlay').attr('width', cvsw);
+            $('#overlay').attr('height', cvsh);
+            $('#afterimage').attr('width', cvsw);
+            $('#afterimage').attr('height', cvsh);
         }, 200);
     });
     $('#parse').click(function () {
@@ -1289,7 +1301,7 @@ function resetState(){
     bmax = 1000;
     cursor.reset();
     for(event of events){
-        canvas.removeEventListener(event[0], event[1]);
+        overlayCanvas.removeEventListener(event[0], event[1]);
     }
     events = [];
 }
@@ -1422,9 +1434,9 @@ function updatetBubbles() {
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.r, 0, Math.PI*2, false);
         if(b.stroke){
-          ctx.stroke();
+            ctx.stroke();
         }else{
-          ctx.fill();
+            ctx.fill();
         }
       }
     }

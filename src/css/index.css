@@ -48,7 +48,7 @@ h1{
   float: left;
 }
 
-#canvas-wrapper .canvas {
+#mapping-area canvas {
   position: absolute;
   top: 0;
   left: 0;
