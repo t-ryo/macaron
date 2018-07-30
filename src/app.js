@@ -201,6 +201,25 @@ class Bubble {
     }
 }
 
+var canvas = document.getElementById("cvs");
+var ctx = canvas.getContext("2d");
+var overlayCanvas = document.getElementById("overlay");
+var overlayCtx = overlayCanvas.getContext("2d");
+var afterimageCanvas = document.getElementById("afterimage");
+var afterimageCtx = afterimageCanvas.getContext("2d");
+var cvsw = 900;
+var cvsh = 900;
+var cos = 0;
+var sin = 0;
+var rad = Math.PI / 180;
+var timeCounter = 0;
+var timer;
+var result;
+var Mouse = {
+    x:0,
+    y:0
+};
+
 var globalField = {};
 var currentField = globalField;
 var Transitions = [];
@@ -474,7 +493,7 @@ function evalPremise(tree,info){
     return funcInfo;
 }
 
-function evalPeriodicSome(tree,info){
+function evalPeriodicSome(tree,info){ // FIXME
     var targets = [];
     targets.push(tree.getChild(0).visit({inFlow:true,isKey:true}));
     targets.push(tree.getChild(1).visit({inFlow:true,isKey:true}));
@@ -952,24 +971,6 @@ function callFunc(funcName){
     return eval(funcName);
 }
 
-var canvas = document.getElementById("cvs");
-var ctx = canvas.getContext("2d");
-var overlayCanvas = document.getElementById("overlay");
-var overlayCtx = overlayCanvas.getContext("2d");
-var afterimageCanvas = document.getElementById("afterimage");
-var afterimageCtx = afterimageCanvas.getContext("2d");
-var cvsw = 900;
-var cvsh = 900;
-var cos = 0;
-var sin = 0;
-var rad = Math.PI / 180;
-var timeCounter = 0;
-var timer;
-var result;
-var Mouse = {
-    x:0,
-    y:0
-};
 overlayCanvas.addEventListener('mousemove', function (evt) {
     var mousePos = getMousePosition(overlayCanvas, evt);
     Mouse.x = mousePos.x;
@@ -1022,19 +1023,7 @@ function onDown(canvas, evt, targets, conds){
 }
 function plot() {
 
-    ctx.clearRect(0, 0, cvsw, cvsh);
-    if(colorGrad){
-        var grad = ctx.createLinearGradient(colorPos[0], colorPos[1], colorPos[2], colorPos[3]);
-        if(dinamicgrad){
-            var newColor = dinamicColor();
-            color[0] = newColor[0];
-            color[1] = newColor[1];
-        }
-        grad.addColorStop(0, color[0]);
-        grad.addColorStop(1, color[1]);
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, cvsw, cvsh);
-    }
+    plotBackGround();
     
     for(var target of spotlight){
         ctx.globalCompositeOperation = 'lighter';
@@ -1044,11 +1033,11 @@ function plot() {
         if(MImage.prototype.isPrototypeOf(target)){
             x = x + target.w / 2;
             y = y + target.h / 2;
+            // TODO aの反映
+            // cos = Math.cos(target.a * rad);
+            // sin = Math.sin(target.a * rad);
+            // ctx.setTransform(cos, sin, -1 * sin, cos, x, y);
         }
-        // TODO aの反映
-        // cos = Math.cos(target.a * rad);
-        // sin = Math.sin(target.a * rad);
-        // ctx.setTransform(cos, sin, -1 * sin, cos, x, y);
         var grad  = ctx.createRadialGradient(x,y,20,x,y,70);
         grad.addColorStop(0,"hsl(0,0%,100%)");
         grad.addColorStop(1,"hsl(0,0%,0%)");
@@ -1091,6 +1080,23 @@ function plot() {
         }
     }
 }
+
+function plotBackGround(){
+    ctx.clearRect(0, 0, cvsw, cvsh);
+    if(colorGrad){
+        var grad = ctx.createLinearGradient(colorPos[0], colorPos[1], colorPos[2], colorPos[3]);
+        if(dinamicgrad){
+            var newColor = dinamicColor();
+            color[0] = newColor[0];
+            color[1] = newColor[1];
+        }
+        grad.addColorStop(0, color[0]);
+        grad.addColorStop(1, color[1]);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, cvsw, cvsh);
+    }
+}
+
 function mainloop() {
     if(result !== null){
         result.visit({inFlow:true});
@@ -1150,6 +1156,7 @@ $(function () {
     var initCode = "s = <sakura>\nforeach a  a == <sakura>\n-------------------\n    $a.x = a.x + 10\nwhen Click(a)  a == <sakura>\n-------------------\n    $a = <fish>";
     $('#source-text').val(initCode);
     var jsEditor = makeEditor();
+    var imageEditor = makeImageEditor();
     cvsw = $('#mapping-area').width();
     cvsh = $('#mapping-area').height();
     $('#cvs').attr('width', cvsw);
@@ -1191,9 +1198,9 @@ $(function () {
         result.visit({inFlow:false});
         init();
     });
-    $('#show').click(function() {
-        result.show(0);
-    });
+    // $('#show').click(function() {
+    //     result.show(0);
+    // });
     $('#load').click(function() {
         console.log("load")
         $('#loadfile').click();
@@ -1207,7 +1214,6 @@ $(function () {
             var file = this.files[0];
             if (!file.type.match(/text/)){
                 alert("対応ファイル macaron|txt");
-                return;
             }
             reader.readAsText(file);
         });
@@ -1232,50 +1238,73 @@ $(function () {
         console.log("reset");
         init();
     });
-    $('#sakura').click(function (){
-        console.log("sakura");
+    // $('#sakura').click(function (){
+    //     console.log("sakura");
+    //     jsEditor.toTextArea();
+    //     var input = $('#source-text').val().toString();
+    //     input = "_" + svariableCount + " = <sakura>\n" + input;
+    //     svariableCount++;
+    //     $('#source-text').val(input);
+    //     jsEditor = makeEditor();
+    // });
+    // $('#fish').click(function (){
+    //     console.log("fish");
+    //     jsEditor.toTextArea();
+    //     var input = $('#source-text').val().toString();
+    //     input = "_" + svariableCount + " = <fish>\n" + input;
+    //     svariableCount++;
+    //     $('#source-text').val(input);
+    //     jsEditor = makeEditor();
+    // });
+    // $('#star').click(function (){
+    //     console.log("star");
+    //     jsEditor.toTextArea();
+    //     var input = $('#source-text').val().toString();
+    //     input = "_" + svariableCount + " = <star>\n" + input;
+    //     svariableCount++;
+    //     $('#source-text').val(input);
+    //     jsEditor = makeEditor();
+    // });
+    // $('#arrow').click(function (){
+    //     console.log("arrow");
+    //     jsEditor.toTextArea();
+    //     var input = $('#source-text').val().toString();
+    //     input = "_" + svariableCount + " = <arrow>\n" + input;
+    //     svariableCount++;
+    //     $('#source-text').val(input);
+    //     jsEditor = makeEditor();
+    // });
+    // $('#rocket').click(function (){
+    //     console.log("rocket");
+    //     jsEditor.toTextArea();
+    //     var input = $('#source-text').val().toString();
+    //     input = "_" + svariableCount + " = <rocket>\n" + input;
+    //     svariableCount++;
+    //     $('#source-text').val(input);
+    //     jsEditor = makeEditor();
+    // });
+    $('#add').click(function (){
+        console.log("add");
         jsEditor.toTextArea();
+        imageEditor.toTextArea();
         var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <sakura>\n" + input;
-        svariableCount++;
-        $('#source-text').val(input);
+        var inputImage = $('#image-text').val().toString().trim();
+        inputImage = "<" + inputImage + ">";
+        if (!(inputImage in images)){
+            alert(inputImage + "は存在しません");
+        }else{
+            input = "_" + svariableCount + " = " + inputImage + "\n" + input;
+            svariableCount++;
+            $('#source-text').val(input);
+        }
         jsEditor = makeEditor();
+        imageEditor = makeImageEditor();
     });
-    $('#fish').click(function (){
-        console.log("fish");
-        jsEditor.toTextArea();
-        var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <fish>\n" + input;
-        svariableCount++;
-        $('#source-text').val(input);
-        jsEditor = makeEditor();
-    });
-    $('#star').click(function (){
-        console.log("star");
-        jsEditor.toTextArea();
-        var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <star>\n" + input;
-        svariableCount++;
-        $('#source-text').val(input);
-        jsEditor = makeEditor();
-    });
-    $('#arrow').click(function (){
-        console.log("arrow");
-        jsEditor.toTextArea();
-        var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <arrow>\n" + input;
-        svariableCount++;
-        $('#source-text').val(input);
-        jsEditor = makeEditor();
-    });
-    $('#rocket').click(function (){
-        console.log("rocket");
-        jsEditor.toTextArea();
-        var input = $('#source-text').val().toString();
-        input = "_" + svariableCount + " = <rocket>\n" + input;
-        svariableCount++;
-        $('#source-text').val(input);
-        jsEditor = makeEditor();
+    $('#clear').click(function (){
+        console.log("clear");
+        imageEditor.toTextArea();
+        $('#image-text').val("");
+        imageEditor = makeImageEditor();
     });
 });
 
@@ -1287,17 +1316,56 @@ function makeEditor(){
     });
 }
 
+let imageList = ['arrow', 'circle', 'fish', 'rocket', 'sakura', 'star', 'triangle']
+
+let imageComplete = function(cm) {
+  CodeMirror.showHint(cm, function() {
+    let cur = cm.getCursor(); 
+    let token = cm.getTokenAt(cur);
+    var ch = cur.ch;
+    let line = cur.line;
+    let start = token.start;
+    let end = ch;
+
+    var inputReg = new RegExp('^' + token.string);
+    let filteredList = imageList.filter((item) => {
+        return item.slice(0, item.length - 1).match(inputReg) ? true : false
+    });
+    if (filteredList.length >= 1) {
+        ch = 0;
+        return {
+            list: filteredList,
+            from: CodeMirror.Pos(line, ch),
+            to: CodeMirror.Pos(line, end)
+        }
+    }
+
+  }, { completeSingle: false })
+}
+
+function makeImageEditor(){
+    var imageEditor = CodeMirror.fromTextArea(document.getElementById("image-text"), {
+        mode: "javascript", // FIXME
+        lineNumbers: false,
+        indentUnit: 4
+        // ,extraKeys: {"Ctrl-Space": "autocomplete"}
+    });
+    imageEditor.setSize(250, 50);
+    imageEditor.on('change', imageComplete);
+    return imageEditor;
+}
+
 function resetState(){
-    afterimage = false;
-    colorGrad = false;
-    color = ['#000000','#000000'];
+    // afterimage = false;
+    // colorGrad = false;
+    // color = ['#000000','#000000'];
     colorPos = [0,0,cvsw,cvsh];
-    dinamicgrad = false;
+    // dinamicgrad = false;
     hue = 0;
     lightness = 40;
-    $('#cvs').css("background-color", "#000000");
+    // $('#cvs').css("background-color", "#000000");
     spotlight = [];
-    bubble = false;
+    // bubble = false;
     bmax = 1000;
     cursor.reset();
     for(event of events){
@@ -1442,3 +1510,78 @@ function updatetBubbles() {
     }
     ctx.globalCompositeOperation = 'source-over';
   }
+
+$('input[name="effect-afterimage"]').change(function() {
+    console.log("afterimage");
+    if($('[name=effect-afterimage]:checked').val()){
+        AFTERIMAGE();
+    }else{
+        afterimage = false;
+    }
+})
+
+$('[name="bg"]').change(function() {
+    console.log("bg");
+    var bg = $('[name=bg]').val();
+    if(bg == "bg_anime"){
+        $('[name="bg_color_1"]').prop("disabled", true);
+        $('[name="bg_color_2"]').prop("disabled", true);
+        $('.select-disabled').css('border', "2px solid gray");
+        colorGrad = true;
+        dinamicgrad = true;
+        plotBackGround();
+    }else if(bg == "bg_simple"){
+        $('[name="bg_color_1"]').prop("disabled", false);
+        $('[name="bg_color_2"]').prop("disabled", true);
+        $('.bg-color-01').css('border', "2px solid #C299FF");
+        $('.bg-color-02').css('border', "2px solid gray");
+        BACKCOLOR($('[name="bg_color_1"]').val());
+        colorGrad = false;
+        dinamicgrad = false;
+        plotBackGround();
+    }else{
+        $('[name="bg_color_1"]').prop("disabled", false);
+        $('[name="bg_color_2"]').prop("disabled", false);
+        $('.select-disabled').css('border', "2px solid #C299FF");
+        color[0] = $('[name="bg_color_1"]').val();
+        color[1] = $('[name="bg_color_2"]').val();
+        colorGrad = true;
+        dinamicgrad = false;
+        plotBackGround();
+    }
+})
+
+$('[name="bg_color_1"]').change(function() {
+    if(colorGrad == false){
+        BACKCOLOR($('[name="bg_color_1"]').val());
+    }
+    color[0] = $('[name="bg_color_1"]').val();
+    plotBackGround();
+})
+
+$('[name="bg_color_2"]').change(function() {
+    color[1] = $('[name="bg_color_2"]').val();
+    plotBackGround();
+})
+
+$('input[name="effect-particle"]').change(function() {
+    console.log("particle");
+    if($('[name=effect-particle]:checked').val()){
+        $('[name="particle"]').prop("disabled", false);
+        $('.particle-01').css('border', "2px solid #C299FF");
+        bubble = true;
+    }else{
+        $('[name="particle"]').prop("disabled", true);
+        $('.particle-01').css('border', "2px solid gray");
+        bubble = false;
+    }
+})
+
+// $('[name="particle"]').change(function() {
+//     var particle = $('[name="particle"]').val();
+//     if(particle == "bubble"){
+//         bubble = true;
+//     }else{
+
+//     }
+// })
