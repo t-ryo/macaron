@@ -15,103 +15,34 @@
 	<script src="mode/macaron/macaron.js"></script>
 	<script src="addon/hint/show-hint.js"></script>
 	<link rel="stylesheet" href="addon/hint/show-hint.css">
+	<script src="matter-js-master/build/matter.min.js"></script>
+	<script src="poly-decomp.js-master/build/decomp.js" type="text/javascript"></script>
 </head>
 <body>
 	<main>
 		<h1>macaron</h1>
 		<div id="mapping-area">
-			<canvas id="afterimage"></canvas>
-			<canvas id="cvs" style="background-color:#000;"></canvas>
-			<canvas id="overlay"></canvas>
+			<div id="mattercanvas"></div>
 		</div>
 		<div id="code-editor">
 			<div id="image-set-area">
 				<h2 class="form-title">
-					イメージ追加：
+					スタイルシート：
 				</h2>
 				<div class="seted-image-list">
-					<!-- <div class="btn-plot btn-sakura" id="sakura">
-						<img class="image" src="image/sakura.png" alt="">
-					</div>
-					<div class="btn-plot btn-fish" id="fish">
-						<img class="image" src="image/fish.png" alt="">
-					</div>
-					<div class="btn-plot btn-star" id="star">
-						<img class="image" src="image/star.png" alt="">
-					</div>
-					<div class="btn-plot btn-arrow" id="arrow">
-						<img class="image" src="image/arrow.png" alt="">
-					</div>
-					<div class="btn-plot btn-rocket" id="rocket">
-						<img class="image" src="image/rocket.png" alt="">
-					</div> -->
-					<textarea id="image-text" class="image-form"></textarea>
-					<div id="add" class="btn btn-add">add</div>
-					<div id="clear" class="btn btn-clear">clear</div>
+					<textarea id="mss-text" class="image-form"></textarea>
+					<div id="apply" class="btn btn-apply">apply</div>
+					<!-- FIXME load -->
+					<input type="file" id="loadfile-mss" style="display:none;"/>
+					<div id="load-mss" class="btn btn-load-mss">load</div>
 				</div>
 			</div>
 			<div class="source-form">
 				<h2>Macaronコード：</h2>
 				<textarea id="source-text" class="text-form"></textarea>
-				<div id="parse" class="btn btn-parse">parse</div>
-				<div id="eval" class="btn btn-eval">eval</div>
-				<!-- <div id="show" class="btn btn-show">show</div> -->
+				<div id="eval" class="btn btn-eval">exec</div>
 				<input type="file" id="loadfile" style="display:none;"/>
 				<div id="load" class="btn btn-load">load</div>
-				<h2>ビジュアルエフェクト：</h2>
-				<div class="visual-effect">
-					<input type="checkbox" id="checkbox-afterimage" name="effect-afterimage" value="afterimage" />
-					<label for="checkbox-afterimage">残像</label>
-				</div>
-				<div class="veffect">
-					<div class="background" style="display: inline-block; _display: inline;">背景</div>
-					<div class="veffect-select" style="display: inline-block; _display: inline;">
-						<select name="bg" >
-							<option value="bg_simple">背景(単色)</option>
-							<option value="bg_grad">背景(グラデーション)</option>
-							<option value="bg_anime">背景(アニメーション)</option>
-						</select>
-					</div>
-					背景色1
-					<div class="veffect-select select-disabled bg-color-01" style="display: inline-block; _display: inline;">
-						<select name="bg_color_1">
-							<option value="black">黒</option>
-							<option value="white">白</option>
-							<option value="pink">ピンク</option>
-							<option value="red">赤</option>
-							<option value="yellow">黄色</option>
-							<option value="yellowgreen">黄緑</option>
-							<option value="green">緑</option>
-							<option value="blue">青</option>
-							<option value="skyblue">水色</option>
-							<option value="purple">紫</option>
-						</select>
-					</div>
-					背景色2
-					<div class="veffect-select select-disabled bg-color-02" style="display: inline-block; _display: inline;" disabled=true>
-						<select name="bg_color_2" disabled=true>
-							<option value="black">黒</option>
-							<option value="white">白</option>
-							<option value="pink">ピンク</option>
-							<option value="red">赤</option>
-							<option value="yellow">黄色</option>
-							<option value="yellowgreen">黄緑</option>
-							<option value="green">緑</option>
-							<option value="blue">青</option>
-							<option value="skyblue">水色</option>
-							<option value="purple">紫</option>
-						</select>
-					</div>
-				</div>
-				<div class="visual-effect">
-					<input type="checkbox" id="checkbox-particle" name="effect-particle" value="particle" />
-					<label for="checkbox-particle">パーティクル</label>
-					<div class="veffect-select select-disabled particle-01" style="display: inline-block; _display: inline;">
-						<select name="particle" disabled=true>
-							<option value="bubble">泡</option>
-						</select>
-					</div>
-				</div>
 			</div>
 			<div class="clear"></div>
 		</div>
@@ -140,7 +71,8 @@
 		</div>
 		<div class="clear"></div>
 	</main>
-<script src="macaron.js"></script>
+<!-- <script src="macaron.js"></script> -->
+<script src="mss.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

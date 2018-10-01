@@ -1,0 +1,177 @@
+/* Starting Point */
+
+public File =  __ { $(TopLevel __ )* #Source } __ EOF
+
+/* Code Layout (Whitespace) */
+
+_             = ( S / BLOCKCOMMENT / LINECOMMENT )*
+S             = [ \t]
+__            = ( SS / BLOCKCOMMENT / LINECOMMENT )*
+SS            = [ \t\r\n]
+INDENT        = S+
+BLOCKCOMMENT  = '/*' ( !'*/' . )* '*/'
+              / '(*' ( !'*)' . )* '*)'
+LINECOMMENT   = '//' ( !EOL . )* EOL
+EOL           = ('\r'? '\n') / EOF
+EOF           = !.
+EOT           = (!W _)
+
+","           = ',' __
+"("           = '(' _
+")"           = ')' _
+"["           = '[' _
+"]"           = ']' _
+"{"           = '{' __
+"}"           = '}' __
+":"           = ':' _
+
+"type"        = 'type' _
+"xpos"        = 'xpos' _
+"ypos"        = 'ypos' _
+"radius"      = 'radius' _
+"sides"       = 'sides' _
+"width"       = 'width' _
+"height"      = 'height' _
+"slope"       = 'slope' _
+
+"circle"      = 'circle' _
+"polygon"     = 'polygon' _
+"rectangle"   = 'rectangle' _
+"trapezoid"   = 'trapezoid' _
+
+"isStatic"    = 'isStatic' _
+"density"     = 'density' _
+"friction"    = 'friction' _
+"frictionAir" = 'frictionAir' _
+"restitution" = 'restitution' _
+"image"       = 'image' _
+
+W            = [a-zA-Z0-9_\x80-\xF7]
+NAME         = [a-zA-Z_\x80-\xF7] W*
+
+/* TopLevel */
+
+/* example File '''
+
+''' */
+
+TopLevel = Object
+// TopLevel = (World EOL) / (Object EOL)
+
+/* Object */
+
+Object = {
+  $name(Identifier) __
+  "{"
+  $(Figure) __
+  ( "," $options(Options) __ )*
+  "}"
+  #Object
+}
+
+Figure = 
+    Circle
+  / Polygon
+  / Rectangle
+  / Trapezoid
+
+Circle = {
+  "type" ":" "circle" _ ","
+  "xpos" ":" $xpos(IntExpr) _ ","
+  "ypos" ":" $ypos(IntExpr) _ ","
+  "radius" ":" $radius(IntExpr)
+  #Circle
+}
+
+Polygon = {
+  "type" ":" "polygon" _ ","
+  "xpos" ":" $xpos(IntExpr) _ ","
+  "ypos" ":" $ypos(IntExpr) _ ","
+  "sides" ":" $sides(IntExpr) _ ","
+  "radius" ":" $radius(IntExpr)
+  #Polygon
+}  
+  
+Rectangle = {
+  "type" ":" "rectangle" _ ","
+  "xpos" ":" $xpos(IntExpr) _ ","
+  "ypos" ":" $ypos(IntExpr) _ ","
+  "width" ":" $width(IntExpr) _ ","
+  "height" ":" $height(IntExpr)
+  #Rectangle
+}  
+  
+Trapezoid = {
+  "type" ":" "trapezoid" _ ","
+  "xpos" ":" $xpos(IntExpr) _ ","
+  "ypos" ":" $ypos(IntExpr) _ ","
+  "width" ":" $width(IntExpr) _ ","
+  "height" ":" $height(IntExpr) _ ","
+  "slope" ":" $slope(FloatExpr)
+  #Trapezoid
+}
+
+
+Options = 
+    { "isStatic" ":" $isStatic(TrueExpr/FalseExpr) }
+  / { "density" ":" $density(FloatExpr) }
+  / { "friction" ":" $friction(FloatExpr) }
+  / { "frictionAir" ":" $frictionAir(FloatExpr) }
+  / { "restitution" ":" $restitution(FloatExpr) }
+  / { "image" ":" $image(StringExpr) } 
+
+
+/* Literal */
+
+public StringExpr = '"' { STRING_CONTENT* #String } '"' _
+public CharExpr = '\'' { CHAR_CONTENT* #Char } '\'' _
+STRING_CONTENT = ESCAPE / ![\"\n\\] .
+CHAR_CONTENT   = ESCAPE / !['\n\\] .
+IMAGE_CONTENT  = ESCAPE / ![<>\n\\] .
+ESCAPE =
+	'\\' ['\"\\bfnrt]
+	/ '\\' [0-3] [0-7] [0-7]
+    / '\\' [0-7] [0-7]
+    / '\\' [0-7]
+	/ '\\' 'u'+ HEX HEX HEX HEX
+
+public RationalExpr = {
+	DECIMAL '/' DECIMAL
+	#Rational
+} _ {$ $(Identifier) #Unit }?
+
+public IntExpr = {
+	(DECIMAL / HEXADECIMAL / BINARY )
+	#Int
+} _ {$ $(Identifier) #Unit }?
+
+DECIMAL = '0' ![bBxX0-9_] / [1-9] ( '_'* DIGIT )*
+HEXADECIMAL = '0' [xX] HEX ( '_'* HEX )*
+BINARY = '0' [bB] [01] ( '_'* [01] )*
+DIGIT = [0-9]
+HEX = [a-fA-F0-9]
+
+public FloatExpr = {
+	FLOAT #Double
+} _ {$ $(Identifier) #Unit }?
+
+FLOAT =
+	FRACTION EXPONENT?
+    / DIGIT+ EXPONENT
+
+FRACTION =
+	!'_' ( '_'* DIGIT )* '.' DIGIT ( '_'* DIGIT )*
+    / DIGIT ( '_'* DIGIT )* '.' !'.'
+
+EXPONENT =
+	[eE] [+\-]? DIGIT ( '_'* DIGIT )*
+
+TrueExpr  = { [Tt] 'rue' (&W !W)?  #True } _
+FalseExpr = { [Ff] 'alse' (&W !W)? #False } _
+NullExpr  = { [Nn] ('ull' / 'one' / 'il' / 'ULL' / 'othing' )  (&W !W)? #Null } _
+
+/* Identifier */
+
+Identifier = { NAME [']* '?'? #Name } _
+
+/* Identifier = !KEYWORD { NAME [']* '?'? #Name } _ */
