@@ -1,222 +1,73 @@
-/* 廃止予定 */
-const images = {
-    "<sakura>":"image/sakura.png",
-    "<fish>":"image/fish.png",
-    "<star>":"image/star.png",
-    "<arrow>":"image/arrow.png",
-    "<triangle>":"image/triangle.png",
-    "<rocket>":"image/rocket.png",
-    "<circle>":"image/circle.png",
-    "<block>":"image/block.png"
-};
-/* 廃止予定 */
-/* MObjectのtype */
-const motype = {
-    IMAGE: 1,
-    NUMBER: 2,
-    STRING: 3
-};
-
-const ttag = {
-    Source: "Source",
-    Rule: "Rule",
-    Context: "Context",
-    TimingPremise: "TimingPremise",
-    Premise: "Premise",
-    PeriodicSome: "PeriodicSome",
-    Periodic: "Periodic",
-    Event: "Event",
-    Body: "Body",
-    Let: "Let",
-    Assign: "Assign",
-    Return: "Return",
-    Name: "Name",
-    Infix: "Infix",
-    Cast: "Cast",
-    Unary: "Unary",
-    Norm: "Norm",
-    Method: "Method",
-    Get: "Get",
-    Apply: "Apply",
-    Index: "Index",
-    CastExpr: "CastExpr",
-    Tuple: "Tuple",
-    Empty: "Empty",
-    List: "List",
-    RangeUntilExpr: "RangeUntilExpr",
-    RangeExpr: "RangeExpr",
-    Dict: "Dict",
-    Data: "Data",
-    Template: "Template",
-    String: "String",
-    Char: "Char",
-    Image: "Image",
-    Rational: "Rational",
-    Unit: "Unit",
-    Int: "Int",
-    Double: "Double",
-    True: "True",
-    False: "False",
-    Null: "Null",
-    Pictogram: "Pictogram"
-};
-
-/* 廃止予定 */
-/* オブジェクトのデフォルトサイズ */
-const objh = 64;
-const objw = 64;
-
-/* 廃止予定 */
-/* オブジェクトの初期位置を制御する */
-class Cursor{
-    constructor(){
-        this.x = 0;
-        this.y = 0;
-    }
-
-    next(){
-        if(this.x + objw <= cvsw){
-            this.x = this.x + objw;
-        }else{
-            this.x = 0;
-            this.y = this.y + objh;
-        }
-    }
-    
-    reset(){
-        this.x = 0;
-        this.y = 0;
-    }
-}
-
-/* MObject及び子クラス 廃止予定 */
-/* Matter.Bodyが代わりになる */
-class MObject {
-    constructor(value) {
-        this.value = value;
-    }
-}
-class MImage extends MObject {
-    constructor(value) {
-        super(value);
-        this.img = new Image();
-        this.img.src = "image/" + value + ".png";
-        this.visible = true;
-        this.type = motype.IMAGE;
-
-        this.x = cursor.x;
-        this.y = cursor.y;
-        cursor.next();
-        this.h = objh;
-        this.w = objw;
-        this.a = 0;
-        this.ix = this.x;
-        this.iy = this.y;
-        this.ih = this.h;
-        this.iw = this.w;
-        this.ia = this.a;
-    }
-
-    init(){
-        this.x = this.ix;
-        this.y = this.iy;
-        this.h = this.ih;
-        this.w = this.iw;
-        this.a = this.ia;
-    }
-}
-class MPictogram extends MObject {
-    constructor(value) {
-        super(value);
-        this.img = new Image();
-        this.visible = true;
-        this.type = motype.IMAGE;
-
-        this.x = cursor.x;
-        this.y = cursor.y;
-        cursor.next();
-        this.h = objh;
-        this.w = objw;
-        this.a = 0;
-        this.ix = this.x;
-        this.iy = this.y;
-        this.ih = this.h;
-        this.iw = this.w;
-        this.ia = this.a;
-    }
-
-    init(){
-        this.x = this.ix;
-        this.y = this.iy;
-        this.h = this.ih;
-        this.w = this.iw;
-        this.a = this.ia;
-    }
-}
-class MCircle extends MPictogram{
-    constructor(value) {
-        super (value);
-        this.img.src = "image/circle.png";
-    }
-}
-class MNumber extends MObject {
-    constructor(value) {
-        super(value);
-        this.value = value;
-        this.type = motype.NUMBER;
-    }
-}
-class MString extends MObject {
-    constructor(value) {
-        super(value);
-        this.value = value;
-        this.type = motype.STRING;
-    }
-}
-class MEmpty extends MObject {
-    constructor(value){
-        super(value);
-    }
-}
+// const ttag = {
+//     Source: "Source",
+//     Rule: "Rule",
+//     Context: "Context",
+//     TimingPremise: "TimingPremise",
+//     Premise: "Premise",
+//     PeriodicSome: "PeriodicSome",
+//     Periodic: "Periodic",
+//     Event: "Event",
+//     Body: "Body",
+//     Let: "Let",
+//     Assign: "Assign",
+//     Return: "Return",
+//     Name: "Name",
+//     Infix: "Infix",
+//     Cast: "Cast",
+//     Unary: "Unary",
+//     Norm: "Norm",
+//     Method: "Method",
+//     Get: "Get",
+//     Apply: "Apply",
+//     Index: "Index",
+//     CastExpr: "CastExpr",
+//     Tuple: "Tuple",
+//     Empty: "Empty",
+//     List: "List",
+//     RangeUntilExpr: "RangeUntilExpr",
+//     RangeExpr: "RangeExpr",
+//     Dict: "Dict",
+//     Data: "Data",
+//     Template: "Template",
+//     String: "String",
+//     Char: "Char",
+//     Image: "Image",
+//     Rational: "Rational",
+//     Unit: "Unit",
+//     Int: "Int",
+//     Double: "Double",
+//     True: "True",
+//     False: "False",
+//     Null: "Null",
+//     Pictogram: "Pictogram"
+// };
 
 /* 廃止するかは未定 新しい仕様次第 */
 /* macaron言語の関数はパターンマッチで記述される。
    その際同じ名前の関数が複数記述される。
    2回目以降はすでに定義されている関数を更新する必要がある。
    よって、更新に必要な情報を保持しておく */
-class MFunc{
-    constructor(func, params, body) {
-        this.func = func; /* 関数全体 eval()で評価するためString */
-        this.params = params; /* 関数の引数 */
-        this.body = body; /* 関数の中身 funcを更新する際に使用 */
-    }
-}
+// class MFunc{
+//     constructor(func, params, body) {
+//         this.func = func; /* 関数全体 eval()で評価するためString */
+//         this.params = params; /* 関数の引数 */
+//         this.body = body; /* 関数の中身 funcを更新する際に使用 */
+//     }
+// }
 
 var cvsw = 900; /* canvas幅 */
 var cvsh = 900; /* canvas高さ */
-var cos = 0;
-var sin = 0;
-var rad = Math.PI / 180;
 var timeCounter = 0; /* macaronシミュレータの実行時間 */
 var timer; // TODO 確認
 var result; /* macaronコードのパース結果の木 */
-/* 未定 */
-var Mouse = {
-    x:0,
-    y:0
-};
 
 var globalField = {}; 
 var currentField = globalField; /* スコープ管理のため */
-var svariableCount = 0; // TODO 確認
-var showFlipper = false;
-var cursor = new Cursor(); /* 廃止予定 */
-var events = []; /* removeの際、event情報が必要なため */
-
-/* 廃止予定 */
-function createImage(input) {
-    return new MImage(input);
-}
+// var svariableCount = 0; // TODO 確認
+var showFlipper = false; /* tree.show() で ctree と clink の判定に使用 */
+/* removeの際、event情報が必要 */
+/* Matterでは不要になる可能性あり */
+var events = []; 
 
 /* パース結果の木はctree(ノード)をclinkで繋いでいるので、
    現在のctreeから次のctreeを参照するために一手間かかる。
@@ -309,645 +160,655 @@ function evalSource(tree,info){
 }
 
 // FIXME 新しい仕様次第
-function evalRule(tree,info){
-    var before = currentField;
-    currentField = {};
-    var contextTree = tree.getLabeledChild("context");
-    var inContext = contextTree != null ? contextTree.visit(info) : null;
-    info.counter = 0;
-    if(info.inFlow){
-        if(tree.getLabeledChild("cond").tag === ttag.TimingPremise){/* foreach or event */
-            if(!(tree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event)){
-                /* eventは前処理のみ */
-                /* foreachの処理 */
-                while(true){
-                    var bool = tree.getLabeledChild("cond").visit(info);
-                    if(bool){
-                        info.isKey = false;
-                        tree.getLabeledChild("body").visit(info);
-                    }else{
-                        break;
-                    }
-                }
-            }
-        }else{
-            if(tree.getLabeledChild("cond").getChild(0).tag === ttag.Name){
-                info.isKey = false;
-                tree.getLabeledChild("body").visit(info);/* Premiseへ */
-            }
-        }
-    }else{
-        if(tree.getLabeledChild("cond").tag === ttag.TimingPremise){
-            if(tree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event){/* event処理 */
-                var eventInfo = tree.getLabeledChild("cond").visit(info);
-                var event = eventInfo["event"];
-                var targets = eventInfo["target"];
-                var conds = eventInfo["conds"];
-                // if(event == "Click"){
-                //     var clickFunc = function(evt){
-                //         var before = currentField;
-                //         currentField = {};
-                //         if(onDown/* 廃止済み */(overlayCanvas/* 廃止済み */, evt, targets, conds)){
-                //             info.isKey =false;
-                //             tree.getLabeledChild("body").visit(info);
-                //         }
-                //         currentField = before;
-                //     };
-                //     overlayCanvas.addEventListener("mousedown",clickFunc,false);
-                //     events.push(["mousedown",clickFunc]);
-                // }
-            }
-        }else{
-            if(tree.getLabeledChild("cond").getChild(0).tag === ttag.Apply){/* 関数定義 */
-                info.isKey = true;
-                var funcInfo = tree.getLabeledChild("cond").visit(info);
-                /* 関数はパターンマッチで記述されるので、同じ名前の関数が来た際に前の関数を更新する必要がある */
-                if(funcInfo.name in globalField){/* すでに同じ名前の関数が存在する場合 */
-                    var mfunc = globalField[funcInfo.name];
-                    if(mfunc.params.length == funcInfo.params.length){/* 関数の引数の数が同じか確認 */
-                        /* 新しい関数の引数名をすでにある関数の引数名と一致させるために、(新変数名)=(旧変数名)として環境に登録 */
-                        for(var i = 0; i < mfunc.params.length; i++){
-                            currentField[funcInfo.params[i]] = mfunc.params[i];
-                        }
-                        info.inFuncDecl = true;
-                        var conds = funcInfo.conds;
-                        /* 新しい関数のパターンマッチの条件を取得 */
-                        for(var i=0; i<conds.length; i++){
-                            if(ctree.prototype.isPrototypeOf(conds[i])){
-                                conds[i] = conds[i].visit(info);
-                            }
-                        }
-                        var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
-                        info.inFuncDecl = false;
-                        /* 関数の中身を更新 */
-                        body = mfunc.body + body;
-                        mfunc.body = body;
-                        mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
-                        globalField[funcInfo.name] = mfunc;
-                    }else{/* 関数の引数の数が違う場合はエラー */
-                        throw new Error('wrong number of arguments');
-                        // return false;
-                    }
-                }else{/* 同じ名前の関数が存在しない場合 */
-                    var conds = funcInfo.conds;
-                    /* パターンマッチの条件を取得 */
-                    for(var i=0; i<conds.length; i++){
-                        if(ctree.prototype.isPrototypeOf(conds[i])){
-                            conds[i] = conds[i].visit(info);
-                        }
-                    }
-                    /* 更新用に関数の中身を保持しておく */
-                    var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
-                    /* eval用に関数を完成 */
-                    var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
-                    globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
-                }
-            }
-        }
-    }
-    currentField = before;
-    return null;
-}
+// function evalRule(tree,info){
+//     var before = currentField;
+//     currentField = {};
+//     var contextTree = tree.getLabeledChild("context");
+//     var inContext = contextTree != null ? contextTree.visit(info) : null;
+//     info.counter = 0;
+//     if(info.inFlow){
+//         if(tree.getLabeledChild("cond").tag === ttag.TimingPremise){/* foreach or event */
+//             if(!(tree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event)){
+//                 /* eventは前処理のみ */
+//                 /* foreachの処理 */
+//                 while(true){
+//                     var bool = tree.getLabeledChild("cond").visit(info);
+//                     if(bool){
+//                         info.isKey = false;
+//                         tree.getLabeledChild("body").visit(info);
+//                     }else{
+//                         break;
+//                     }
+//                 }
+//             }
+//         }else{
+//             if(tree.getLabeledChild("cond").getChild(0).tag === ttag.Name){
+//                 info.isKey = false;
+//                 tree.getLabeledChild("body").visit(info);/* Premiseへ */
+//             }
+//         }
+//     }else{
+//         if(tree.getLabeledChild("cond").tag === ttag.TimingPremise){
+//             if(tree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event){/* event処理 */
+//                 var eventInfo = tree.getLabeledChild("cond").visit(info);
+//                 var event = eventInfo["event"];
+//                 var targets = eventInfo["target"];
+//                 var conds = eventInfo["conds"];
+//                 // if(event == "Click"){
+//                 //     var clickFunc = function(evt){
+//                 //         var before = currentField;
+//                 //         currentField = {};
+//                 //         if(onDown/* 廃止済み */(overlayCanvas/* 廃止済み */, evt, targets, conds)){
+//                 //             info.isKey =false;
+//                 //             tree.getLabeledChild("body").visit(info);
+//                 //         }
+//                 //         currentField = before;
+//                 //     };
+//                 //     overlayCanvas.addEventListener("mousedown",clickFunc,false);
+//                 //     events.push(["mousedown",clickFunc]);
+//                 // }
+//             }
+//         }else{
+//             if(tree.getLabeledChild("cond").getChild(0).tag === ttag.Apply){/* 関数定義 */
+//                 info.isKey = true;
+//                 var funcInfo = tree.getLabeledChild("cond").visit(info);
+//                 /* 関数はパターンマッチで記述されるので、同じ名前の関数が来た際に前の関数を更新する必要がある */
+//                 if(funcInfo.name in globalField){/* すでに同じ名前の関数が存在する場合 */
+//                     var mfunc = globalField[funcInfo.name];
+//                     if(mfunc.params.length == funcInfo.params.length){/* 関数の引数の数が同じか確認 */
+//                         /* 新しい関数の引数名をすでにある関数の引数名と一致させるために、(新変数名)=(旧変数名)として環境に登録 */
+//                         for(var i = 0; i < mfunc.params.length; i++){
+//                             currentField[funcInfo.params[i]] = mfunc.params[i];
+//                         }
+//                         info.inFuncDecl = true;
+//                         var conds = funcInfo.conds;
+//                         /* 新しい関数のパターンマッチの条件を取得 */
+//                         for(var i=0; i<conds.length; i++){
+//                             if(ctree.prototype.isPrototypeOf(conds[i])){
+//                                 conds[i] = conds[i].visit(info);
+//                             }
+//                         }
+//                         var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
+//                         info.inFuncDecl = false;
+//                         /* 関数の中身を更新 */
+//                         body = mfunc.body + body;
+//                         mfunc.body = body;
+//                         mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
+//                         globalField[funcInfo.name] = mfunc;
+//                     }else{/* 関数の引数の数が違う場合はエラー */
+//                         throw new Error('wrong number of arguments');
+//                         // return false;
+//                     }
+//                 }else{/* 同じ名前の関数が存在しない場合 */
+//                     var conds = funcInfo.conds;
+//                     /* パターンマッチの条件を取得 */
+//                     for(var i=0; i<conds.length; i++){
+//                         if(ctree.prototype.isPrototypeOf(conds[i])){
+//                             conds[i] = conds[i].visit(info);
+//                         }
+//                     }
+//                     /* 更新用に関数の中身を保持しておく */
+//                     var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
+//                     /* eval用に関数を完成 */
+//                     var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
+//                     globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
+//                 }
+//             }
+//         }
+//     }
+//     currentField = before;
+//     return null;
+// }
 
-/* 未実装 */
-function evalContext(tree,info){
-    var length = tree.getLength();
-    var inContext = true;
-    for(var i = 0;i<length;i++){
-        inContext = inContext && tree.getChild(i).visit(info); // TODO 子ノードのeval結果はbool?
-    }
-    return inContext;
-}
+// /* 未実装 */
+// function evalContext(tree,info){
+//     var length = tree.getLength();
+//     var inContext = true;
+//     for(var i = 0;i<length;i++){
+//         inContext = inContext && tree.getChild(i).visit(info); // TODO 子ノードのeval結果はbool?
+//     }
+//     return inContext;
+// }
 
-function evalTimingPremise(tree,info){
-    var length = tree.getLength();
-    if(tree.getLabeledChild("timing").tag === ttag.Event){/* eventの処理 */
-        var target = tree.getChild(0).visit(info);
-        var targets = target["target"];
-        if(length > 1){
-            var conds = [];
-            for(var i = 1; i < length; i++){
-                conds.push(tree.getChild(i))
-            }
-        }else{
-            var conds = true;
-        }
-        target["conds"] = conds;
-        return target;
-    }else{/* foreachの処理 */
-        var targets = tree.getChild(0).visit(info);
-        while(targetsSetter(targets,info.counter,[],{index:0})){
-            var isContinue = false;
-            for(var i = 1;i<length;i++){
-                if(!(tree.getChild(i).visit(info))){
-                    isContinue = true;
-                    break;
-                }
-            }
-            info.counter++;
-            if(isContinue){
-                continue;
-            }else{
-                return true;
-            }
-        }
-    }
-    return false;
-}
+// function evalTimingPremise(tree,info){
+//     var length = tree.getLength();
+//     if(tree.getLabeledChild("timing").tag === ttag.Event){/* eventの処理 */
+//         var target = tree.getChild(0).visit(info);
+//         var targets = target["target"];
+//         if(length > 1){
+//             var conds = [];
+//             for(var i = 1; i < length; i++){
+//                 conds.push(tree.getChild(i))
+//             }
+//         }else{
+//             var conds = true;
+//         }
+//         target["conds"] = conds;
+//         return target;
+//     }else{/* foreachの処理 */
+//         var targets = tree.getChild(0).visit(info);
+//         while(targetsSetter(targets,info.counter,[],{index:0})){
+//             var isContinue = false;
+//             for(var i = 1;i<length;i++){
+//                 if(!(tree.getChild(i).visit(info))){
+//                     isContinue = true;
+//                     break;
+//                 }
+//             }
+//             info.counter++;
+//             if(isContinue){
+//                 continue;
+//             }else{
+//                 return true;
+//             }
+//         }
+//     }
+//     return false;
+// }
 
-function evalPremise(tree,info){
-    var funcInfo = {};
-    var length = tree.getLength();
-    var funcTree = tree.getChild(0);
-    funcInfo.name = funcTree.getLabeledChild("recv").visit(info);
-    var funcParams = funcTree.getLabeledChild("param").visit(info);
-    var conds = [];
-    if(length == 1){
-        if(funcParams.length == 0){
-            params = funcParams;
-            conds = ["true"];
-        }else{
-            var paramLen = funcParams.length;
-            var params = [];
-            for(var i = 0;i<paramLen;i++){
-                if(typeof funcParams[0] == "number" || funcParams[0].match("\"") != null){
-                    params.push("p" + i); 
-                    conds.push("p" + i + " == " + funcParams[i]); 
-                }else{
-                    params.push(funcParams[i]);
-                    conds.push("true");
-                }
-            }
-        }
-        funcInfo.params = params;
-        funcInfo.conds = conds;
-    }else{
-        funcInfo.params = funcParams;
-        for(var i = 1;i<length;i++){
-            conds.push(tree.getChild(i));
-        }
-        funcInfo.conds = conds;
-    }
-    return funcInfo;
-}
+// function evalPremise(tree,info){
+//     var funcInfo = {};
+//     var length = tree.getLength();
+//     var funcTree = tree.getChild(0);
+//     funcInfo.name = funcTree.getLabeledChild("recv").visit(info);
+//     var funcParams = funcTree.getLabeledChild("param").visit(info);
+//     var conds = [];
+//     if(length == 1){
+//         if(funcParams.length == 0){
+//             params = funcParams;
+//             conds = ["true"];
+//         }else{
+//             var paramLen = funcParams.length;
+//             var params = [];
+//             for(var i = 0;i<paramLen;i++){
+//                 if(typeof funcParams[0] == "number" || funcParams[0].match("\"") != null){
+//                     params.push("p" + i); 
+//                     conds.push("p" + i + " == " + funcParams[i]); 
+//                 }else{
+//                     params.push(funcParams[i]);
+//                     conds.push("true");
+//                 }
+//             }
+//         }
+//         funcInfo.params = params;
+//         funcInfo.conds = conds;
+//     }else{
+//         funcInfo.params = funcParams;
+//         for(var i = 1;i<length;i++){
+//             conds.push(tree.getChild(i));
+//         }
+//         funcInfo.conds = conds;
+//     }
+//     return funcInfo;
+// }
 
-function evalPeriodicSome(tree,info){ // FIXME
-    var targets = [];
-    targets.push(tree.getChild(0).visit({inFlow:true,isKey:true}));
-    targets.push(tree.getChild(1).visit({inFlow:true,isKey:true}));
-    return targets;
-}
+// function evalPeriodicSome(tree,info){ // FIXME
+//     var targets = [];
+//     targets.push(tree.getChild(0).visit({inFlow:true,isKey:true}));
+//     targets.push(tree.getChild(1).visit({inFlow:true,isKey:true}));
+//     return targets;
+// }
 
-function evalPeriodic(tree,info){
-    var length = tree.getLength();
-    var targets = []
-    for(var i = 0;i<length;i++){
-        targets.push(tree.getChild(i).visit({inFlow:true,isKey:true}));
-    }
-    return targets;
-}
+// function evalPeriodic(tree,info){
+//     var length = tree.getLength();
+//     var targets = []
+//     for(var i = 0;i<length;i++){
+//         targets.push(tree.getChild(i).visit({inFlow:true,isKey:true}));
+//     }
+//     return targets;
+// }
 
-function evalEvent(tree,info){
-    try{
-        var event = {"event":tree.getChild(0).getLabeledChild("recv").visit({inFlow:false,isKey:true})};
-        var target = tree.getChild(0).getLabeledChild("param").visit({inFlow:false,isKey:true});
-        if(!(target instanceof Array)){
-            target = [target];
-        }
-        event["target"] = target;
-    }catch(e){
-        console.error("EventError:", e.message);
-    }
-    return event;
-}
+// function evalEvent(tree,info){
+//     try{
+//         var event = {"event":tree.getChild(0).getLabeledChild("recv").visit({inFlow:false,isKey:true})};
+//         var target = tree.getChild(0).getLabeledChild("param").visit({inFlow:false,isKey:true});
+//         if(!(target instanceof Array)){
+//             target = [target];
+//         }
+//         event["target"] = target;
+//     }catch(e){
+//         console.error("EventError:", e.message);
+//     }
+//     return event;
+// }
 
-function evalBody(tree,info){
-    var length = tree.getLength();
-    if(info.isKey){
-        var body = "";
-        for(var i = 0;i<length;i++){
-            body = body + tree.getChild(i).visit(info);
-        }
-        return body;
-    }
+// function evalBody(tree,info){
+//     var length = tree.getLength();
+//     if(info.isKey){
+//         var body = "";
+//         for(var i = 0;i<length;i++){
+//             body = body + tree.getChild(i).visit(info);
+//         }
+//         return body;
+//     }
 
-    for(var i = 0;i<length;i++){
-        tree.getChild(i).visit(info);
-    }
-    return null;
-}
+//     for(var i = 0;i<length;i++){
+//         tree.getChild(i).visit(info);
+//     }
+//     return null;
+// }
 
-function evalAssign(tree,info){
-    if(info.isKey){
-        return tree.getLabeledChild("left").visit(info) + "=" + tree.getLabeledChild("right").visit(info) + ";";
-    }
+// function evalAssign(tree,info){
+//     if(info.isKey){
+//         return tree.getLabeledChild("left").visit(info) + "=" + tree.getLabeledChild("right").visit(info) + ";";
+//     }
 
-    var right = tree.getLabeledChild("right").visit(info);
-    info.isKey = true;
-    var left = tree.getLabeledChild("left").visit(info);
-    var leftName = left;
-    if(leftName.indexOf(".") > 0){
-        leftName = leftName.slice(0, leftName.indexOf("."));
-    }
-    if(leftName.indexOf("[") > 0){
-        leftName = leftName.slice(0, leftName.indexOf("["));
-    }
+//     var right = tree.getLabeledChild("right").visit(info);
+//     info.isKey = true;
+//     var left = tree.getLabeledChild("left").visit(info);
+//     var leftName = left;
+//     if(leftName.indexOf(".") > 0){
+//         leftName = leftName.slice(0, leftName.indexOf("."));
+//     }
+//     if(leftName.indexOf("[") > 0){
+//         leftName = leftName.slice(0, leftName.indexOf("["));
+//     }
     
-    if(MEmpty.prototype.isPrototypeOf(right)){
-        try{
-            currentField[leftName].img.src = "image/" + right.value + ".png";
-            currentField[leftName].value = right.value;
-        }catch(e){
-            globalField[leftName].img.src = "image/" + right.value + ".png";
-            globalField[leftName].value = right.value;
-        }
-        return null;
-    }
-    var val = null;
+//     if(MEmpty.prototype.isPrototypeOf(right)){
+//         try{
+//             currentField[leftName].img.src = "image/" + right.value + ".png";
+//             currentField[leftName].value = right.value;
+//         }catch(e){
+//             globalField[leftName].img.src = "image/" + right.value + ".png";
+//             globalField[leftName].value = right.value;
+//         }
+//         return null;
+//     }
+//     var val = null;
     
-    if(leftName in currentField){
-        val = eval("currentField." + left + " = " + right);
-    }else if(leftName in globalField){
-        val = eval("globalField." + left + " = " + right);
-    }else{
-        val = eval(left + " = " + right);
-    }
-    // try{
-    //     val = eval("currentField." + tree.getLabeledChild("left").visit(info) + " = " + right);
-    // }catch(e){
-    //     try{
-    //         val = eval("globalField." + tree.getLabeledChild("left").visit(info) + " = " + right);
-    //     }catch(e){
-    //         val = eval(tree.getLabeledChild("left").visit(info) + " = " + right);
-    //     }
-    // }
-    info.isKey = false;
-    return null;
-}
+//     if(leftName in currentField){
+//         val = eval("currentField." + left + " = " + right);
+//     }else if(leftName in globalField){
+//         val = eval("globalField." + left + " = " + right);
+//     }else{
+//         val = eval(left + " = " + right);
+//     }
+//     // try{
+//     //     val = eval("currentField." + tree.getLabeledChild("left").visit(info) + " = " + right);
+//     // }catch(e){
+//     //     try{
+//     //         val = eval("globalField." + tree.getLabeledChild("left").visit(info) + " = " + right);
+//     //     }catch(e){
+//     //         val = eval(tree.getLabeledChild("left").visit(info) + " = " + right);
+//     //     }
+//     // }
+//     info.isKey = false;
+//     return null;
+// }
 
-function evalReturn(tree,info){
-    if(info.isKey){
-        var returnExp = "return ";
-        returnExp = returnExp + tree.getLabeledChild("expr").visit(info) + ";";
-        return returnExp;
-    }
-    return tree.getLabeledChild("expr").visit(info);
-}
+// function evalReturn(tree,info){
+//     if(info.isKey){
+//         var returnExp = "return ";
+//         returnExp = returnExp + tree.getLabeledChild("expr").visit(info) + ";";
+//         return returnExp;
+//     }
+//     return tree.getLabeledChild("expr").visit(info);
+// }
 
-function evalLet(tree,info){
-    if(info.isKey){
-        return tree.getLabeledChild("left").visit(info) + "=" + tree.getLabeledChild("right").visit(info) + ";";
-    }
-    // FIXME?
-    if(!(info.inFlow)){
-        currentField[tree.getLabeledChild("left").visit({inFlow:false,isKey:true})] = tree.getLabeledChild("right").visit({inFlow:false,createNew:true});
-    }
-    return null;
-}
+// function evalLet(tree,info){
+//     if(info.isKey){
+//         return tree.getLabeledChild("left").visit(info) + "=" + tree.getLabeledChild("right").visit(info) + ";";
+//     }
+//     // FIXME?
+//     if(!(info.inFlow)){
+//         currentField[tree.getLabeledChild("left").visit({inFlow:false,isKey:true})] = tree.getLabeledChild("right").visit({inFlow:false,createNew:true});
+//     }
+//     return null;
+// }
 
-function evalPosition(tree,info){
-    if(!(info.inFlow)){
-        tree.getChild(0).visit({inFlow:false});
-    }
-    return null;
-}
+// function evalPosition(tree,info){
+//     if(!(info.inFlow)){
+//         tree.getChild(0).visit({inFlow:false});
+//     }
+//     return null;
+// }
 
-function evalName(tree,info){
-    var val = tree.getValue();
-    if(info.inFuncDecl){
-        if(val in currentField){
-            return currentField[val];
-        }
-    }
-    if(info.isKey){
-        return val;
-    }
-    if(val in currentField){
-        return currentField[val];
-    }
-    if(val in globalField){
-        return globalField[val];
-    }
-    throw new Error("Can't find variable: " + val); // FIXME
-    // return val;
-}
+// function evalName(tree,info){
+//     var val = tree.getValue();
+//     if(info.inFuncDecl){
+//         if(val in currentField){
+//             return currentField[val];
+//         }
+//     }
+//     if(info.isKey){
+//         return val;
+//     }
+//     if(val in currentField){
+//         return currentField[val];
+//     }
+//     if(val in globalField){
+//         return globalField[val];
+//     }
+//     throw new Error("Can't find variable: " + val); // FIXME
+//     // return val;
+// }
 
-function evalInfix(tree,info){
-    if(info.isKey){
-        return tree.getLabeledChild("left").visit(info) + tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("right").visit(info);
-    }
-    var left = tree.getLabeledChild("left").visit(info);
-    var right = tree.getLabeledChild("right").visit(info);
-    if(MObject.prototype.isPrototypeOf(left)){
-        left = left.value;
-    }
-    if(MObject.prototype.isPrototypeOf(right)){
-        right = right.value;
-    }
-    return eval("left" + tree.getLabeledChild("op").visit({isKey:true}) + "right");
-}
+// function evalInfix(tree,info){
+//     if(info.isKey){
+//         return tree.getLabeledChild("left").visit(info) + tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("right").visit(info);
+//     }
+//     var left = tree.getLabeledChild("left").visit(info);
+//     var right = tree.getLabeledChild("right").visit(info);
+//     if(MObject.prototype.isPrototypeOf(left)){
+//         left = left.value;
+//     }
+//     if(MObject.prototype.isPrototypeOf(right)){
+//         right = right.value;
+//     }
+//     return eval("left" + tree.getLabeledChild("op").visit({isKey:true}) + "right");
+// }
 
-function evalCast(tree,info){
-    if(info.isKey){
-        return "(" + tree.getLabeledChild("type").visit(info) + ")" + tree.getLabeledChild("recv").visit(info);
-    }
-    return eval("(" + tree.getLabeledChild("type").visit(info) + ")" + tree.getLabeledChild("recv").visit(info));
-}
+// function evalCast(tree,info){
+//     if(info.isKey){
+//         return "(" + tree.getLabeledChild("type").visit(info) + ")" + tree.getLabeledChild("recv").visit(info);
+//     }
+//     return eval("(" + tree.getLabeledChild("type").visit(info) + ")" + tree.getLabeledChild("recv").visit(info));
+// }
 
-function evalUnary(tree,info){
-    if(info.isKey){
-        return tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("expr").visit(info);
-    }
-    return eval(tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("expr").visit(info));
-}
+// function evalUnary(tree,info){
+//     if(info.isKey){
+//         return tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("expr").visit(info);
+//     }
+//     return eval(tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("expr").visit(info));
+// }
 
-function evalNorm(tree,info){
-    if(info.isKey){
-        return "|" + tree.getLabeledChild("expr").visit(info) + "|";
-    }
-    return eval("|" + tree.getLabeledChild("expr").visit(info) + "|");
-}
+// function evalNorm(tree,info){
+//     if(info.isKey){
+//         return "|" + tree.getLabeledChild("expr").visit(info) + "|";
+//     }
+//     return eval("|" + tree.getLabeledChild("expr").visit(info) + "|");
+// }
 
-function evalMethod(tree,info){
-    if(info.isKey){
-        return tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info) + "(" + tree.getLabeledChild("param").visit(info) + ")";
-    }
-    info.isKey = true;
-    var val = null;
+// function evalMethod(tree,info){
+//     if(info.isKey){
+//         return tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info) + "(" + tree.getLabeledChild("param").visit(info) + ")";
+//     }
+//     info.isKey = true;
+//     var val = null;
 
-    var recv = tree.getLabeledChild("recv").visit(info);
-    var name = tree.getLabeledChild("name").visit(info);
-    var params = tree.getLabeledChild("param").visit(info);
-    var paramStr = "";
+//     var recv = tree.getLabeledChild("recv").visit(info);
+//     var name = tree.getLabeledChild("name").visit(info);
+//     var params = tree.getLabeledChild("param").visit(info);
+//     var paramStr = "";
 
-    if(Array.isArray(params)){
-        var length = params.length;
-        for(var i = 0;i<length;i++){
-            if(params[i] in currentField){
-                params[i] = currentField[params[i]];
-            }
-            if(params[i] in globalField){
-                params[i] = globalField[params[i]];
-            }
-            paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
-        }
-    }else{
-        if(params in currentField){
-            params = currentField[params];
-        }
-        if(params in globalField){
-            params = globalField[params];
-        }
-        paramStr = "params"
-    }
+//     if(Array.isArray(params)){
+//         var length = params.length;
+//         for(var i = 0;i<length;i++){
+//             if(params[i] in currentField){
+//                 params[i] = currentField[params[i]];
+//             }
+//             if(params[i] in globalField){
+//                 params[i] = globalField[params[i]];
+//             }
+//             paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
+//         }
+//     }else{
+//         if(params in currentField){
+//             params = currentField[params];
+//         }
+//         if(params in globalField){
+//             params = globalField[params];
+//         }
+//         paramStr = "params"
+//     }
 
-    try{
-        val = eval("currentField." + recv + "." + name + "(" + paramStr + ")");
-    }catch(e){
-        try{
-            val = eval("globalField." + recv + "." + name + "(" + paramStr + ")");
-        }catch(e){
-            val = eval(recv + "." + name + "(" + paramStr + ")");
-        }
-    }
-    info.isKey = false;
-    return val;
-}
+//     try{
+//         val = eval("currentField." + recv + "." + name + "(" + paramStr + ")");
+//     }catch(e){
+//         try{
+//             val = eval("globalField." + recv + "." + name + "(" + paramStr + ")");
+//         }catch(e){
+//             val = eval(recv + "." + name + "(" + paramStr + ")");
+//         }
+//     }
+//     info.isKey = false;
+//     return val;
+// }
 
-function evalGet(tree,info){
-    if(info.isKey){
-        return tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info);
-    }
-    info.isKey = true;
-    var val = null;
-    try{
-        val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
-    }catch(e){
-        try{
-            val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
-        }catch(e){
-            val = eval(tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
-        }
-    }
-    info.isKey = false;
-    return val;
-}
+// function evalGet(tree,info){
+//     if(info.isKey){
+//         return tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info);
+//     }
+//     info.isKey = true;
+//     var val = null;
+//     try{
+//         val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
+//     }catch(e){
+//         try{
+//             val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
+//         }catch(e){
+//             val = eval(tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
+//         }
+//     }
+//     info.isKey = false;
+//     return val;
+// }
 
-function evalApply(tree,info){
-    if(info.isKey){
-        return "callFunc(\"" + tree.getLabeledChild("recv").visit(info) + "\")(" + tree.getLabeledChild("param").visit(info) + ")";
+// function evalApply(tree,info){
+//     if(info.isKey){
+//         return "callFunc(\"" + tree.getLabeledChild("recv").visit(info) + "\")(" + tree.getLabeledChild("param").visit(info) + ")";
         
-    }
+//     }
 
-    info.isKey = true;
-    var val = null;
-    var recv = tree.getLabeledChild("recv").visit(info);
-    var params = tree.getLabeledChild("param").visit(info);
-    var paramStr = "";
-    if(Array.isArray(params)){
-        var length = params.length;
-        for(var i = 0;i<length;i++){
-            if(params[i] in currentField){
-                params[i] = currentField[params[i]];
-            }
-            if(params[i] in globalField){
-                params[i] = globalField[params[i]];
-            }
-            if(MObject.prototype.isPrototypeOf(params[i]) || params[i].type == "body"){
-                // MObject以外のオブジェクトもこちら
-                // .type のため、undefinedは今とれない
-                paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
-            }else{
-                if(Array.isArray(params[i])){
-                    paramStr = i == 0 ? paramStr + "[" + params[i] + "]" : paramStr + "," + "[" + params[i] + "]";
-                }else{
-                    paramStr = i == 0 ? paramStr + params[i] : paramStr + "," + params[i];
-                }
-            }
-        }
-    }else{
-        if(params in currentField){
-            params = currentField[params];
-        }
-        if(params in globalField){
-            params = globalField[params];
-        }
-        paramStr = "params"
-    }
+//     info.isKey = true;
+//     var val = null;
+//     var recv = tree.getLabeledChild("recv").visit(info);
+//     var params = tree.getLabeledChild("param").visit(info);
+//     var paramStr = "";
+//     if(Array.isArray(params)){
+//         var length = params.length;
+//         for(var i = 0;i<length;i++){
+//             if(params[i] in currentField){
+//                 params[i] = currentField[params[i]];
+//             }
+//             if(params[i] in globalField){
+//                 params[i] = globalField[params[i]];
+//             }
+//             if(MObject.prototype.isPrototypeOf(params[i]) || params[i].type == "body"){
+//                 // MObject以外のオブジェクトもこちら
+//                 // .type のため、undefinedは今とれない
+//                 paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
+//             }else{
+//                 if(Array.isArray(params[i])){
+//                     paramStr = i == 0 ? paramStr + "[" + params[i] + "]" : paramStr + "," + "[" + params[i] + "]";
+//                 }else{
+//                     paramStr = i == 0 ? paramStr + params[i] : paramStr + "," + params[i];
+//                 }
+//             }
+//         }
+//     }else{
+//         if(params in currentField){
+//             params = currentField[params];
+//         }
+//         if(params in globalField){
+//             params = globalField[params];
+//         }
+//         paramStr = "params"
+//     }
 
-    try{
-        var mfunc = eval("currentField." + recv)
-        val = eval(mfunc.func + "(" + paramStr + ")");
-    }catch(e){
-        try{
-            var mfunc = eval("globalField." + recv)
-            val = eval(mfunc.func + "(" + paramStr + ")");
-        }catch(e){
-            val = eval(recv + "(" + paramStr + ")");
-        }
-    }
-    info.isKey = false;
-    return val;
-}
+//     try{
+//         var mfunc = eval("currentField." + recv)
+//         val = eval(mfunc.func + "(" + paramStr + ")");
+//     }catch(e){
+//         try{
+//             var mfunc = eval("globalField." + recv)
+//             val = eval(mfunc.func + "(" + paramStr + ")");
+//         }catch(e){
+//             val = eval(recv + "(" + paramStr + ")");
+//         }
+//     }
+//     info.isKey = false;
+//     return val;
+// }
 
-function evalIndex(tree,info){
-    if(info.isKey){
-        return tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]";
-    }
-    info.isKey = true;
-    var val = null;
-    try{
-        val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
-    }catch(e){
-        try{
-            val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
-        }catch(e){
-            val = eval(tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
-        }
-    }
-    info.isKey = false;
-    return val;
-}
+// function evalIndex(tree,info){
+//     if(info.isKey){
+//         return tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]";
+//     }
+//     info.isKey = true;
+//     var val = null;
+//     try{
+//         val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
+//     }catch(e){
+//         try{
+//             val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
+//         }catch(e){
+//             val = eval(tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
+//         }
+//     }
+//     info.isKey = false;
+//     return val;
+// }
 
-function evalArguments(tree,info){
-    var length = tree.getLength();
-    var list = [];
-    for(var i = 0;i<length;i++){
-        list.push(tree.getChild(i).visit(info));
-    }
-    return list;
-}
+// function evalArguments(tree,info){
+//     var length = tree.getLength();
+//     var list = [];
+//     for(var i = 0;i<length;i++){
+//         list.push(tree.getChild(i).visit(info));
+//     }
+//     return list;
+// }
 
-function evalCastExpr(tree,info){
-    if(info.isKey){
-        return tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info);
-    }
-    info.isKey = true;
-    var val = null;
-    try{
-        val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
-    }catch(e){
-        try{
-            val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
-        }catch(e){
-            val = eval(tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
-        }
-    }
-    info.isKey = false;
-    return val;
-}
+// function evalCastExpr(tree,info){
+//     if(info.isKey){
+//         return tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info);
+//     }
+//     info.isKey = true;
+//     var val = null;
+//     try{
+//         val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
+//     }catch(e){
+//         try{
+//             val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
+//         }catch(e){
+//             val = eval(tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
+//         }
+//     }
+//     info.isKey = false;
+//     return val;
+// }
 
-function evalTuple(tree,info){
-    var length = tree.getLength();
-    var tuple = [];
-    for(var i = 0;i<length;i++){
-        tuple.push(tree.getChild(i).visit(info));
-    }
-    return tuple;
-}
+// function evalTuple(tree,info){
+//     var length = tree.getLength();
+//     var tuple = [];
+//     for(var i = 0;i<length;i++){
+//         tuple.push(tree.getChild(i).visit(info));
+//     }
+//     return tuple;
+// }
 
-function evalEmpty(tree,info){
-    return null;
-}
+// function evalEmpty(tree,info){
+//     return null;
+// }
 
-function evalList(tree,info){
-    var length = tree.getLength();
-    var list = [];
-    for(var i = 0;i<length;i++){
-        list.push(tree.getChild(i).visit(info));
-    }
-    return list;
-}
+// function evalList(tree,info){
+//     var length = tree.getLength();
+//     var list = [];
+//     for(var i = 0;i<length;i++){
+//         list.push(tree.getChild(i).visit(info));
+//     }
+//     return list;
+// }
 
-function evalRangeUntilExpr(tree,info){
-    var list = [];
-    var start = tree.getLabeledChild("left").visit(info);
-    var end = tree.getLabeledChild("right").visit(info);
-    if(typeof start == "number" && typeof end == "number"){
-        for(var i = start; i < end; i++){
-            list.push(i);
-        }
-    }else if(typeof start == "string" && typeof end == "string"){
-        var startByte = start.charCodeAt(0);
-        var endByte = end.charCodeAt(0);
-        for(var i = startByte; i < endByte; i++) {
-            list.push(String.fromCodePoint(i));
-        }
-    }
-    return list;
-}
+// function evalRangeUntilExpr(tree,info){
+//     var list = [];
+//     var start = tree.getLabeledChild("left").visit(info);
+//     var end = tree.getLabeledChild("right").visit(info);
+//     if(typeof start == "number" && typeof end == "number"){
+//         for(var i = start; i < end; i++){
+//             list.push(i);
+//         }
+//     }else if(typeof start == "string" && typeof end == "string"){
+//         var startByte = start.charCodeAt(0);
+//         var endByte = end.charCodeAt(0);
+//         for(var i = startByte; i < endByte; i++) {
+//             list.push(String.fromCodePoint(i));
+//         }
+//     }
+//     return list;
+// }
 
-function evalRangeExpr(tree,info){
-    var list = [];
-    var start = tree.getLabeledChild("left").visit(info);
-    var end = tree.getLabeledChild("right").visit(info);
-    if(typeof start == "number" && typeof end == "number"){
-        for(var i = start; i <= end; i++){
-            list.push(i);
-        }
-    }else if(typeof start == "string" && typeof end == "string"){
-        var startByte = start.charCodeAt(0);
-        var endByte = end.charCodeAt(0);
-        for(var i = startByte; i <= endByte; i++) {
-            list.push(String.fromCodePoint(i));
-        }
-    }
-    return list;
-}
+// function evalRangeExpr(tree,info){
+//     var list = [];
+//     var start = tree.getLabeledChild("left").visit(info);
+//     var end = tree.getLabeledChild("right").visit(info);
+//     if(typeof start == "number" && typeof end == "number"){
+//         for(var i = start; i <= end; i++){
+//             list.push(i);
+//         }
+//     }else if(typeof start == "string" && typeof end == "string"){
+//         var startByte = start.charCodeAt(0);
+//         var endByte = end.charCodeAt(0);
+//         for(var i = startByte; i <= endByte; i++) {
+//             list.push(String.fromCodePoint(i));
+//         }
+//     }
+//     return list;
+// }
 
-function evalDict(tree,info){
-    var length = tree.getLength();
-    var dict = {};
-    for(var i = 0;i<length;i++){
-        var target = tree.getChild(i);
-        dict[target.getLabeledChild("name").visit(info)] = target.getLabeledChild("value").visit(info);
-    }
-    return dict;
-}
+// function evalDict(tree,info){
+//     var length = tree.getLength();
+//     var dict = {};
+//     for(var i = 0;i<length;i++){
+//         var target = tree.getChild(i);
+//         dict[target.getLabeledChild("name").visit(info)] = target.getLabeledChild("value").visit(info);
+//     }
+//     return dict;
+// }
 
-function evalData(tree,info){
-    return null; // TODO
-}
+// function evalData(tree,info){
+//     return null; // TODO
+// }
 
-function evalTemplate(tree,info){
-    var length = tree.getLength();
-    var template = "\`";
-    for(var i = 0;i<length;i++){
-        template = template + tree.getChild(i).getValue(); // TODO 確認
-    }
-    template = template +  "\`";
-    return template;
-}
+// function evalTemplate(tree,info){
+//     var length = tree.getLength();
+//     var template = "\`";
+//     for(var i = 0;i<length;i++){
+//         template = template + tree.getChild(i).getValue(); // TODO 確認
+//     }
+//     template = template +  "\`";
+//     return template;
+// }
 
 function evalString(tree,info){
-    return "\"" + tree.getValue() + "\"";
+    // FIXME
+    return tree.getValue();
+    // return "\"" + tree.getValue() + "\"";
 }
 
-function evalChar(tree,info){
-    return "\'" + tree.getValue() + "\'";
-}
+// function evalChar(tree,info){
+//     return "\'" + tree.getValue() + "\'";
+// }
 
-/* 廃止予定 */
-function evalImage(tree,info){
-    if(info.createNew){
-        return createImage(tree.getValue());
-    }
-    return new MEmpty(tree.getValue());
-}
+// /* 廃止予定 */
+// function evalImage(tree,info){
+//     if(info.createNew){
+//         return createImage(tree.getValue());
+//     }
+//     return new MEmpty(tree.getValue());
+// }
 
-function evalRational(tree,info){
-    return eval(tree.getValue());
-}
+// function evalRational(tree,info){
+//     return eval(tree.getValue());
+// }
 
-function evalUnit(tree,info){
-    return null; // TODO
-}
+// function evalUnit(tree,info){
+//     return null; // TODO
+// }
 
-function evalInt(tree,info){
+// function evalInt(tree,info){
+//     return parseInt(tree.getValue());
+// }
+
+function evalInteger(tree,info){
     return parseInt(tree.getValue());
 }
 
-function evalDouble(tree,info){
+// function evalDouble(tree,info){
+//     return parseFloat(tree.getValue());
+// }
+
+function evalFloat(tree,info){
     return parseFloat(tree.getValue());
 }
 
@@ -963,63 +824,63 @@ function evalNull(tree,info){
     return null;
 }
 
-/* 廃止予定 */
-function evalPictogram(tree,info){
-    if(info.createNew){
-        return new MCircle("circle");
-    }
-    return new MEmpty("circle");
-}
+// /* 廃止予定 */
+// function evalPictogram(tree,info){
+//     if(info.createNew){
+//         return new MCircle("circle");
+//     }
+//     return new MEmpty("circle");
+// }
 
-/* foreachの対象を見つける 廃止するかは仕様次第 */
-function targetsSetter(targets,index,setted,counter){
-    for(obj in globalField){
-        if(setted.indexOf(obj) === -1){
-            currentField[targets[0]] = globalField[obj];
-            setted.push(obj);
-            if(targets.length !== 1){
-                if(targetsSetter(targets.slice(1),index,setted.slice(0),counter)){
-                    return true;
-                }else{
-                    continue;
-                }
-            }else if(counter.index == index){
-                return true;
-            }else{
-                counter.index++;
-            }
-        }
-    }
-    return false;
-}
+// /* foreachの対象を見つける 廃止するかは仕様次第 */
+// function targetsSetter(targets,index,setted,counter){
+//     for(obj in globalField){
+//         if(setted.indexOf(obj) === -1){
+//             currentField[targets[0]] = globalField[obj];
+//             setted.push(obj);
+//             if(targets.length !== 1){
+//                 if(targetsSetter(targets.slice(1),index,setted.slice(0),counter)){
+//                     return true;
+//                 }else{
+//                     continue;
+//                 }
+//             }else if(counter.index == index){
+//                 return true;
+//             }else{
+//                 counter.index++;
+//             }
+//         }
+//     }
+//     return false;
+// }
 
-/* Mfuncをeval()で評価するための関数 */
-function callFunc(funcName){
-    if(funcName in currentField){
-        return eval(currentField[funcName].func);
-    }else if(funcName in globalField){
-        return eval(globalField[funcName].func);
-    }
-    return eval(funcName);
-}
+// /* Mfuncをeval()で評価するための関数 */
+// function callFunc(funcName){
+//     if(funcName in currentField){
+//         return eval(currentField[funcName].func);
+//     }else if(funcName in globalField){
+//         return eval(globalField[funcName].func);
+//     }
+//     return eval(funcName);
+// }
 
-function init() {
+// function init() {
 
-    // for(var obj in globalField){
-    //     if(MImage.prototype.isPrototypeOf(globalField[obj])){
-    //         globalField[obj].init();
-    //     }
-    //     if(MPictogram.prototype.isPrototypeOf(globalField[obj])){
-    //         globalField[obj].init();
-    //     }
-    // }
+//     // for(var obj in globalField){
+//     //     if(MImage.prototype.isPrototypeOf(globalField[obj])){
+//     //         globalField[obj].init();
+//     //     }
+//     //     if(MPictogram.prototype.isPrototypeOf(globalField[obj])){
+//     //         globalField[obj].init();
+//     //     }
+//     // }
 
-    // plot();
-    // timeCounter = 0;
-    // $(function(){
-    //     $("#time-counter").text(timeCounter);
-    // });
-}
+//     // plot();
+//     // timeCounter = 0;
+//     // $(function(){
+//     //     $("#time-counter").text(timeCounter);
+//     // });
+// }
 
 /* matter.js */
 var Engine = Matter.Engine,
@@ -1031,148 +892,233 @@ var Engine = Matter.Engine,
 	Common = Matter.Common,
     Vertices = Matter.Vertices,
     Runner = Matter.Runner,
+    Render = Matter.Render,
+    Mouse = Matter.Mouse,
     MouseConstraint = Matter.MouseConstraint;
     
 var engine;
 var runner;
 
-function initMSS(tree){
+const optionName = [
+    "isStatic",
+    "density",
+    "friction",
+    "frictionAir",
+    "restitution"
+]
 
-    /* 生成したオブジェクトを格納しておき、最後にworldに追加する */
-    // FIXME grobalfield に追加？ grobalfield を残すか未定なので保留
-    var objects = [];
-    var objNum = tree.getLength();
+var objectParamMap = {};
+var objectMap = {};
+var textMap = {};
 
-    var wireframesVal = false;
-    var backgroundVal = 'black';
+var matterCanvas = document.getElementById('matter-canvas');
+var textCanvas = document.getElementById('text-canvas');
+var textContext = textCanvas.getContext('2d');
+
+/* 要検討 */
+var enableMouse = false;
+var enableSlingshot = false;
+
+var mouseConstraint;
+var rock;
+var elastic;
+var slingshotName = "";
+
+var indexRegExp = new RegExp('\[[0-9]*\]', 'g');
+
+// ctreeで書いてるけど、jsのjsonに寄せる？
+function initJSON(tree){
+    // var objects = [];
+    var objectNum = tree.getLength();
+
+    var renderOption = {
+        wireframes: false, /* trueにするとオブジェクトが枠線のみになる */
+        width: cvsw,
+        height: cvsh,
+        background: 'rgba(0, 0, 0, 0)'
+    }
+
     var gravityVal = 1;
 
-    for(var i = 0; i < objNum; i++){
-
+    for(var i = 0; i < objectNum; i++){
         var object = tree.getChild(i);
-        
-        if(object.tag == "World"){
-            for(var j = 0; j < object.getLength(); j++){
-                if(object.getChild(j).tag == "WireFrames"){
-                    wireframesVal = object.getChild(j).getChild(0).visit({inFlow:false, isKey:true});
-                }else if(object.getChild(j).tag == "Background"){
-                    backgroundVal = object.getChild(j).getChild(0).visit({inFlow:false, isKey:true});
-                }else if(object.getChild(j).tag == "Gravity"){
-                    gravityVal = object.getChild(j).getChild(0).visit({inFlow:false, isKey:true});
-                }
-            }
-        }else/* obejct */{
+        var objectType = object.getLabeledChild("key").getValue();
+        var member = object.getLabeledChild("value");
+        var memberNum = member.getLength();
 
-            /* 木の形決まっているので決め打ち */
-            // grobalfieldに追加する際はlabel名で
-            var objLabel = object.getChild(0).visit({inFlow:false, isKey:true});
-
-            var paramVal = [];
-            var paramNode = object.getChild(1);
-            for(var j = 0; j < paramNode.getLength(); j++){
-                paramVal.push(paramNode.getChild(j).visit({inFlow:false, isKey:true}));
-            }
-
-            /* matter.jsの初期値と同じ */
-            /* optionの数は任意なので、先に宣言しておく */
-            var isStaticVal = false; /* 静的オブジェクトかどうか */
-            var densityVal = 0.001; /* 密度 */
-            var frictionVal = 0.1; /* 摩擦係数 */
-            var frictionAirVal = 0.01; /* 空気抵抗 */
-            var restitutionVal = 0; /* 反発係数 */
-            var image = null; /* テクスチャ */
-
-            // image のリサイズ
-
-            /* option 処理 */
-            if(object.getLength() > 2){
-                for(var j = 2; j < object.getLength(); j++){
-                    if(object.getChild(j).tag == "IsStatic"){
-                        isStaticVal = object.getChild(j).getChild(0).visit({inFlow:false, isKey:true});
-                    }else if(object.getChild(j).tag == "Density"){
-                        densityVal = object.getChild(j).getChild(0).visit({inFlow:false, isKey:true});
-                    }else if(object.getChild(j).tag == "Friction"){
-                        frictionVal = object.getChild(j).getChild(0).visit({inFlow:false, isKey:true});
-                    }else if(object.getChild(j).tag == "FrictionAir"){
-                        frictionAirVal = object.getChild(j).getChild(0).visit({inFlow:false, isKey:true});
-                    }else if(object.getChild(j).tag == "Restitution"){
-                        restitutionVal = object.getChild(j).getChild(0).visit({inFlow:false, isKey:true});
-                    }else if(object.getChild(j).tag == "Image"){
-                        /* とりあえず、imageディレクトリ内の画像を扱う */
-                        image = object.getChild(j).getChild(0).getValue();
-                        image = "image/" + image;
-                        // TODO
-                        // リセットイベント
+        if(objectType == "world"){
+            for(var j = 0; j < memberNum; j++){
+                /* getValue()は()->String */
+                var key = member.getChild(j).getLabeledChild("key").getValue();
+                var value = member.getChild(j).getLabeledChild("value").visit();
+                
+                if(key == "gravity"){
+                    gravityVal = value;
+                }else if(key == "background"){
+                    $('#text-canvas').css("background-color", value);
+                }else if(key in renderOption){
+                    renderOption[key] = value;
+                }else if(key == "mouse"){
+                    enableMouse = value;
+                }else if(key == "gyro"){
+                    if(value){
+                        window.addEventListener('deviceorientation', updateGravity);
                     }
+                    // else{
+                    // TODO removeイベント
+                    // }
+                }
+                // else if(){
+                // TODO その他
+                // }
+            }
+        }else{
+            var objectName = null;
+            var newObject;
+
+            if(objectType in objectParamMap){
+                /* パラメータ引き継ぎ */
+                newObject = objectParamMap[objectType];
+            }else{
+                var newObject = {
+                    type:objectType,
+                    x: 0,                  /* x座標 */
+                    y: 0,                  /* y座標 */
+                    radius: 0,
+                    width: 0,
+                    height: 0,
+                    /* polygon */
+                    sides: 0,              /* 多角形の辺の数 */
+                    /* trapezoid */
+                    slope: 0,              /* 台形の傾斜 */
+                    /* car */
+                    wheelSize: 0,          /* 車輪の大きさ */
+                    /* stack, pyramid, chain */
+                    columns: 0,            /* 行 */
+                    rows: 0,               /* 列 */
+                    // columnGap: 0,          /* 行の間隔 */
+                    // rowGap: 0,             /* 列の間隔 */
+                    elementType: null,     /* 生成するオブジェクトの種類 */
+                    /* text */
+                    color: "white",
+                    value: null,
+                    /* constraint */
+                    targetObject: null,
+                    options: {
+                        isStatic: false,   /* 静的オブジェクトかどうか */
+                        density: 0.001,    /* 密度 */
+                        friction: 0.1,     /* 摩擦係数 */
+                        frictionAir: 0.01, /* 空気抵抗 */
+                        restitution: 0,    /* 反発係数 */
+                        render: {
+                            sprite: {
+                                texture: null /* テクスチャ */
+                            }
+                        },
+                    }
+                };
+            }
+
+            for(var j = 0; j < memberNum; j++){
+                var key = member.getChild(j).getLabeledChild("key").getValue();
+                var value = member.getChild(j).getLabeledChild("value").visit();
+                
+                if(key == "name"){
+                    objectName = value;
+                }else if(key == "image"){
+                    // FIXME 拡張子, 場所指定
+                    newObject.options.render.sprite.texture = value;
+                }else if(optionName.indexOf(key) > -1){
+                    newObject.options[key] = value;
+                }else{
+                    newObject[key] = value;
                 }
             }
-            
-            if(paramNode.tag == "Circle"/* 円 */){
-                objects.push(Bodies.circle(paramVal[0], paramVal[1], paramVal[2], {
-                    isStatic: isStaticVal,
-                    density: densityVal,
-                    friction: frictionVal,
-                    frictionAir: frictionAirVal,
-                    restitution: restitutionVal,
-                    render: {
-                        sprite: {
-                            texture:image
-                        }
-                    },
-                }))
-            }else if(paramNode.tag == "Polygon"/* 正多角形 */){
-                objects.push(Bodies.circle(paramVal[0], paramVal[1], paramVal[2], paramVal[3], {
-                    isStatic: isStaticVal,
-                    density: densityVal,
-                    friction: frictionVal,
-                    frictionAir: frictionAirVal,
-                    restitution: restitutionVal,
-                    render: {
-                        sprite: {
-                            texture: image
-                        }
-                    },
-                }))
-            }else if(paramNode.tag == "Rectangle" /* 四角形 */){
-                objects.push(Bodies.rectangle(paramVal[0], paramVal[1], paramVal[2], paramVal[3], {
-                    isStatic: isStaticVal,
-                    density: densityVal,
-                    friction: frictionVal,
-                    frictionAir: frictionAirVal,
-                    restitution: restitutionVal,
-                    render: {
-                        sprite: {
-                            texture: image
-                        }
-                    },
-                }))
-            }else if(paramNode.tag == "Trapezoid" /* 台形 */){
-                objects.push(Bodies.circle(paramVal[0], paramVal[1], paramVal[2], paramVal[3], paramVal[4], {
-                    isStatic: isStaticVal,
-                    density: densityVal,
-                    friction: frictionVal,
-                    frictionAir: frictionAirVal,
-                    restitution: restitutionVal,
-                    render: {
-                        sprite: {
-                            texture: image
-                        }
-                    },
-                }))
+
+            if(objectName){
+                /* {名前:パラメータ} */
+                objectParamMap[objectName] = newObject;
             }
+
+            if(newObject.type == "circle"/* 円 */){
+                objectMap[objectName] = Bodies.circle(newObject.x, newObject.y, newObject.radius, newObject.options);
+            }else if(newObject.type == "rectangle"/* 四角形 */){
+                objectMap[objectName] = Bodies.rectangle(newObject.x, newObject.y, newObject.width, newObject.height, newObject.options);
+            }else if(newObject.type == "polygon" /* 正多角形 */){
+                objectMap[objectName] = Bodies.polygon(newObject.x, newObject.y, newObject.sides, newObject.radius, newObject.options);
+            }else if(newObject.type == "trapezoid" /* 台形 */){
+                objectMap[objectName] = Bodies.trapezoid(newObject.x, newObject.y, newObject.width, newObject.height, newObject.slope, newObject.options);
+            }else if(newObject.type == "car" /* 車 */){
+                objectMap[objectName] = Composites.car(newObject.x, newObject.y, newObject.width, newObject.height, newObject.wheelSize);
+            }else if(newObject.type == "stack" /*  */){
+                // fieldに追加するかどうするか engine生成がこの後なので、World.add()のためにとりあえずpushしておく
+                // objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, newObject.columnGap, newObject.rowGap, getCallBack(newObject.elementType));
+                objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
+            }else if(newObject.type == "pyramid" /*  */){
+                // Gapをパラメータで設定したい？
+                // objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, newObject.columnGap, newObject.rowGap, getCallBack(newObject.elementType));
+                objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
+            }else if(newObject.type == "chain" /* 鎖 */){
+                var group = Body.nextGroup(true); /* chain内のオブジェクト同士は衝突しないようにcollisionFilterでグループ化する */
+                var chain = Composites.stack(newObject.x, newObject.y, newObject.columns, 1, 0, 0, getGroupedCallBack(newObject.elementType, group));
+                objectMap[objectName] = Composites.chain(chain, 0.3, 0, -0.3, 0, { 
+                    stiffness: 1,
+                    length: 0,
+                    render: {
+                        visible: false
+                    }
+                });
+            }else if(newObject.type == "slingshot" /*  */){
+                rock = Bodies.polygon(newObject.x, newObject.y, 8, 20, { 
+                    density: 0.004,
+                    render: {
+                        sprite: {
+                            texture: newObject.options.render.sprite.texture
+                        }
+                    }
+                });
+                // worldに直接add, Mapにいらないよね？
+                elastic = Constraint.create({ 
+                    pointA: { x: newObject.x, y:newObject.y }, 
+                    bodyB: rock, 
+                    stiffness: 0.05
+                });
+                // 制約の扱いをどうする？
+                objectMap[objectName] = elastic;
+                enableSlingshot = true;
+                slingshotName = objectName;
+            }else if(newObject.type == "text" /* 文字列 */){
+                textContext.fillStyle = newObject.color;
+                textContext.font = "40px 'ＭＳ ゴシック'";
+                textContext.fillText(newObject.value, newObject.x, newObject.y);
+                textMap[objectName] = newObject;
+            }else if(newObject.type = "constraint" /* 制約 */){
+                var index = indexRegExp.exec(newObject.targetObject);
+                if(index/* targetObjectが配列の場合 */){
+                    /* オブジェクトが配列の場合、object.bodies[index]でアクセスする必要があるため */
+                    newObject.targetObject = newObject.targetObject.replace(indexRegExp, '');
+                    objectMap[objectName] = Constraint.create({ 
+                        pointA: { x: newObject.x, y: newObject.y }, 
+                        bodyB: objectMap[newObject.targetObject].bodies[parseInt(index[0].slice(1, -1), 10)],
+                        // pointB: { x: 25, y: 0 },
+                        // length: 2,
+                        stiffness: 0.9
+                    })
+                }else{
+                    objectMap[objectName] = Constraint.create({ 
+                        pointA: { x: newObject.x, y: newObject.y }, 
+                        bodyB: objectMap[newObject.targetObject],
+                        // pointB: { x: 25, y: 0 },
+                        // length: 2,
+                        stiffness: 0.9
+                    })
+                }
+            }
+
         }
     }
 
-    engine = Engine.create(mattercanvas, {
-        render: {
-            options: {
-                wireframes: wireframesVal, /* trueにするとオブジェクトが枠線のみになる */
-                width: cvsw,
-                height: cvsh,
-                background: backgroundVal
-            }
-        }
-    });
+    engine = Engine.create();
 
     /* 重力 */
     engine.world.gravity.y = gravityVal;
@@ -1186,50 +1132,229 @@ function initMSS(tree){
     runner = Runner.create();
 
     /* worldに追加 */
-    World.add(engine.world, objects);
+    World.add(engine.world, Object.values(objectMap));
+    if(rock){
+        World.add(engine.world, rock);
+    }
+
+    /* レンダリング設定 */
+    var render = Render.create({
+        canvas: matterCanvas,/* あらかじめ作成したcanvasに描画するために必須 */
+        engine: engine,
+        options: renderOption
+    });
+
+    /* canvasのリサイズ */
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: cvsw, y: cvsh }
+    });
+
+    /* マウスドラッグ */
+    if(enableMouse){
+        var mouse = Mouse.create(render.canvas);
+        mouseConstraint = MouseConstraint.create(engine, {
+            mouse: mouse,
+            constraint: {
+                stiffness: 0.2,
+                render: {
+                    visible: false
+                }
+            }
+        });
+
+        World.add(engine.world, mouseConstraint);
+
+        render.mouse = mouse;
+    }
+    // else{
+    // TODO removeイベント
+    // }
+
+    // もう少し上手く実装したい
+    // FIXME 位置判定の問題で、左->右は打てるが、右->左はうまく打てない
+    if(enableSlingshot){
+        Matter.Events.on(engine, 'afterUpdate', function() {
+            if (mouseConstraint.mouse.button === -1 && (rock.position.x > objectParamMap[slingshotName].x + 20 || rock.position.y < objectParamMap[slingshotName].y - 20)) {
+                rock = Bodies.polygon(objectParamMap[slingshotName].x, objectParamMap[slingshotName].y, 7, 20, { 
+                    density: 0.004,
+                    render: {
+                        sprite: {
+                            texture: objectParamMap[slingshotName].options.render.sprite.texture
+                        }
+                    }
+                });
+                World.add(engine.world, rock);
+                elastic.bodyB = rock;
+            }
+        });
+    }
+    // else{
+    // TODO removeイベント
+    // }
 
     /* スタイルシートを読み込んだ段階で
        オブジェクトを描画するために
        runの後、engineを非アクティブにする。 */
-    Runner.run(runner, engine);
     
-    //TODO フレーム待機 描画されないのはなぜ？
-    // setTimeout(function(){
-    //     runner.enabled = false;
-    // }, 1);
+    Runner.run(runner, engine);
+    Render.run(render);
 
     runner.enabled = false;
 
-    /* メモ
-       sleepingは更新をしなくなる。
+    /* メモ */
+    /* timeScaleはengine自体は止まらないのでupdateは止まらない */
+    // engine.timing.timeScale = 0;
+    /* sleepingは更新をしなくなる。
        (描画精度は落ちるが、安定性とパフォーマンス向上)
        アクティブなオブジェクトに接触すると再び起きる。 */
 }
 
+/* 端末の向きに応じた重力を設定 */
+var updateGravity = function(event) {
+    var orientation = typeof window.orientation !== 'undefined' ? window.orientation : 0,
+        gravity = engine.world.gravity;
+
+    if (orientation === 0) {
+        gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
+        gravity.y = Common.clamp(event.beta, -90, 90) / 90;
+    } else if (orientation === 180) {
+        gravity.x = Common.clamp(event.gamma, -90, 90) / 90;
+        gravity.y = Common.clamp(-event.beta, -90, 90) / 90;
+    } else if (orientation === 90) {
+        gravity.x = Common.clamp(event.beta, -90, 90) / 90;
+        gravity.y = Common.clamp(-event.gamma, -90, 90) / 90;
+    } else if (orientation === -90) {
+        gravity.x = Common.clamp(-event.beta, -90, 90) / 90;
+        gravity.y = Common.clamp(event.gamma, -90, 90) / 90;
+    }
+};
+
+function getCallBack(type){
+    if(type == "circle"){
+        return function(x, y) {
+            return Bodies.circle(x, y, 20);
+        };
+    }else if(type == "rectangle"){
+        return function(x, y) {
+            return Bodies.rectangle(x, y, 25, 40);
+        };
+    }
+}
+
+function getGroupedCallBack(type, group){
+    if(type == "circle"){
+        return function(x, y) {
+            return Bodies.circle(x - 20, y, 20, { 
+                collisionFilter: { group: group }
+                // TODO option
+                // density: 0.005,
+                // frictionAir: 0.05,
+                // render: {
+                //     fillStyle: '#575375'
+                // }
+            });
+        };
+    }else if(type == "rectangle"){
+        return function(x, y) {
+            return Bodies.rectangle(x - 20, y, 53, 20, { 
+                collisionFilter: { group: group }
+                // TODO option
+            });
+        };
+    }else if(type == "ellipse"){
+        return function(x, y) {
+            return Bodies.rectangle(x - 20, y, 53, 20, { 
+                collisionFilter: { group: group },
+                // TODO option
+                chamfer: 5 /* 角取り */
+            });
+        };
+    }
+}
+
+// TODO 画面外に出たオブジェクトを削除する
+// World.remove(engine.world, object);
+
+/* 画面外に出たオブジェクトを反対の画面端から出現させる */
+// function wrap(body) {
+//     if (body.position.x < 0) {
+//         Body.translate(body, {x: cvsw - 1,y: 0});
+//     }
+//     if (body.position.x > cvsw) {
+//         Body.translate(body, {x: 1 - cvsw,y: 0});
+//     }
+//     if (body.position.y < 0) {
+//         Body.translate(body, {x: 0,y: cvsh - 1});
+//     }
+//     if (body.position.y > cvsh) {
+//         Body.translate(body, {x: 0,y: 1 - cvsh});
+//     }
+// }
+
+
 $(function () {
     var initCode = "";
     // var initCode = "s = <sakura>\nforeach a  a == <sakura>\n-------------------\n    $a.x = a.x + 10\nwhen Click(a)  a == <sakura>\n-------------------\n    $a = <fish>";
+    
     $('#source-text').val(initCode);
     var jsEditor = makeEditor();
-    var mssEditor = makeMSSEditor();
-    cvsw = $('#mapping-area').width();
-    cvsh = $('#mapping-area').height();
-    var timer = false; /* maimloopに使用されていた 要確認 */
+    var jsonEditor = makeJSONEditor();
+
     // FIXME
-    $(window).resize(function() {
-        if (timer !== false) {
-            clearTimeout(timer);
-        }
-        timer = setTimeout(function() {
-            console.log('resized');
-            cvsw = $('#mapping-area').width();
-            cvsh = $('#mapping-area').height();
-        }, 200);
-    });
+    cvsw = $('#matter-canvas').width();
+    cvsh = $('#matter-canvas').height();
+    textCanvas.width = cvsw;
+    textCanvas.height = cvsh;
+    var timer = false; /* maimloopに使用されていた 要確認 */
+    // TODO 画面のリサイズ
+    // $(window).resize(function() {
+    //     if (timer !== false) {
+    //         clearTimeout(timer);
+    //     }
+    //     timer = setTimeout(function() {
+    //         console.log('resized');
+    //         // cvsw = $('#matter-area').width();
+    //         // cvsh = $('#matter-area').height();
+    //         console.log($('#matter-canvas').width())
+    //         console.log($('#matter-canvas').height())
+    //     }, 200);
+    // });
     $('#eval').click(function () {
         console.log("eval");
+        // collision A B action
 
-        // TODO macaronの仕様次第
+        /* parse */
+        // resetState();
+        // jsEditor.toTextArea();
+        // var inputs = (new TextEncoder).encode($('#source-text').val().toString());
+        // result = parse(inputs,inputs.length-1);
+        // jsEditor = makeEditor();
+
+
+        /* 衝突判定 */
+        function collision(targetA, targetB, action){
+            Matter.Events.on(engine, 'collisionEnd', function(event) {
+                pairs = event.pairs;
+                for (i = 0; i < pairs.length; i++) {
+                    var pair = pairs[i];
+                    if (pair.bodyA.label === targetA.label && pair.bodyB.label === targetB.label) {
+                        // TODO action 記述した中身をここで仕込む
+                        // World.remove(engine.world, pair.bodyA);
+                        // World.remove(engine.world, pair.bodyB);
+                    }
+                }
+            });
+        }
+
+        /* とりあえず、そのままeval */
+
+        resetState();
+        jsEditor.toTextArea();
+        var inputs = $('#source-text').val().toString();
+        eval(inputs);
+        // result = parse(inputs,inputs.length-1);
+        jsEditor = makeEditor();
 
         /* parse */
         // resetState();
@@ -1246,6 +1371,7 @@ $(function () {
         // init();
     });
     /* ファイル読み込み(macaronコード) */
+    /* 廃止？ */
     $('#load').click(function() {
         console.log("load")
         $('#loadfile').click();
@@ -1298,6 +1424,7 @@ $(function () {
     $('#reset').click(function () {
         console.log("reset");
 
+        // スタイルシートからやり直す？
         resetState();
 
         // TODO
@@ -1308,38 +1435,41 @@ $(function () {
         /* 旧macaronバージョン */
         // init();
     });
+    // 画面を戻した時、発火するように変更
     $('#apply').click(function (){
         console.log("apply")
 
         resetState();
 
         /* パース */
-        mssEditor.toTextArea();
-        var inputs = (new TextEncoder).encode($('#mss-text').val().toString());
-        var mssResult = parseMSS(inputs,inputs.length-1); /* macaron.jsとmss.jsで定数が名前衝突するので、要変更 */
-        mssEditor = makeMSSEditor();
+        jsonEditor.toTextArea();
+        var inputs = (new TextEncoder).encode($('#json-text').val().toString());
+        // FIXME
+        var jsonResult = parseJSON(inputs,inputs.length-1); /* 定数が名前衝突するので、要変更 */
+        jsonEditor = makeJSONEditor();
 
         globalField = {};
         currentField = globalField;
-
-        initMSS(mssResult);
+        
+        initJSON(jsonResult);
 
     });
     /* ファイル読み込み(スタイルシート) */
-    $('#load-mss').click(function() {
-        console.log("load mss")
-        $('#loadfile-mss').click();
-        $('#loadfile-mss').change(function(){
+    /* 廃止？ */
+    $('#load-json').click(function() {
+        console.log("load json")
+        $('#loadfile-json').click();
+        $('#loadfile-json').change(function(){
             var reader = new FileReader();
             reader.onload = function () {
-                mssEditor.toTextArea();
-                $('#mss-text').val(reader.result);
-                mssEditor = makeMSSEditor();
+                jsonEditor.toTextArea();
+                $('#json-text').val(reader.result);
+                jsonEditor = makeJSONEditor();
             }
             var file = this.files[0];
-            // FIXME mssファイルに対応
-            if (!file.type.match(/text/)){
-                alert("対応ファイル mss|txt");
+            if (!file.type.match(/json/)){
+                alert("対応ファイル json");
+                return;
             }
             reader.readAsText(file);
         });
@@ -1348,28 +1478,33 @@ $(function () {
 
 /* Macaronコード用エディタ */
 function makeEditor(){
-    return CodeMirror.fromTextArea(document.getElementById("source-text"), {
+    var macaronEditor = CodeMirror.fromTextArea(document.getElementById("source-text"), {
         mode: "javascript",
         lineNumbers: false,
         indentUnit: 4
     });
+
+    macaronEditor.setSize(550, 250);
+
+    return macaronEditor;
 }
 
 /* スタイルシート用エディタ */
-function makeMSSEditor(){
-    var mssEditor = CodeMirror.fromTextArea(document.getElementById("mss-text"), {
+function makeJSONEditor(){
+    var jsonEditor = CodeMirror.fromTextArea(document.getElementById("json-text"), {
         mode: "javascript", // FIXME
         lineNumbers: false,
         indentUnit: 4
         // ,extraKeys: {"Ctrl-Space": "autocomplete"}
     });
 
-    mssEditor.setSize(550, 250);
-    // mssEditor.on('change', imageComplete);
-    return mssEditor;
+    jsonEditor.setSize(550, 250);
+    // jsonEditor.on('change', imageComplete);
+    return jsonEditor;
 }
 
 // FIXME
+// スタイルシートを読み込めるようにする？
 function resetState(){
     // cursor.reset();
     // events = [];
@@ -1415,69 +1550,12 @@ function resetState(){
 //   }, { completeSingle: false })
 // }
 
-/* 位置設定関数(参考) */
-// function POS(posx,posy,obj){
-//     obj.x = posx;
-//     obj.y = posy;
-//     obj.ix = obj.x;
-//     obj.iy = obj.y;
-// }
-
-// function RAND(){
-//     for(obj of arguments){
-//         POS(Math.random()*cvsw, Math.random()*cvsh, obj);
-//     }
-// }
-
-// function CENTER(){
-//     var ys = [];
-//     for(obj of arguments){
-//         if(ys.indexOf(obj.y) < 0){
-//             ys.push(obj.y);
-//         }
-//     }
-//     for(posy of ys){
-//         var sumw = 0;
-//         for(obj of arguments){
-//             if(posy == obj.y){
-//                 sumw = sumw + obj.w;
-//             }
-            
-//         }
-//         var posx = (cvsw - sumw) / 2;
-//         for(obj of arguments){
-//             if(posy == obj.y){
-//                 POS(posx, posy, obj);
-//                 posx = posx + obj.w;
-//             }
-//         }
-//     }
-// }
-
 /* 主にデバッグ用 */
 function LOG(arg){
     console.log(arg);
 }
 
 /* Matter.js(参考) */
-
-/* マウスドラッグ */
-// function enableMouse(){
-//     var mouseConstraint = MouseConstraint.create(engine);
-//     World.add(engine.world, mouseConstraint);
-//     var mouse = Mouse.create(render.canvas),
-//     mouseConstraint = MouseConstraint.create(engine, {
-//         mouse: mouse,
-//         constraint: {
-//             stiffness: 0.2,
-//             render: {
-//                 visible: false
-//             }
-//         }
-//     });
-//     World.add(world, mouseConstraint);
-//     render.mouse = mouse;
-// }
 
 /* キー入力 */
 // var RIGHT = 0;
@@ -1525,97 +1603,5 @@ function LOG(arg){
 //          wrap(target);
 //          OLD_X = target.position.x;
 //          OLD_Y = target.position.y;   
-//     });
-// }
-
-
-/* 画面外に出たオブジェクトを反対の画面端から出現させる */
-// function wrap(body) {
-//     if (body.position.x < 0) {
-//         Body.translate(body, {x: cvsw - 1,y: 0});
-//     }
-//     if (body.position.x > cvsw) {
-//         Body.translate(body, {x: 1 - cvsw,y: 0});
-//     }
-//     if (body.position.y < 0) {
-//         Body.translate(body, {x: 0,y: cvsh - 1});
-//     }
-//     if (body.position.y > cvsh) {
-//         Body.translate(body, {x: 0,y: 1 - cvsh});
-//     }
-// }
-
-/* 動的オブジェクト生成 */
-// var RELOAD_TIME = 0;
-// var bullet = [];
-// var bulletNo = 0;
-
-// function setBullet(target){
-//     Matter.Events.on(engine, 'beforeUpdate', function() {
-//          if (SPACE == 1 && RELOAD_TIME > 12) {
-//             RELOAD_TIME = 0;
-
-//             bullet[bulletNo] = Bodies.circle(target.position.x + Math.cos(target.angle-Math.PI/2) * 60, target.position.y + Math.sin(target.angle-Math.PI/2) * 60, 10, {
-//                 density: 0.002,
-//                 frictionAir: 0,
-//                 friction: 0,
-//                 label: 'bullet',
-//                 render: {sprite: {
-//                   //texture: 'bullet.png'
-//                 }}
-//             });
-
-//             Matter.Body.applyForce(bullet[bulletNo], {
-//                 x: bullet[bulletNo].position.x,
-//                 y: bullet[bulletNo].position.y
-//             }, {
-//                 x: Math.cos(target.angle-Math.PI/2) * 0.014,
-//                 y: Math.sin(target.angle-Math.PI/2) * 0.014
-//             });
-
-//             World.add(engine.world, [bullet[bulletNo]]);
-//             bulletNo++;
-//         }
-
-//         var removeIndex = [];
-//         var newBullet = [];
-//         for (i = 0; i < bullet.length; i++) {
-//               if (bullet[i].position.x < 0 || bullet[i].position.x > cvsw) {
-//                    World.remove(engine.world, [bullet[i]]);
-//                    removeIndex.push(i);
-//               }
-//               else if (bullet[i].position.y < 0 || bullet[i].position.y > cvsh) {
-//                    World.remove(engine.world, [bullet[i]]);
-//                    removeIndex.push(i);
-//               }
-//         }
-//         for (i = 0; i < bullet.length; i++) {
-//           if(-1 * removeIndex.indexOf(i)){
-//             newBullet.push(bullet[i]);
-//           }
-//         }
-//         bullet = newBullet;
-//         bulletNo = bulletNo - removeIndex.length;
-//         newBullet = [];
-//         removeIndex = [];
-        
-//         RELOAD_TIME = RELOAD_TIME + 1; 
-//     });
-
-//     return {type:"body", label:"bullet"};
-// }
-
-/* 衝突判定 */
-// function collision(targetA, targetB, action){
-//     // TODO action
-//     Matter.Events.on(engine, 'collisionEnd', function(event) {
-//         pairs = event.pairs;
-//         for (i = 0; i < pairs.length; i++) {
-//             var pair = pairs[i];
-//             if (pair.bodyA.label === targetA.label && pair.bodyB.label === targetB.label) {
-//                 World.remove(engine.world, pair.bodyA);
-//                 World.remove(engine.world, pair.bodyB);
-//             }
-//         }
 //     });
 // }

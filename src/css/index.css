@@ -24,39 +24,64 @@ main {
   max-height: 1000px;
   height: 100%;
 }
-h1{
-  font-family: Comic Sans MS;
-  position: relative;
-  padding: 0.2em 0.5em;
-  background: -moz-linear-gradient(to right, #5507FF, #EAD9FF);
-  background: -webkit-linear-gradient(to right, #5507FF, #EAD9FF);
-  background: linear-gradient(to right, #5507FF, #EAD9FF);
-  color: white;
-  font-weight: lighter;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.56);
-}
+
 .clear {
   clear:left;
 }
 
-#mapping-area {
+/* FIXME */
+#canvas-area {
   position: relative;
-  max-width: 900px;
-  width: 60%;
-  max-height: 900px;
-  height: 90%;
+  /* max-width: 900px;
+  width: 100%; */
+  width: 900px;
+  /* max-height: 700px;
+  height: 100%; */
+  height: 700px;
   float: left;
 }
 
-#mapping-area canvas {
+/* #canvas-area canvas {
+  position: absolute;
+  width: 900px;
+  height: 700px;
+  top: 0;
+  left: 0;
+} */
+
+#matter-canvas {
+  position: absolute;
+  /* max-width: 900px; */
+  /* width: 60%; */
+  width: 900px;
+  height: 700px;
+  top: 0;
+  left: 0;
+}
+
+#text-canvas {
   position: absolute;
   top: 0;
   left: 0;
 }
 
-#code-editor {
+/* canvas {
+  position: absolute;
+  max-width: 900px;
+  width: 60%;
+  max-height: 900px;
+  height: 90%;
+  height: 700px;
+  float: left;
+} */
+
+.perspective {
+  height: 100%;
+}
+
+/* #code-editor {
   max-width: 600px;
-  width: 40%;
+  width: 100%;
   max-height: 900px;
   height: 90%;
   float: left;
@@ -68,10 +93,11 @@ h1{
   box-shadow: none;
   transition: all .3s;
   background: rgba(0, 0, 0, 0.08);
-}
+} */
 
 .form-title {
   font-size: 32px;
+  color: black;
   display: inline-block;
 }
 
@@ -109,15 +135,15 @@ h1{
   top:7px;
 }
 
-.makeMeFancy {
+/* .makeMeFancy {
   margin: 10px;
-}
+} */
 
 .source-form {
   width: 100%;
   height: 80%;
   position: relative;
-  top: 200px;
+  top: 10px;
 }
 
 .text-form {
@@ -243,4 +269,30 @@ h1{
   float: right;
   background-color: rgba(255, 255, 255, 0.3);
   transition: all 0.5s;
+}
+
+/* code button 用 (仮) */
+button {
+	border: none;
+	padding: 0.6em 1.2em;
+	background: #a9a9a9;
+	color: #fff;
+	font-family: 'Lato', Calibri, Arial, sans-serif;
+	font-size: 1em;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	cursor: pointer;
+	display: inline-block;
+	margin: 10px;
+	border-radius: 2px;
+	font-weight: 400;
+	outline: none;
+}
+button {
+	font-size: 75%;
+	background: #ed8151;
+}
+button:hover,
+button:active {
+	background: #e86a32;
 }
