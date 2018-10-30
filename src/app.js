@@ -915,21 +915,20 @@ var matterCanvas = document.getElementById('matter-canvas');
 var textCanvas = document.getElementById('text-canvas');
 var textContext = textCanvas.getContext('2d');
 
-/* 要検討 */
-var enableMouse = false;
-var enableSlingshot = false;
-
-var mouseConstraint;
-var rock;
-var elastic;
-var slingshotName = "";
-
 var indexRegExp = new RegExp('\[[0-9]*\]', 'g');
 
 // ctreeで書いてるけど、jsのjsonに寄せる？
 function initJSON(tree){
-    // var objects = [];
-    var objectNum = tree.getLength();
+
+    /* 要検討 */
+    /* マウスイベント用 */
+    var enableMouse = false;
+    var mouseConstraint = null;
+    
+    /* slingshot用 */
+    var enableSlingshot = false;
+    var elastic = null;
+    var slingshotName = "";
 
     var renderOption = {
         wireframes: false, /* trueにするとオブジェクトが枠線のみになる */
@@ -937,8 +936,9 @@ function initJSON(tree){
         height: cvsh,
         background: 'rgba(0, 0, 0, 0)'
     }
-
     var gravityVal = 1;
+
+    var objectNum = tree.getLength();
 
     for(var i = 0; i < objectNum; i++){
         var object = tree.getChild(i);
@@ -1023,6 +1023,7 @@ function initJSON(tree){
                 var key = member.getChild(j).getLabeledChild("key").getValue();
                 var value = member.getChild(j).getLabeledChild("value").visit();
                 
+                // FIXME こっちで条件分岐した方がいいか？
                 if(key == "name"){
                     objectName = value;
                 }else if(key == "image"){
@@ -1069,7 +1070,7 @@ function initJSON(tree){
                     }
                 });
             }else if(newObject.type == "slingshot" /*  */){
-                rock = Bodies.polygon(newObject.x, newObject.y, 8, 20, { 
+                var rock = Bodies.polygon(newObject.x, newObject.y, 8, 20, { 
                     density: 0.004,
                     render: {
                         sprite: {
@@ -1085,12 +1086,10 @@ function initJSON(tree){
                 });
                 // 制約の扱いをどうする？
                 objectMap[objectName] = elastic;
+                objectMap['_rock'] = rock;
                 enableSlingshot = true;
                 slingshotName = objectName;
             }else if(newObject.type == "text" /* 文字列 */){
-                textContext.fillStyle = newObject.color;
-                textContext.font = "40px 'ＭＳ ゴシック'";
-                textContext.fillText(newObject.value, newObject.x, newObject.y);
                 textMap[objectName] = newObject;
             }else if(newObject.type = "constraint" /* 制約 */){
                 var index = indexRegExp.exec(newObject.targetObject);
@@ -1133,9 +1132,7 @@ function initJSON(tree){
 
     /* worldに追加 */
     World.add(engine.world, Object.values(objectMap));
-    if(rock){
-        World.add(engine.world, rock);
-    }
+    writeAllText();
 
     /* レンダリング設定 */
     var render = Render.create({
@@ -1152,46 +1149,13 @@ function initJSON(tree){
 
     /* マウスドラッグ */
     if(enableMouse){
-        var mouse = Mouse.create(render.canvas);
-        mouseConstraint = MouseConstraint.create(engine, {
-            mouse: mouse,
-            constraint: {
-                stiffness: 0.2,
-                render: {
-                    visible: false
-                }
-            }
-        });
-
-        World.add(engine.world, mouseConstraint);
-
-        render.mouse = mouse;
+        mouseConstraint = mouseDrag(render, engine, mouseConstraint);
     }
-    // else{
-    // TODO removeイベント
-    // }
 
-    // もう少し上手く実装したい
-    // FIXME 位置判定の問題で、左->右は打てるが、右->左はうまく打てない
+    /* slingshot */
     if(enableSlingshot){
-        Matter.Events.on(engine, 'afterUpdate', function() {
-            if (mouseConstraint.mouse.button === -1 && (rock.position.x > objectParamMap[slingshotName].x + 20 || rock.position.y < objectParamMap[slingshotName].y - 20)) {
-                rock = Bodies.polygon(objectParamMap[slingshotName].x, objectParamMap[slingshotName].y, 7, 20, { 
-                    density: 0.004,
-                    render: {
-                        sprite: {
-                            texture: objectParamMap[slingshotName].options.render.sprite.texture
-                        }
-                    }
-                });
-                World.add(engine.world, rock);
-                elastic.bodyB = rock;
-            }
-        });
+        switchSlingshot(engine, elastic, slingshotName, mouseConstraint);
     }
-    // else{
-    // TODO removeイベント
-    // }
 
     /* スタイルシートを読み込んだ段階で
        オブジェクトを描画するために
@@ -1273,6 +1237,77 @@ function getGroupedCallBack(type, group){
     }
 }
 
+function mouseDrag(render, engine, mouseConstraint){
+    // FIXME engineの扱い
+    var mouse = Mouse.create(render.canvas);
+    var mouseConstraint = MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: {
+            stiffness: 0.2,
+            render: {
+                visible: false
+            }
+        }
+    });
+
+    World.add(engine.world, mouseConstraint);
+
+    render.mouse = mouse;
+
+    return mouseConstraint;
+}
+
+// もう少し上手く実装したい
+// FIXME 位置判定の問題で、左->右は打てるが、右->左はうまく打てない
+function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
+    // FIXME engineの扱い
+
+    Matter.Events.on(engine, 'afterUpdate', function() {
+        if (mouseConstraint.mouse.button === -1 && (objectMap['_rock'].position.x > objectParamMap[slingshotName].x + 20 || objectMap['_rock'].position.y < objectParamMap[slingshotName].y - 20)) {
+            objectMap['_rock'] = Bodies.polygon(objectParamMap[slingshotName].x, objectParamMap[slingshotName].y, 7, 20, { 
+                density: 0.004,
+                render: {
+                    sprite: {
+                        texture: objectParamMap[slingshotName].options.render.sprite.texture
+                    }
+                }
+            });
+            World.add(engine.world, objectMap['_rock']);
+            elastic.bodyB = objectMap['_rock'];
+        }
+    });
+}
+
+function writeAllText(){
+    textContext.clearRect(0, 0, cvsw, cvsh);
+
+    textContext.font = "40px 'ＭＳ ゴシック'";
+    for(var textParam of Object.values(textMap)){
+        textContext.fillStyle = textParam.color;
+        textContext.fillText(textParam.value, textParam.x, textParam.y);
+    }
+}
+
+// TODO
+function collision(targetA, targetB, action){
+    // ラベル判定だと、同じ種類のオブジェクトを区別できない
+    // idで頑張る？ stackは id[0] < pair < id[0] + length ?
+    // pairとworldのidにずれがある？
+    Matter.Events.on(engine, 'collisionEnd', function(event) {
+        pairs = event.pairs;
+        for (i = 0; i < pairs.length; i++) {
+            var pair = pairs[i];
+            if (pair.bodyA.label === targetA.label && pair.bodyB.label === targetB.label) {
+                // TODO action 記述した中身をここで仕込む
+                // eval(action)
+
+                // World.remove(engine.world, pair.bodyA);
+                // World.remove(engine.world, pair.bodyB);
+            }
+        }
+    });
+}
+
 // TODO 画面外に出たオブジェクトを削除する
 // World.remove(engine.world, object);
 
@@ -1333,23 +1368,11 @@ $(function () {
 
 
         /* 衝突判定 */
-        function collision(targetA, targetB, action){
-            Matter.Events.on(engine, 'collisionEnd', function(event) {
-                pairs = event.pairs;
-                for (i = 0; i < pairs.length; i++) {
-                    var pair = pairs[i];
-                    if (pair.bodyA.label === targetA.label && pair.bodyB.label === targetB.label) {
-                        // TODO action 記述した中身をここで仕込む
-                        // World.remove(engine.world, pair.bodyA);
-                        // World.remove(engine.world, pair.bodyB);
-                    }
-                }
-            });
-        }
 
         /* とりあえず、そのままeval */
 
-        resetState();
+        // FIXME
+        // resetState();
         jsEditor.toTextArea();
         var inputs = $('#source-text').val().toString();
         eval(inputs);
@@ -1364,7 +1387,6 @@ $(function () {
         // jsEditor = makeEditor();
 
         /* eval */
-        // cursor.reset();
         // globalField = {};
         // currentField = globalField;
         // result.visit({inFlow:false});
@@ -1506,10 +1528,17 @@ function makeJSONEditor(){
 // FIXME
 // スタイルシートを読み込めるようにする？
 function resetState(){
-    // cursor.reset();
     // events = [];
     timeCounter = 0;
     $("#time-counter").text(timeCounter);
+
+    textContext.clearRect(0, 0, cvsw, cvsh);
+
+    objectParamMap = {};
+    objectMap = {};
+    textMap = {};
+
+    // engine, runner?
 }
 
 /* 補完機能(参考) */
