@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8" />
+	<title>macaron</title>
+	<link rel="stylesheet" href="../static/css/index.css" />
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Content-Language" content="ja" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+	<!-- エディタ用 -->
+	<link rel="stylesheet" href="../static/css/codemirror/codemirror.css" />
+	<script src="../static/js/codemirror/codemirror.js"></script>
+	<script src="../static/js/mode/macaron/macaron.js"></script>
+	<!-- <script src="addon/hint/show-hint.js"></script>
+	<link rel="stylesheet" href="addon/hint/show-hint.css"> -->
+	<!-- <script src="poly-decomp.js-master/build/decomp.js" type="text/javascript"></script> -->
+
+	<!-- drawer button -->
+	<link rel="stylesheet" href="../static/css/component.css" />
+	<!-- <link rel="stylesheet" type="text/css" href="css/normalize.css" /> -->
+	<script src="../static/js/drawer/modernizr.custom.25376.js"></script>
+</head>
+<body>
+	
+<div id="perspective" class="perspective effect-moveleft">
+	
+	<div class="container">
+		<div class="wrapper"><!-- wrapper needed for scroll -->
+			<!-- <div class="main clearfix">
+
+			</div> -->
+			<main>
+				<div id="canvas-area">
+					<!-- <canvas id="matter-canvas" style="background: black"></canvas> -->
+					<canvas id="text-canvas" style="background: black"></canvas>
+					<canvas id="matter-canvas"></canvas>
+				</div>
+				<div id="control-panel">
+					<div id="start-plot" class="btn btn-start-plot active" switch-link="#pause-plot">
+						<span class="fa fa-play"></span>
+						開始
+					</div>
+					<div id="pause-plot" class="btn btn-stop-plot" switch-link="#start-plot">
+						<span class="fa fa-pause"></span>
+						一時停止
+					</div>
+					<div id="increment-frame" class="btn btn-increment-frame">
+						<span class="fa fa-pause"></span>
+						<span class="fa fa-play"></span>
+						<span> </span>
+						コマ送り
+					</div>
+					<div id="reset" class="btn btn-reset">
+						<span class="fa fa-fast-backward"></span>
+						リセット
+					</div>
+					<h2 class="time-counter">
+						time counter : <span id="time-counter">0</span>
+					</h2>
+				</div>
+				<div class="clear"></div>
+
+				<div class="column">
+					<p><button id="showMenu">Code</button></p>
+				</div>
+			</main><!-- /main -->
+		</div><!-- wrapper -->
+	</div><!-- /container -->
+
+	<nav class="outer-nav right vertical">
+		<div id="image-set-area">
+			<h2 class="form-title">
+				スタイルシート：
+			</h2>
+			<div class="seted-image-list">
+				<form name="fm">
+					<textarea id="json-text" class="image-form" name="stylesheet-value"></textarea>	
+					<input type="button" id="apply-json" name="submit" value="送信" style="display:none;"/>
+					<div id="apply" class="btn btn-apply">apply</div>
+
+					<input type="file" id="loadfile-json" style="display:none;"/>
+					<div id="load-json" class="btn btn-load-json">load</div>
+				</form>
+			</div>
+		</div>
+		<div class="source-form">
+			<h2 class="form-title">
+				Macaronコード：
+			</h2>
+			<form name="fm">
+				<textarea id="source-text" class="text-form" name="rule-value"></textarea>	
+				<input type="button" id="apply-rule" name="submit" value="送信" style="display:none;"/>
+				<div id="eval" class="btn btn-eval">exec</div>
+
+				<input type="file" id="loadfile" style="display:none;"/>
+				<div id="load" class="btn btn-load">load</div>
+			</form>
+
+			<!-- <textarea id="source-text" class="text-form"></textarea>
+			<div id="eval" class="btn btn-eval">exec</div>
+			<input type="file" id="loadfile" style="display:none;"/>
+			<div id="load" class="btn btn-load">load</div> -->
+		</div>
+		<div class="clear"></div>
+	</nav>
+</div>
+
+<!-- matter.jsを読み込む前にcanvasを生成する必要あり -->
+<script src="../static/js/matter/matter.min.js"></script>
+
+<!-- <script src="macaron.js"></script> -->
+<script src="../static/js/parser/json.js"></script>
+<script src="../static/js/app.js"></script>
+
+<!-- drawer button -->
+<script src="../static/js/drawer/classie.js"></script>
+<script src="../static/js/drawer/menu.js"></script>
+</body>
+</html>
