@@ -9,6 +9,7 @@
 	<meta http-equiv="Content-Language" content="ja" />
 	<meta http-equiv="Content-Style-Type" content="text/css" />
 	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 
 	<!-- エディタ用 -->
@@ -36,18 +37,18 @@
 			<main>
 				<div id="canvas-area">
 					<!-- <canvas id="matter-canvas" style="background: black"></canvas> -->
-					<canvas id="text-canvas" style="background: black"></canvas>
-					<canvas id="matter-canvas"></canvas>
+					<canvas id="text-canvas" width="1440px" height="837px" style="background: black"></canvas>
+					<canvas id="matter-canvas" width="1440px" height="837px"></canvas>
 				</div>
-				<div id="control-panel">
-					<div id="start-plot" class="btn btn-start-plot active" switch-link="#pause-plot">
-						<span class="fa fa-play"></span>
-						開始
-					</div>
-					<div id="pause-plot" class="btn btn-stop-plot" switch-link="#start-plot">
-						<span class="fa fa-pause"></span>
-						一時停止
-					</div>
+
+				<div id="start-plot" class="btn btn-start-plot active" switch-link="#pause-plot">
+					<span class="fa fa-play"></span>
+				</div>
+				<div id="pause-plot" class="btn btn-stop-plot" switch-link="#start-plot">
+					<span class="fa fa-pause"></span>
+				</div>
+
+				<!-- <div id="control-panel">
 					<div id="increment-frame" class="btn btn-increment-frame">
 						<span class="fa fa-pause"></span>
 						<span class="fa fa-play"></span>
@@ -61,11 +62,20 @@
 					<h2 class="time-counter">
 						time counter : <span id="time-counter">0</span>
 					</h2>
-				</div>
-				<div class="clear"></div>
+				</div> -->
+				
+				<!-- <div class="clear"></div> -->
 
 				<div class="column">
-					<p><button id="showMenu">Code</button></p>
+					<p>
+						<button id="showMenu">
+								<div id="humberger">
+									<div></div>
+									<div></div>
+									<div></div>
+								</div>
+						</button>
+					</p>
 				</div>
 			</main><!-- /main -->
 		</div><!-- wrapper -->
@@ -73,9 +83,9 @@
 
 	<nav class="outer-nav right vertical">
 		<div id="image-set-area">
-			<h2 class="form-title">
-				スタイルシート：
-			</h2>
+			<!-- <h2 class="form-title">
+				Macaronコード：
+			</h2> -->
 			<div class="seted-image-list">
 				<form name="fm">
 					<textarea id="json-text" class="image-form" name="stylesheet-value"></textarea>	
@@ -87,7 +97,7 @@
 				</form>
 			</div>
 		</div>
-		<div class="source-form">
+		<!-- <div class="source-form">
 			<h2 class="form-title">
 				Macaronコード：
 			</h2>
@@ -100,11 +110,7 @@
 				<div id="load" class="btn btn-load">load</div>
 			</form>
 
-			<!-- <textarea id="source-text" class="text-form"></textarea>
-			<div id="eval" class="btn btn-eval">exec</div>
-			<input type="file" id="loadfile" style="display:none;"/>
-			<div id="load" class="btn btn-load">load</div> -->
-		</div>
+		</div> -->
 		<div class="clear"></div>
 	</nav>
 </div>

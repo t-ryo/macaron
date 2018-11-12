@@ -55,9 +55,11 @@
 //     }
 // }
 
-var cvsw = 900; /* canvas幅 */
-var cvsh = 900; /* canvas高さ */
-var timeCounter = 0; /* macaronシミュレータの実行時間 */
+var CVSW = 1440;
+var CVSH = 837;
+var cvsw = 1440; /* canvas幅 */
+var cvsh = 837; /* canvas高さ */
+// var timeCounter = 0; /* macaronシミュレータの実行時間 */
 var timer; // TODO 確認
 var result; /* macaronコードのパース結果の木 */
 
@@ -67,7 +69,7 @@ var currentField = globalField; /* スコープ管理のため */
 var showFlipper = false; /* tree.show() で ctree と clink の判定に使用 */
 /* removeの際、event情報が必要 */
 /* Matterでは不要になる可能性あり */
-var events = []; 
+// var events = []; 
 
 /* パース結果の木はctree(ノード)をclinkで繋いでいるので、
    現在のctreeから次のctreeを参照するために一手間かかる。
@@ -864,30 +866,13 @@ function evalNull(tree,info){
 //     return eval(funcName);
 // }
 
-// function init() {
-
-//     // for(var obj in globalField){
-//     //     if(MImage.prototype.isPrototypeOf(globalField[obj])){
-//     //         globalField[obj].init();
-//     //     }
-//     //     if(MPictogram.prototype.isPrototypeOf(globalField[obj])){
-//     //         globalField[obj].init();
-//     //     }
-//     // }
-
-//     // plot();
-//     // timeCounter = 0;
-//     // $(function(){
-//     //     $("#time-counter").text(timeCounter);
-//     // });
-// }
-
 /* matter.js */
 var Engine = Matter.Engine,
 	World = Matter.World,
 	Body = Matter.Body,
 	Bodies = Matter.Bodies,
-	Constraint = Matter.Constraint,
+    Constraint = Matter.Constraint,
+    Composite = Matter.Composite,
 	Composites = Matter.Composites,
 	Common = Matter.Common,
     Vertices = Matter.Vertices,
@@ -898,6 +883,7 @@ var Engine = Matter.Engine,
     
 var engine;
 var runner;
+// var render;
 
 const optionName = [
     "isStatic",
@@ -916,6 +902,10 @@ var textCanvas = document.getElementById('text-canvas');
 var textContext = textCanvas.getContext('2d');
 
 var indexRegExp = new RegExp('\[[0-9]*\]', 'g');
+
+// FIXME
+var fontSize = 40;
+var rockSize = 20;
 
 // ctreeで書いてるけど、jsのjsonに寄せる？
 function initJSON(tree){
@@ -1042,7 +1032,7 @@ function initJSON(tree){
             }
 
             if(newObject.type == "circle"/* 円 */){
-                objectMap[objectName] = Bodies.circle(newObject.x, newObject.y, newObject.radius, newObject.options);
+                objectMap[objectName] = Bodies.circle(newObject.x, newObject.y , newObject.radius, newObject.options);
             }else if(newObject.type == "rectangle"/* 四角形 */){
                 objectMap[objectName] = Bodies.rectangle(newObject.x, newObject.y, newObject.width, newObject.height, newObject.options);
             }else if(newObject.type == "polygon" /* 正多角形 */){
@@ -1051,11 +1041,11 @@ function initJSON(tree){
                 objectMap[objectName] = Bodies.trapezoid(newObject.x, newObject.y, newObject.width, newObject.height, newObject.slope, newObject.options);
             }else if(newObject.type == "car" /* 車 */){
                 objectMap[objectName] = Composites.car(newObject.x, newObject.y, newObject.width, newObject.height, newObject.wheelSize);
-            }else if(newObject.type == "stack" /*  */){
+            }else if(newObject.type == "stack" /* 格子状に積む */){
                 // fieldに追加するかどうするか engine生成がこの後なので、World.add()のためにとりあえずpushしておく
                 // objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, newObject.columnGap, newObject.rowGap, getCallBack(newObject.elementType));
                 objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
-            }else if(newObject.type == "pyramid" /*  */){
+            }else if(newObject.type == "pyramid" /* ピラミッド形に積む */){
                 // Gapをパラメータで設定したい？
                 // objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, newObject.columnGap, newObject.rowGap, getCallBack(newObject.elementType));
                 objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
@@ -1069,8 +1059,8 @@ function initJSON(tree){
                         visible: false
                     }
                 });
-            }else if(newObject.type == "slingshot" /*  */){
-                var rock = Bodies.polygon(newObject.x, newObject.y, 8, 20, { 
+            }else if(newObject.type == "slingshot" /* パチンコ */){
+                var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize, { 
                     density: 0.004,
                     render: {
                         sprite: {
@@ -1078,13 +1068,11 @@ function initJSON(tree){
                         }
                     }
                 });
-                // worldに直接add, Mapにいらないよね？
                 elastic = Constraint.create({ 
                     pointA: { x: newObject.x, y:newObject.y }, 
                     bodyB: rock, 
                     stiffness: 0.05
                 });
-                // 制約の扱いをどうする？
                 objectMap[objectName] = elastic;
                 objectMap['_rock'] = rock;
                 enableSlingshot = true;
@@ -1123,9 +1111,9 @@ function initJSON(tree){
     engine.world.gravity.y = gravityVal;
 
     /* time counter を更新イベントに設定 */
-    Matter.Events.on(engine, 'afterUpdate', function() {
-        $("#time-counter").text(++timeCounter);
-    });
+    // Matter.Events.on(engine, 'afterUpdate', function() {
+    //     $("#time-counter").text(++timeCounter);
+    // });
 
     /* engineのアクティブ、非アクティブの制御を行う */
     runner = Runner.create();
@@ -1142,10 +1130,12 @@ function initJSON(tree){
     });
 
     /* canvasのリサイズ */
-    Render.lookAt(render, {
-        min: { x: 0, y: 0 },
-        max: { x: cvsw, y: cvsh }
-    });
+    // 以前の実装では動いていたので、canvasの生成場所の問題？
+    // Render.lookAt(render, {
+    //     min: { x: 0, y: 0 },
+    //     max: { x: CVSW, y: CVSH }
+    //     // max: { x: cvsw, y: cvsh }
+    // });
 
     /* マウスドラッグ */
     if(enableMouse){
@@ -1258,13 +1248,15 @@ function mouseDrag(render, engine, mouseConstraint){
 }
 
 // もう少し上手く実装したい
-// FIXME 位置判定の問題で、左->右は打てるが、右->左はうまく打てない
 function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
     // FIXME engineの扱い
 
     Matter.Events.on(engine, 'afterUpdate', function() {
-        if (mouseConstraint.mouse.button === -1 && (objectMap['_rock'].position.x > objectParamMap[slingshotName].x + 20 || objectMap['_rock'].position.y < objectParamMap[slingshotName].y - 20)) {
-            objectMap['_rock'] = Bodies.polygon(objectParamMap[slingshotName].x, objectParamMap[slingshotName].y, 7, 20, { 
+        // FIXME 位置判定の問題で、左->右は打てるが、右->左はうまく打てない
+        // Math.abs() インターバル入れる
+        // Math.abs()の挙動に注意
+        if (mouseConstraint.mouse.button === -1 && (objectMap['_rock'].position.x > objectMap[slingshotName].pointA.x + rockSize || objectMap['_rock'].position.y < objectMap[slingshotName].pointA.y - rockSize)) {
+            objectMap['_rock'] = Bodies.polygon(objectMap[slingshotName].pointA.x, objectMap[slingshotName].pointA.y, 7, rockSize, { 
                 density: 0.004,
                 render: {
                     sprite: {
@@ -1281,9 +1273,13 @@ function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
 function writeAllText(){
     textContext.clearRect(0, 0, cvsw, cvsh);
 
-    textContext.font = "40px 'ＭＳ ゴシック'";
+    fontSize = fontSize * cvsw/CVSW;
+
+    textContext.font = fontSize + "px 'ＭＳ ゴシック'";
     for(var textParam of Object.values(textMap)){
         textContext.fillStyle = textParam.color;
+        textParam.x = textParam.x * cvsw/CVSW;
+        textParam.y = textParam.y * cvsh/CVSH;
         textContext.fillText(textParam.value, textParam.x, textParam.y);
     }
 }
@@ -1327,90 +1323,129 @@ function collision(targetA, targetB, action){
 //     }
 // }
 
+$(window).on('load', function(){
+    CVSW = $( window ).width();
+    CVSH = $( window ).height();
+    resizeWindow();
+});
+
+/* リサイズイベント */
+$(window).on('resize', function(){
+    resizeWindow();
+});
+
+function resizeWindow(){
+    /* 現在のwindowサイズ */
+    cvsw = $( window ).width();
+    cvsh = $( window ).height();
+
+    resizeEditorSize();
+    /* canvasサイズ更新 */
+    $('#matter-canvas').get(0).width = cvsw;
+    $('#matter-canvas').get(0).height = cvsh;
+    $('#text-canvas').get(0).width = cvsw;
+    $('#text-canvas').get(0).height = cvsh;
+    /* objectサイズ更新 */
+    writeAllText();
+    resizeWorldObjects();
+    /* 定数？ */
+    rockSize = rockSize * cvsw/CVSW;
+    /* 変更前のwindowサイズを更新 */
+    CVSW = cvsw;
+    CVSH = cvsh;
+}
+
+function resizeWorldObjects(){
+    // FIXME リセット実装したらif文いらなくなりそう
+    if(engine){
+        // console.log(engine.world);
+
+        /* body */
+        resizeBodies(engine.world.bodies);
+        /* composite */
+        for(var compositesObj of engine.world.composites){
+            childs = Composite.allBodies(compositesObj);
+            resizeBodies(childs);
+        }
+        /* constraint */
+        for(var constraint of engine.world.constraints){
+            constraint.pointA = {
+                x:constraint.pointA.x * cvsw/CVSW,
+                y:constraint.pointA.y * cvsh/CVSH
+            };
+        }
+    }
+}
+
+function resizeBodies(objs){
+    for(var obj of objs){
+        Body.scale(obj, cvsw/CVSW, cvsw/CVSW);
+        Body.setPosition(obj, {
+            x : obj.position.x * cvsw/CVSW,
+            y : obj.position.y * cvsh/CVSH
+        });
+    }
+}
+
+// FIXME
+var jsonEditor;
 
 $(function () {
     var initCode = "";
-    // var initCode = "s = <sakura>\nforeach a  a == <sakura>\n-------------------\n    $a.x = a.x + 10\nwhen Click(a)  a == <sakura>\n-------------------\n    $a = <fish>";
     
     $('#source-text').val(initCode);
-    var jsEditor = makeEditor();
-    var jsonEditor = makeJSONEditor();
+    // var jsEditor = makeEditor();
+    jsonEditor = makeJSONEditor();
 
-    // FIXME
-    cvsw = $('#matter-canvas').width();
-    cvsh = $('#matter-canvas').height();
-    textCanvas.width = cvsw;
-    textCanvas.height = cvsh;
     var timer = false; /* maimloopに使用されていた 要確認 */
-    // TODO 画面のリサイズ
-    // $(window).resize(function() {
-    //     if (timer !== false) {
-    //         clearTimeout(timer);
-    //     }
-    //     timer = setTimeout(function() {
-    //         console.log('resized');
-    //         // cvsw = $('#matter-area').width();
-    //         // cvsh = $('#matter-area').height();
-    //         console.log($('#matter-canvas').width())
-    //         console.log($('#matter-canvas').height())
-    //     }, 200);
+
+    // $('#eval').click(function () {
+    //     console.log("eval");
+    //     // collision A B action
+
+    //     /* 衝突判定? */
+
+    //     jsEditor.toTextArea();
+    //     var inputs = $('#source-text').val().toString();
+    //     jsEditor = makeEditor();
+
+    //     /* サーバーにinputsを投げる */
+    //     $.ajax({
+    //         url: '/rule',
+    //         type: 'POST',
+    //         dataType: 'json',
+    //         data: {
+    //             [$('#source-text').attr('name')]:inputs
+    //         },
+    //         timeout: 5000,
+    //     })
+    //     .done(function(data) {
+    //         /* 返ってきたruleを処理 */
+    //         eval(data.rule);
+    //     })
+    //     .fail(function() {
+    //         console.log('fail');
+    //     });
     // });
-    $('#eval').click(function () {
-        console.log("eval");
-        // collision A B action
-
-        /* 衝突判定? */
-
-        jsEditor.toTextArea();
-        var inputs = $('#source-text').val().toString();
-        jsEditor = makeEditor();
-
-        /* サーバーにinputsを投げる */
-        $.ajax({
-            url: '/rule',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                [$('#source-text').attr('name')]:inputs
-            },
-            timeout: 5000,
-        })
-        .done(function(data) {
-            /* 返ってきたruleを処理 */
-            // console.log(data.rule);
-
-            /* とりあえず、そのままeval */
-            eval(data.rule);
-        })
-        .fail(function() {
-            console.log('fail');
-        });
-        /* eval */
-        // globalField = {};
-        // currentField = globalField;
-        // result.visit({inFlow:false});
-        // init();
-    });
     /* ファイル読み込み(macaronコード) */
-    /* 廃止？ */
-    $('#load').click(function() {
-        console.log("load")
-        $('#loadfile').click();
-        $('#loadfile').change(function(){
-            var reader = new FileReader();
-            reader.onload = function () {
-                jsEditor.toTextArea();
-                $('#source-text').val(reader.result);
-                jsEditor = makeEditor();
-            }
-            var file = this.files[0];
-            // FIXME macaronファイルに対応
-            if (!file.type.match(/text/)){
-                alert("対応ファイル macaron|txt");
-            }
-            reader.readAsText(file);
-        });
-    });
+    // $('#load').click(function() {
+    //     console.log("load")
+    //     $('#loadfile').click();
+    //     $('#loadfile').change(function(){
+    //         var reader = new FileReader();
+    //         reader.onload = function () {
+    //             jsEditor.toTextArea();
+    //             $('#source-text').val(reader.result);
+    //             jsEditor = makeEditor();
+    //         }
+    //         var file = this.files[0];
+    //         // FIXME macaronファイルに対応
+    //         if (!file.type.match(/text/)){
+    //             alert("対応ファイル macaron|txt");
+    //         }
+    //         reader.readAsText(file);
+    //     });
+    // });
     $('#start-plot').click(function () {
         console.log("start");
 
@@ -1431,32 +1466,23 @@ $(function () {
         /* engineを止める */
         runner.enabled = false;
     });
-    $('#increment-frame').click(function () {
-        console.log("increment-frame");
-        
-        runner.enabled = true;
-        /* 1フレーム後にrunnerを再び非アクティブにする */
-        // FIXME timeCounterが増えない場合がある
-        setTimeout(function(){
-            runner.enabled = false;
-        }, 1);
-
-    });
-    $('#reset').click(function () {
-        console.log("reset");
-
-        // スタイルシートからやり直す？
-        resetState();
-
-        // TODO
-        // engineとrunnerを消去
-        // スタイルシート読み込み
-        // macaronコード処理
-
-        /* 旧macaronバージョン */
-        // init();
-    });
-    // 画面を戻した時、発火するように変更
+    // $('#increment-frame').click(function () {
+    //     console.log("increment-frame");
+    //     runner.enabled = true;
+    //     /* 1フレーム後にrunnerを再び非アクティブにする */
+    //     // FIXME timeCounterが増えない場合がある
+    //     setTimeout(function(){
+    //         runner.enabled = false;
+    //     }, 1);
+    // });
+    // $('#reset').click(function () {
+    //     console.log("reset");
+    //     resetState();
+    //     // engineとrunnerを消去
+    //     // スタイルシート読み込み
+    //     // macaronコード処理
+    // });
+    // TODO 画面を戻した時、発火するように変更
     $('#apply').click(function (){
         console.log("apply")
 
@@ -1477,15 +1503,23 @@ $(function () {
             timeout: 5000,
         })
         .done(function(data) {
-            /* 返ってきたjsonを処理 */
             globalField = {};
             currentField = globalField;
-            // console.log(data)
+            // console.log(data);
 
-            var inputsJSON = (new TextEncoder).encode(data.json);
-            var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
+            if(data.error){
+                // FIXME 
+                alert('syntax error');
+            }else{
+                /* スタイルシートの処理 */
+                var inputsJSON = (new TextEncoder).encode(data.json);
+                var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
+                initJSON(jsonResult);
 
-            initJSON(jsonResult);
+                /* ルールの処理 */
+                /* 衝突判定? */
+                eval(data.rule);
+            }
         })
         .fail(function() {
             console.log('fail')
@@ -1504,28 +1538,31 @@ $(function () {
                 jsonEditor = makeJSONEditor();
             }
             var file = this.files[0];
-            if (!file.type.match(/json/)){
-                alert("対応ファイル json");
-                return;
-            }
+            // FIXME ファイルチェック
+            // if (!file.type.match(/json/)){
+            //     alert("対応ファイル json");
+            //     return;
+            // }
             reader.readAsText(file);
         });
     });
 });
 
 /* Macaronコード用エディタ */
-function makeEditor(){
-    var macaronEditor = CodeMirror.fromTextArea(document.getElementById("source-text"), {
-        mode: "javascript",
-        lineNumbers: false,
-        indentUnit: 4
-    });
+// function makeEditor(){
+//     var macaronEditor = CodeMirror.fromTextArea(document.getElementById("source-text"), {
+//         mode: "javascript",
+//         lineNumbers: false,
+//         indentUnit: 4
+//     });
 
-    macaronEditor.setSize(550, 250);
+//     macaronEditor.setSize(550, 250);
 
-    return macaronEditor;
-}
+//     return macaronEditor;
+// }
 
+var editorW = 550;
+var editorH = 550;
 /* スタイルシート用エディタ */
 function makeJSONEditor(){
     var jsonEditor = CodeMirror.fromTextArea(document.getElementById("json-text"), {
@@ -1535,17 +1572,23 @@ function makeJSONEditor(){
         // ,extraKeys: {"Ctrl-Space": "autocomplete"}
     });
 
-    jsonEditor.setSize(550, 250);
+    jsonEditor.setSize(editorW, editorH);
     // jsonEditor.on('change', imageComplete);
     return jsonEditor;
+}
+
+function resizeEditorSize(){
+    editorW = editorW * cvsw/CVSW;
+    editorH = editorH * cvsh/CVSH;
+    jsonEditor.setSize(editorW, editorH);
 }
 
 // FIXME
 // スタイルシートを読み込めるようにする？
 function resetState(){
     // events = [];
-    timeCounter = 0;
-    $("#time-counter").text(timeCounter);
+    // timeCounter = 0;
+    // $("#time-counter").text(timeCounter);
 
     textContext.clearRect(0, 0, cvsw, cvsh);
 
@@ -1553,7 +1596,18 @@ function resetState(){
     objectMap = {};
     textMap = {};
 
-    // engine, runner?
+    // FIXME
+    // Render.stop(render);
+    // render.canvas.remove();
+    // render.canvas = null;
+    // render.context = null;
+    // render.textures = {};
+    // Runner.stop(runner); // チェック
+    // runner = null; // チェック
+    // World.clear(engine.world);
+    // Engine.clear(engine);
+    // engine = null; // チェック
+
 }
 
 /* 補完機能(参考) */
