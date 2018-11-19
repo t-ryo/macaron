@@ -998,6 +998,7 @@ function initJSON(tree){
                     length:0,              /* 長さ */
                     /* text */
                     color: "white",
+                    font:'ＭＳ ゴシック',
                     value: null,
                     /* constraint */
                     targetObject: null,
@@ -1027,7 +1028,7 @@ function initJSON(tree){
                     objectName = value;
                 }else if(key == "image"){
                     // FIXME 拡張子, 場所指定
-                    newObject.options.render.sprite.texture = value;
+                    newObject.options.render.sprite.texture = './static/image/' + value;
                 }else if(optionName.indexOf(key) > -1){
                     newObject.options[key] = value;
                 }else{
@@ -1276,9 +1277,9 @@ function writeAllText(){
 
     fontSize = fontSize * cvsw/cvswBase;
 
-    textContext.font = fontSize + "px 'ＭＳ ゴシック'";
     for(var textParam of Object.values(textMap)){
         textContext.fillStyle = textParam.color;
+        textContext.font = fontSize + "px " + textParam.font;
         textParam.x = textParam.x * cvsw/cvswBase;
         textParam.y = textParam.y * cvsh/cvshBase;
         textContext.fillText(textParam.value, textParam.x, textParam.y);
