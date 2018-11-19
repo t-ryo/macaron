@@ -41,14 +41,6 @@ main {
   /* margin:0 auto; */
 }
 
-/* #canvas-area canvas {
-  position: absolute;
-  width: 900px;
-  height: 700px;
-  top: 0;
-  left: 0;
-} */
-
 #matter-canvas {
   position: absolute;
   /* max-width: 900px; */
@@ -64,16 +56,6 @@ main {
   top: 0;
   left: 0;
 }
-
-/* canvas {
-  position: absolute;
-  max-width: 900px;
-  width: 60%;
-  max-height: 900px;
-  height: 90%;
-  height: 700px;
-  float: left;
-} */
 
 .perspective {
   height: 100%;
@@ -134,40 +116,6 @@ main {
   position:relative;
   top:7px;
 }
-
-/* .makeMeFancy {
-  margin: 10px;
-} */
-
-/* .source-form {
-  width: 100%;
-  height: 80%;
-  position: relative;
-  top: 10px;
-} */
-
-/* .text-form {
-  width: 100%;
-  height: 85%;
-  font-size: 20px;
-} */
-
-/* #control-panel {
-  max-width: 1500px;
-  width: 100%;
-  max-height: 80px;
-  height: 8%;
-  margin: 0px;
-  padding: 5px;
-
-  border: double 5px #000011;
-  float: left;
-} */
-/* 
-#control-panel p {
-  margin: 0; 
-  padding: 0;
-} */
 
 .btn{
   display: inline-block;
@@ -277,9 +225,9 @@ main {
   width: 120px;
 }
 
-.btn-load-json {
+/* .btn-load-json {
   width: 120px;
-}
+} */
 
 /* code button 用 (仮) */
 .column {
@@ -338,4 +286,56 @@ button:active {
 }
 #humberger div:nth-of-type(3) {
   bottom: 0;
+}
+
+/* select box */
+.sample-select{
+  overflow: hidden;
+  width: 29%;
+  text-align: center;
+  display: inline;
+}
+.sample-select select {
+  width: 100%;
+  padding-right: 1em;
+  cursor: pointer;
+  text-indent: 0.01px;
+  text-overflow: ellipsis;
+  border: none;
+  outline: none;
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sample-select select::-ms-expand {
+  display: none;
+}
+.sample-select {
+  position: relative;
+  border: 2px solid #C299FF;
+  border-radius: 5px;
+  background: #ffffff;
+}
+
+/* selectboxの下矢印 */
+.sample-select::before {
+  position: absolute;
+  top: 0.8em;
+  right: 0.3em;
+  width: 0;
+  height: 0;
+  padding: 0;
+  content: '';
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #000000;
+  pointer-events: none;
+}
+/* selectboxの文字 */
+.sample-select select {
+  padding: 8px 8px 8px 8px;
+  font-size: 15px;
+  color: #000000;
 }

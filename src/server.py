@@ -20,7 +20,6 @@ def transformStylesheet():
     # TODO トランスパイル
     # json形式の文字列に変換して返すので、json形式にする必要はないはず
     # jsonVal = json.loads(stylesheetValue)
-    # TODO ---以上の場合
     splitText = re.split(r'---+', inputText)
     if len(splitText) == 2:
         return json.dumps({'json':splitText[0], 'rule':splitText[1]})
@@ -28,11 +27,20 @@ def transformStylesheet():
         # 'json'として返す？
         return json.dumps({'error':inputText})
 
-# @app.route('/rule', methods=['POST'])
-# def transformRule():
-#     ruleValue =  request.form['rule-value']
-#     # TODO トランスパイル
-#     return json.dumps({'rule':ruleValue})
+@app.route('/sample/slingshot', methods=['POST'])
+def getSlingShotSample():
+    with open('../examples/slingshot.macaron') as f:
+        return f.read()
+
+@app.route('/sample/bridge', methods=['POST'])
+def getBridgeSample():
+    with open('../examples/bridge.macaron') as f:
+        return f.read()
+
+@app.route('/sample/car', methods=['POST'])
+def getCarSample():
+    with open('../examples/car.macaron') as f:
+        return f.read()
 
 if __name__ == '__main__':
     app.run(debug=True)

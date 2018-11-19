@@ -55,8 +55,11 @@
 //     }
 // }
 
-var CVSW = 1440;
-var CVSH = 837;
+const cvswOrg = 1440;
+const cvshOrg = 837;
+var cvswBase = 1440;
+var cvshBase = 837;
+// TODO いらない気がするのでリファクタリング
 var cvsw = 1440; /* canvas幅 */
 var cvsh = 837; /* canvas高さ */
 // var timeCounter = 0; /* macaronシミュレータの実行時間 */
@@ -883,14 +886,15 @@ var Engine = Matter.Engine,
     
 var engine;
 var runner;
-// var render;
+var render;
 
 const optionName = [
     "isStatic",
     "density",
     "friction",
     "frictionAir",
-    "restitution"
+    "restitution",
+    "angle"
 ]
 
 var objectParamMap = {};
@@ -908,6 +912,7 @@ var fontSize = 40;
 var rockSize = 20;
 
 // ctreeで書いてるけど、jsのjsonに寄せる？
+// jsonにすると重複禁止なので保留
 function initJSON(tree){
 
     /* 要検討 */
@@ -967,8 +972,8 @@ function initJSON(tree){
             var newObject;
 
             if(objectType in objectParamMap){
-                /* パラメータ引き継ぎ */
-                newObject = objectParamMap[objectType];
+                /* パラメータ引き継ぎ(値渡し) */
+                newObject = JSON.parse(JSON.stringify(objectParamMap[objectType]));
             }else{
                 var newObject = {
                     type:objectType,
@@ -983,12 +988,14 @@ function initJSON(tree){
                     slope: 0,              /* 台形の傾斜 */
                     /* car */
                     wheelSize: 0,          /* 車輪の大きさ */
-                    /* stack, pyramid, chain */
+                    /* stack, pyramid */
                     columns: 0,            /* 行 */
                     rows: 0,               /* 列 */
                     // columnGap: 0,          /* 行の間隔 */
                     // rowGap: 0,             /* 列の間隔 */
                     elementType: null,     /* 生成するオブジェクトの種類 */
+                    /* chain */
+                    length:0,              /* 長さ */
                     /* text */
                     color: "white",
                     value: null,
@@ -1000,6 +1007,8 @@ function initJSON(tree){
                         friction: 0.1,     /* 摩擦係数 */
                         frictionAir: 0.01, /* 空気抵抗 */
                         restitution: 0,    /* 反発係数 */
+                        // 度数にする？
+                        angle: 0,          /* 角度 */
                         render: {
                             sprite: {
                                 texture: null /* テクスチャ */
@@ -1051,7 +1060,7 @@ function initJSON(tree){
                 objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
             }else if(newObject.type == "chain" /* 鎖 */){
                 var group = Body.nextGroup(true); /* chain内のオブジェクト同士は衝突しないようにcollisionFilterでグループ化する */
-                var chain = Composites.stack(newObject.x, newObject.y, newObject.columns, 1, 0, 0, getGroupedCallBack(newObject.elementType, group));
+                var chain = Composites.stack(newObject.x, newObject.y, newObject.length, 1, 0, 0, getGroupedCallBack(newObject.elementType, group));
                 objectMap[objectName] = Composites.chain(chain, 0.3, 0, -0.3, 0, { 
                     stiffness: 1,
                     length: 0,
@@ -1059,7 +1068,7 @@ function initJSON(tree){
                         visible: false
                     }
                 });
-            }else if(newObject.type == "slingshot" /* パチンコ */){
+            }else if(newObject.type == "slingshot" /* カタパルト */){
                 var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize, { 
                     density: 0.004,
                     render: {
@@ -1122,20 +1131,15 @@ function initJSON(tree){
     World.add(engine.world, Object.values(objectMap));
     writeAllText();
 
+    /* リサイズ */
+    resizeWorldObjects(cvswBase/cvswOrg, cvshBase/cvshOrg);
+    
     /* レンダリング設定 */
-    var render = Render.create({
+    render = Render.create({
         canvas: matterCanvas,/* あらかじめ作成したcanvasに描画するために必須 */
         engine: engine,
         options: renderOption
     });
-
-    /* canvasのリサイズ */
-    // 以前の実装では動いていたので、canvasの生成場所の問題？
-    // Render.lookAt(render, {
-    //     min: { x: 0, y: 0 },
-    //     max: { x: CVSW, y: CVSH }
-    //     // max: { x: cvsw, y: cvsh }
-    // });
 
     /* マウスドラッグ */
     if(enableMouse){
@@ -1250,12 +1254,8 @@ function mouseDrag(render, engine, mouseConstraint){
 // もう少し上手く実装したい
 function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
     // FIXME engineの扱い
-
     Matter.Events.on(engine, 'afterUpdate', function() {
-        // FIXME 位置判定の問題で、左->右は打てるが、右->左はうまく打てない
-        // Math.abs() インターバル入れる
-        // Math.abs()の挙動に注意
-        if (mouseConstraint.mouse.button === -1 && (objectMap['_rock'].position.x > objectMap[slingshotName].pointA.x + rockSize || objectMap['_rock'].position.y < objectMap[slingshotName].pointA.y - rockSize)) {
+        if (mouseConstraint.mouse.button === -1 && (Math.abs(objectMap['_rock'].velocity.x) > 20 || Math.abs(objectMap['_rock'].velocity.y) > 20)) {
             objectMap['_rock'] = Bodies.polygon(objectMap[slingshotName].pointA.x, objectMap[slingshotName].pointA.y, 7, rockSize, { 
                 density: 0.004,
                 render: {
@@ -1273,13 +1273,13 @@ function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
 function writeAllText(){
     textContext.clearRect(0, 0, cvsw, cvsh);
 
-    fontSize = fontSize * cvsw/CVSW;
+    fontSize = fontSize * cvsw/cvswBase;
 
     textContext.font = fontSize + "px 'ＭＳ ゴシック'";
     for(var textParam of Object.values(textMap)){
         textContext.fillStyle = textParam.color;
-        textParam.x = textParam.x * cvsw/CVSW;
-        textParam.y = textParam.y * cvsh/CVSH;
+        textParam.x = textParam.x * cvsw/cvswBase;
+        textParam.y = textParam.y * cvsh/cvshBase;
         textContext.fillText(textParam.value, textParam.x, textParam.y);
     }
 }
@@ -1288,7 +1288,6 @@ function writeAllText(){
 function collision(targetA, targetB, action){
     // ラベル判定だと、同じ種類のオブジェクトを区別できない
     // idで頑張る？ stackは id[0] < pair < id[0] + length ?
-    // pairとworldのidにずれがある？
     Matter.Events.on(engine, 'collisionEnd', function(event) {
         pairs = event.pairs;
         for (i = 0; i < pairs.length; i++) {
@@ -1324,8 +1323,8 @@ function collision(targetA, targetB, action){
 // }
 
 $(window).on('load', function(){
-    CVSW = $( window ).width();
-    CVSH = $( window ).height();
+    cvswBase = $( window ).width();
+    cvshBase = $( window ).height();
     resizeWindow();
 });
 
@@ -1347,42 +1346,39 @@ function resizeWindow(){
     $('#text-canvas').get(0).height = cvsh;
     /* objectサイズ更新 */
     writeAllText();
-    resizeWorldObjects();
+    resizeWorldObjects(cvsw/cvswBase, cvsh/cvshBase);
     /* 定数？ */
-    rockSize = rockSize * cvsw/CVSW;
+    rockSize = rockSize * cvsw/cvswBase;
     /* 変更前のwindowサイズを更新 */
-    CVSW = cvsw;
-    CVSH = cvsh;
+    cvswBase = cvsw;
+    cvshBase = cvsh;
 }
 
-function resizeWorldObjects(){
-    // FIXME リセット実装したらif文いらなくなりそう
+function resizeWorldObjects(ratew, rateh){
     if(engine){
-        // console.log(engine.world);
-
         /* body */
-        resizeBodies(engine.world.bodies);
+        resizeBodies(engine.world.bodies, ratew, rateh);
         /* composite */
         for(var compositesObj of engine.world.composites){
             childs = Composite.allBodies(compositesObj);
-            resizeBodies(childs);
+            resizeBodies(childs, ratew, rateh);
         }
         /* constraint */
         for(var constraint of engine.world.constraints){
             constraint.pointA = {
-                x:constraint.pointA.x * cvsw/CVSW,
-                y:constraint.pointA.y * cvsh/CVSH
+                x:constraint.pointA.x * ratew,
+                y:constraint.pointA.y * rateh
             };
         }
     }
 }
 
-function resizeBodies(objs){
+function resizeBodies(objs, ratew, rateh){
     for(var obj of objs){
-        Body.scale(obj, cvsw/CVSW, cvsw/CVSW);
+        Body.scale(obj, ratew, rateh);
         Body.setPosition(obj, {
-            x : obj.position.x * cvsw/CVSW,
-            y : obj.position.y * cvsh/CVSH
+            x : obj.position.x * ratew,
+            y : obj.position.y * rateh
         });
     }
 }
@@ -1391,9 +1387,9 @@ function resizeBodies(objs){
 var jsonEditor;
 
 $(function () {
-    var initCode = "";
+    // var initCode = "";
     
-    $('#source-text').val(initCode);
+    // $('#json-text').val(initCode);
     // var jsEditor = makeEditor();
     jsonEditor = makeJSONEditor();
 
@@ -1525,27 +1521,62 @@ $(function () {
             console.log('fail')
         });
     });
+    /* デモ用 */
+    $('[name="samples"]').change(function() {
+        var sampleName = $('[name="samples"]').val();
+        var url = ''
+
+        if(sampleName == "slingshot"){
+            url = '/sample/slingshot';
+        }else if(sampleName == "bridge"){
+            url = '/sample/bridge';
+        }else if(sampleName == "car"){
+            url = '/sample/car';
+        } else{
+            // TODO
+        }
+
+        if(url != ''){
+            $.ajax({
+                url: url,
+                type: 'POST',
+                timeout: 5000,
+            })
+            .done(function(data) {
+                jsonEditor.toTextArea();
+                $('#json-text').val(data);
+                jsonEditor = makeJSONEditor();
+            })
+            .fail(function() {
+                console.log('fail')
+            });
+        }else{
+            jsonEditor.toTextArea();
+            $('#json-text').val("");
+            jsonEditor = makeJSONEditor();
+        }
+    })
     /* ファイル読み込み(スタイルシート) */
     /* 廃止？ */
-    $('#load-json').click(function() {
-        console.log("load json")
-        $('#loadfile-json').click();
-        $('#loadfile-json').change(function(){
-            var reader = new FileReader();
-            reader.onload = function () {
-                jsonEditor.toTextArea();
-                $('#json-text').val(reader.result);
-                jsonEditor = makeJSONEditor();
-            }
-            var file = this.files[0];
-            // FIXME ファイルチェック
-            // if (!file.type.match(/json/)){
-            //     alert("対応ファイル json");
-            //     return;
-            // }
-            reader.readAsText(file);
-        });
-    });
+    // $('#load-json').click(function() {
+    //     console.log("load json")
+    //     $('#loadfile-json').click();
+    //     $('#loadfile-json').change(function(){
+    //         var reader = new FileReader();
+    //         reader.onload = function () {
+    //             jsonEditor.toTextArea();
+    //             $('#json-text').val(reader.result);
+    //             jsonEditor = makeJSONEditor();
+    //         }
+    //         var file = this.files[0];
+    //         // FIXME ファイルチェック
+    //         // if (!file.type.match(/json/)){
+    //         //     alert("対応ファイル json");
+    //         //     return;
+    //         // }
+    //         reader.readAsText(file);
+    //     });
+    // });
 });
 
 /* Macaronコード用エディタ */
@@ -1578,8 +1609,8 @@ function makeJSONEditor(){
 }
 
 function resizeEditorSize(){
-    editorW = editorW * cvsw/CVSW;
-    editorH = editorH * cvsh/CVSH;
+    editorW = editorW * cvsw/cvswBase;
+    editorH = editorH * cvsh/cvshBase;
     jsonEditor.setSize(editorW, editorH);
 }
 
@@ -1596,18 +1627,22 @@ function resetState(){
     objectMap = {};
     textMap = {};
 
-    // FIXME
-    // Render.stop(render);
-    // render.canvas.remove();
-    // render.canvas = null;
-    // render.context = null;
-    // render.textures = {};
-    // Runner.stop(runner); // チェック
-    // runner = null; // チェック
-    // World.clear(engine.world);
-    // Engine.clear(engine);
-    // engine = null; // チェック
-
+    if(render){
+        Render.stop(render);
+        // render.canvas.remove();
+        render.canvas = null;
+        render.context = null;
+        render.textures = {};
+    }
+    if(runner){
+        Runner.stop(runner);
+        runner = null;
+    }
+    if(engine){
+        World.clear(engine.world);
+        Engine.clear(engine);
+        engine = null;
+    }
 }
 
 /* 補完機能(参考) */
