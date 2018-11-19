@@ -1,0 +1,15 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true
+  },
+  "pendulum":{
+    "name":"pSample",
+    "x":500,
+    "y":300,
+    "columns":5,
+    "radius":50,
+    "length":300
+  }
+}
+---

@@ -42,6 +42,16 @@ def getCarSample():
     with open('../examples/car.macaron') as f:
         return f.read()
 
+@app.route('/sample/pendulum', methods=['POST'])
+def getPendulumSample():
+    with open('../examples/pendulum.macaron') as f:
+        return f.read()
+
+@app.route('/sample/wreckingball', methods=['POST'])
+def getWreckingBallSample():
+    with open('../examples/wreckingball.macaron') as f:
+        return f.read()
+
 if __name__ == '__main__':
     app.run(debug=True)
     # app.debug = True # デバッグモード有効化

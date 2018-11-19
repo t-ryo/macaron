@@ -7,7 +7,7 @@
     "name":"bridge",
     "x":500,
     "y":430,
-    "lenght":15,
+    "length":15,
     "elementType":"ellipse"
   },
   "stack":{

@@ -55,28 +55,27 @@
 //     }
 // }
 
-const cvswOrg = 1440;
-const cvshOrg = 837;
-var cvswBase = 1440;
-var cvshBase = 837;
-// TODO いらない気がするのでリファクタリング
-var cvsw = 1440; /* canvas幅 */
-var cvsh = 837; /* canvas高さ */
-// var timeCounter = 0; /* macaronシミュレータの実行時間 */
-var timer; // TODO 確認
-var result; /* macaronコードのパース結果の木 */
+const cvswOrg = 1440; /* MacBookAirのSafariのwindowサイズ */
+const cvshOrg = 837;  /* MacBookAirのSafariのwindowサイズ */
+var cvswBase = 1440;  /* 現在のcanvas幅 */
+var cvshBase = 837;   /* 現在のcanvas高さ */
+var cvsw = 1440;      /* リサイズ後のcanvas幅 */
+var cvsh = 837;       /* リサイズ後のcanvas高さ */
+var result;           /* macaronコードのパース結果の木 */
 
-var globalField = {}; 
-var currentField = globalField; /* スコープ管理のため */
-// var svariableCount = 0; // TODO 確認
-var showFlipper = false; /* tree.show() で ctree と clink の判定に使用 */
-/* removeの際、event情報が必要 */
-/* Matterでは不要になる可能性あり */
-// var events = []; 
+// 旧Macaron
+// var globalField = {}; 
+// var currentField = globalField; /* スコープ管理のため */
+// var timeCounter = 0; /* macaronシミュレータの実行時間 */
+// var events = []; /* removeの際、event情報が必要 */
+
+
+/* ctree走査用メソッド */
 
 /* パース結果の木はctree(ノード)をclinkで繋いでいるので、
    現在のctreeから次のctreeを参照するために一手間かかる。
    以下は、ctreeを楽に操作するためのメソッドを挿している。 */
+
 ctree.prototype.getLength = function(){
     return this.child.calcLength();
 }
@@ -119,7 +118,8 @@ ctree.prototype.visit = function(info){
     return eval("eval" + this.tag + "(this,info)");
 }
 
-/* 木を表示 主にデバッグ用 */
+/* 木を表示 デバッグ用 */
+var showFlipper = false; /* ctree と clink の判定 */
 ctree.prototype.show = function(depth){
     var indent = showFlipper ? "=".repeat(depth) : "-".repeat(depth);
     showFlipper = !showFlipper;
@@ -155,7 +155,7 @@ clink.prototype.passLabeledChild = function(label){
 }
 
 
-/* evalTag名()関数はビジターパターンで呼ばれる */
+/* ctreeの走査用ビジターパターン */
 function evalSource(tree,info){
     var length = tree.getLength();
     for(var i = 0;i<length;i++){
@@ -1050,11 +1050,11 @@ function initJSON(tree){
                 objectMap[objectName] = Bodies.trapezoid(newObject.x, newObject.y, newObject.width, newObject.height, newObject.slope, newObject.options);
             }else if(newObject.type == "car" /* 車 */){
                 objectMap[objectName] = Composites.car(newObject.x, newObject.y, newObject.width, newObject.height, newObject.wheelSize);
-            }else if(newObject.type == "stack" /* 格子状に積む */){
+            }else if(newObject.type == "stack" /* 積み重ね */){
                 // fieldに追加するかどうするか engine生成がこの後なので、World.add()のためにとりあえずpushしておく
                 // objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, newObject.columnGap, newObject.rowGap, getCallBack(newObject.elementType));
                 objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
-            }else if(newObject.type == "pyramid" /* ピラミッド形に積む */){
+            }else if(newObject.type == "pyramid" /* 山なりに積む */){
                 // Gapをパラメータで設定したい？
                 // objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, newObject.columnGap, newObject.rowGap, getCallBack(newObject.elementType));
                 objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
@@ -1068,6 +1068,8 @@ function initJSON(tree){
                         visible: false
                     }
                 });
+            }else if(newObject.type == "pendulum" /* 振り子 */){
+                objectMap[objectName] = Composites.newtonsCradle(newObject.x, newObject.y, newObject.columns, newObject.radius, newObject.length);
             }else if(newObject.type == "slingshot" /* カタパルト */){
                 var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize, { 
                     density: 0.004,
@@ -1251,7 +1253,6 @@ function mouseDrag(render, engine, mouseConstraint){
     return mouseConstraint;
 }
 
-// もう少し上手く実装したい
 function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
     // FIXME engineの扱い
     Matter.Events.on(engine, 'afterUpdate', function() {
@@ -1383,65 +1384,18 @@ function resizeBodies(objs, ratew, rateh){
     }
 }
 
+/* 各種イベント */
+
 // FIXME
 var jsonEditor;
 
 $(function () {
     // var initCode = "";
     
-    // $('#json-text').val(initCode);
+    // $('#macaron-text').val(initCode);
     // var jsEditor = makeEditor();
     jsonEditor = makeJSONEditor();
 
-    var timer = false; /* maimloopに使用されていた 要確認 */
-
-    // $('#eval').click(function () {
-    //     console.log("eval");
-    //     // collision A B action
-
-    //     /* 衝突判定? */
-
-    //     jsEditor.toTextArea();
-    //     var inputs = $('#source-text').val().toString();
-    //     jsEditor = makeEditor();
-
-    //     /* サーバーにinputsを投げる */
-    //     $.ajax({
-    //         url: '/rule',
-    //         type: 'POST',
-    //         dataType: 'json',
-    //         data: {
-    //             [$('#source-text').attr('name')]:inputs
-    //         },
-    //         timeout: 5000,
-    //     })
-    //     .done(function(data) {
-    //         /* 返ってきたruleを処理 */
-    //         eval(data.rule);
-    //     })
-    //     .fail(function() {
-    //         console.log('fail');
-    //     });
-    // });
-    /* ファイル読み込み(macaronコード) */
-    // $('#load').click(function() {
-    //     console.log("load")
-    //     $('#loadfile').click();
-    //     $('#loadfile').change(function(){
-    //         var reader = new FileReader();
-    //         reader.onload = function () {
-    //             jsEditor.toTextArea();
-    //             $('#source-text').val(reader.result);
-    //             jsEditor = makeEditor();
-    //         }
-    //         var file = this.files[0];
-    //         // FIXME macaronファイルに対応
-    //         if (!file.type.match(/text/)){
-    //             alert("対応ファイル macaron|txt");
-    //         }
-    //         reader.readAsText(file);
-    //     });
-    // });
     $('#start-plot').click(function () {
         console.log("start");
 
@@ -1485,7 +1439,7 @@ $(function () {
         resetState();
 
         jsonEditor.toTextArea();
-        var inputs = $('#json-text').val().toString();
+        var inputs = $('#macaron-text').val().toString();
         jsonEditor = makeJSONEditor();
 
         /* サーバーにinputsを投げる */
@@ -1494,15 +1448,11 @@ $(function () {
             type: 'POST',
             dataType: 'json',
             data: {
-                [$('#json-text').attr('name')]:inputs
+                [$('#macaron-text').attr('name')]:inputs
             },
             timeout: 5000,
         })
         .done(function(data) {
-            globalField = {};
-            currentField = globalField;
-            // console.log(data);
-
             if(data.error){
                 // FIXME 
                 alert('syntax error');
@@ -1532,7 +1482,11 @@ $(function () {
             url = '/sample/bridge';
         }else if(sampleName == "car"){
             url = '/sample/car';
-        } else{
+        }else if(sampleName == "pendulum"){
+            url = '/sample/pendulum';
+        }else if(sampleName == "wreckingball"){
+            url = '/sample/wreckingball';
+        }else{
             // TODO
         }
 
@@ -1544,7 +1498,7 @@ $(function () {
             })
             .done(function(data) {
                 jsonEditor.toTextArea();
-                $('#json-text').val(data);
+                $('#macaron-text').val(data);
                 jsonEditor = makeJSONEditor();
             })
             .fail(function() {
@@ -1552,12 +1506,11 @@ $(function () {
             });
         }else{
             jsonEditor.toTextArea();
-            $('#json-text').val("");
+            $('#macaron-text').val("");
             jsonEditor = makeJSONEditor();
         }
     })
     /* ファイル読み込み(スタイルシート) */
-    /* 廃止？ */
     // $('#load-json').click(function() {
     //     console.log("load json")
     //     $('#loadfile-json').click();
@@ -1565,7 +1518,7 @@ $(function () {
     //         var reader = new FileReader();
     //         reader.onload = function () {
     //             jsonEditor.toTextArea();
-    //             $('#json-text').val(reader.result);
+    //             $('#macaron-text').val(reader.result);
     //             jsonEditor = makeJSONEditor();
     //         }
     //         var file = this.files[0];
@@ -1579,25 +1532,12 @@ $(function () {
     // });
 });
 
-/* Macaronコード用エディタ */
-// function makeEditor(){
-//     var macaronEditor = CodeMirror.fromTextArea(document.getElementById("source-text"), {
-//         mode: "javascript",
-//         lineNumbers: false,
-//         indentUnit: 4
-//     });
-
-//     macaronEditor.setSize(550, 250);
-
-//     return macaronEditor;
-// }
-
+/* スタイルシート用エディタ */
 var editorW = 550;
 var editorH = 550;
-/* スタイルシート用エディタ */
 function makeJSONEditor(){
-    var jsonEditor = CodeMirror.fromTextArea(document.getElementById("json-text"), {
-        mode: "javascript", // FIXME
+    var jsonEditor = CodeMirror.fromTextArea(document.getElementById("macaron-text"), {
+        mode: "javascript", // FIXME 
         lineNumbers: false,
         indentUnit: 4
         // ,extraKeys: {"Ctrl-Space": "autocomplete"}
@@ -1682,11 +1622,6 @@ function resetState(){
 
 //   }, { completeSingle: false })
 // }
-
-/* 主にデバッグ用 */
-function LOG(arg){
-    console.log(arg);
-}
 
 /* Matter.js(参考) */
 
