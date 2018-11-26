@@ -1586,6 +1586,8 @@ function resetState(){
 
     textContext.clearRect(0, 0, cvsw, cvsh);
 
+    $('#text-canvas').css("background-color", 'black');
+
     objectParamMap = {};
     objectMap = {};
     textMap = {};

@@ -1,5 +1,6 @@
 var stylesheet = `{
   "world":{
+    "background":"white",
     "wireframes":false,
     "mouse":true
   },
@@ -36,7 +37,7 @@ var stylesheet = `{
     "x":1220,
     "y":800,
     "color":"blue",
-    "font":"Ariel",
+    "font":"ＭＳ ゴシック",
     "value":0
   }
 }
