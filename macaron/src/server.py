@@ -23,14 +23,14 @@ def transformStylesheet():
     # TODO トランスパイル
 
     if len(splitText) == 2:
-        with open('static/rule.js', mode='w') as f:
+        with open('static/js/rule.js', mode='w') as f:
             f.write('var stylesheet = `' + splitText[0] + '`\n')
             f.write('function myRule(){' + splitText[1] + '}')
     else:
-        with open('static/rule.js', mode='w') as f:
+        with open('static/js/rule.js', mode='w') as f:
             f.write('var stylesheet = "";\nfunction myRule(){alert(\'syntax error\');}')
         
-    return send_file('static/rule.js')
+    return send_file('static/js/rule.js')
 
 
 @app.route('/sample/slingshot', methods=['POST'])
