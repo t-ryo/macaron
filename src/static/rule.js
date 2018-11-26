@@ -1,4 +1,4 @@
-{
+var stylesheet = `{
   "world":{
     "wireframes":false,
     "mouse":true
@@ -36,11 +36,12 @@
     "x":1220,
     "y":800,
     "color":"blue",
-    "font":"ＭＳ ゴシック",
+    "font":"Ariel",
     "value":0
   }
 }
-----
+`
+function myRule(){
 var ids = [];
 for(var obj of objectMap['target'].bodies){
     ids.push(obj.id);
@@ -55,3 +56,4 @@ Matter.Events.on(engine, 'collisionEnd', function(event) {
         }
     }
 });
+}

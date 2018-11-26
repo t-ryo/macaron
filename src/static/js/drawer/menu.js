@@ -44,6 +44,11 @@
 			contentWrapper = container.querySelector( '.wrapper' );
 
 		showMenu.addEventListener( clickevent, function( ev ) {
+			if(runner && runner.enabled){
+				$('#pause-plot').removeClass("active");
+				$($('#pause-plot').attr("switch-link")).addClass("active");
+				runner.enabled = false;
+			}
 			ev.stopPropagation();
 			ev.preventDefault();
 			docscroll = scrollY();

@@ -67,7 +67,6 @@ var result;           /* macaronコードのパース結果の木 */
 // var globalField = {}; 
 // var currentField = globalField; /* スコープ管理のため */
 // var timeCounter = 0; /* macaronシミュレータの実行時間 */
-// var events = []; /* removeの際、event情報が必要 */
 
 
 /* ctree走査用メソッド */
@@ -1012,7 +1011,10 @@ function initJSON(tree){
                         angle: 0,          /* 角度 */
                         render: {
                             sprite: {
-                                texture: null /* テクスチャ */
+                                texture: null, /* テクスチャ */
+                                // lookAt入れないとダメ？
+                                // xScale:5,
+                                // yScale:5 
                             }
                         },
                     }
@@ -1027,7 +1029,8 @@ function initJSON(tree){
                 if(key == "name"){
                     objectName = value;
                 }else if(key == "image"){
-                    // FIXME 拡張子, 場所指定
+                    // FIXME 拡張子
+                    // httpでもとれるように
                     newObject.options.render.sprite.texture = './static/image/' + value;
                 }else if(optionName.indexOf(key) > -1){
                     newObject.options[key] = value;
@@ -1071,6 +1074,16 @@ function initJSON(tree){
                 });
             }else if(newObject.type == "pendulum" /* 振り子 */){
                 objectMap[objectName] = Composites.newtonsCradle(newObject.x, newObject.y, newObject.columns, newObject.radius, newObject.length);
+            }else if(newObject.type == "cloth" /* 布 */){
+                var group = Body.nextGroup(true);
+                objectMap[objectName] = Composites.softBody(newObject.x, newObject.y, newObject.width, newObject.height, 5, 5, false, 8, { 
+                    friction: 0.00001, 
+                    collisionFilter: { group: group }
+                    , render: { visible: false }
+                    }, { 
+                        stiffness: 0.06 
+                    }
+                );
             }else if(newObject.type == "slingshot" /* カタパルト */){
                 var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize, { 
                     density: 0.004,
@@ -1132,10 +1145,6 @@ function initJSON(tree){
 
     /* worldに追加 */
     World.add(engine.world, Object.values(objectMap));
-    writeAllText();
-
-    /* リサイズ */
-    resizeWorldObjects(cvswBase/cvswOrg, cvshBase/cvshOrg);
     
     /* レンダリング設定 */
     render = Render.create({
@@ -1143,6 +1152,15 @@ function initJSON(tree){
         engine: engine,
         options: renderOption
     });
+
+    /* リサイズ */
+    writeAllText();
+    resizeWorldObjects(cvswBase/cvswOrg, cvshBase/cvshOrg);
+
+    // Render.lookAt(render, {
+    //     min: { x: 0, y: 0 },
+    //     max: { x: cvsw, y: cvsh }
+    // });
 
     /* マウスドラッグ */
     if(enableMouse){
@@ -1389,11 +1407,11 @@ function resizeBodies(objs, ratew, rateh){
 
 // FIXME
 var jsonEditor;
+var initCode = "";
 
 $(function () {
-    // var initCode = "";
     
-    // $('#macaron-text').val(initCode);
+    $('#macaron-text').val(initCode);
     // var jsEditor = makeEditor();
     jsonEditor = makeJSONEditor();
 
@@ -1437,6 +1455,16 @@ $(function () {
     $('#apply').click(function (){
         console.log("apply")
 
+        // $.ajax({
+        //     url: '/write',
+        //     type: 'POST',
+        //     timeout: 5000
+        // }).done(function(data) {
+        //     console.log(data);
+        //     myRule();
+        //     // document.write(response); 
+        // })
+
         resetState();
 
         jsonEditor.toTextArea();
@@ -1447,26 +1475,23 @@ $(function () {
         $.ajax({
             url: '/stylesheet',
             type: 'POST',
-            dataType: 'json',
+            // dataType: 'json',
             data: {
                 [$('#macaron-text').attr('name')]:inputs
             },
             timeout: 5000,
         })
         .done(function(data) {
-            if(data.error){
-                // FIXME 
-                alert('syntax error');
-            }else{
-                /* スタイルシートの処理 */
-                var inputsJSON = (new TextEncoder).encode(data.json);
-                var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
-                initJSON(jsonResult);
+            
+            /* スタイルシートの処理 */
+            var inputsJSON = (new TextEncoder).encode(stylesheet);
+            var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
+            initJSON(jsonResult);
 
-                /* ルールの処理 */
-                /* 衝突判定? */
-                eval(data.rule);
-            }
+            /* ルールの処理 */
+            /* 衝突判定? */
+            myRule();
+            // eval(data.rule);
         })
         .fail(function() {
             console.log('fail')
@@ -1555,10 +1580,7 @@ function resizeEditorSize(){
     jsonEditor.setSize(editorW, editorH);
 }
 
-// FIXME
-// スタイルシートを読み込めるようにする？
 function resetState(){
-    // events = [];
     // timeCounter = 0;
     // $("#time-counter").text(timeCounter);
 

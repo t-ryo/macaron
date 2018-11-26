@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, Response, send_file
+from flask import Flask, request, redirect, url_for, Response, send_file, render_template
 import json
 import re
+import os
 
 app = Flask(__name__)
 
@@ -16,16 +17,21 @@ def home():
 
 @app.route('/stylesheet', methods=['POST'])
 def transformStylesheet():
-    inputText =  request.form['stylesheet-value']
-    # TODO トランスパイル
-    # json形式の文字列に変換して返すので、json形式にする必要はないはず
-    # jsonVal = json.loads(stylesheetValue)
+    inputText = request.form['stylesheet-value']
     splitText = re.split(r'---+', inputText)
+
+    # TODO トランスパイル
+
     if len(splitText) == 2:
-        return json.dumps({'json':splitText[0], 'rule':splitText[1]})
+        with open('static/rule.js', mode='w') as f:
+            f.write('var stylesheet = `' + splitText[0] + '`\n')
+            f.write('function myRule(){' + splitText[1] + '}')
     else:
-        # 'json'として返す？
-        return json.dumps({'error':inputText})
+        with open('static/rule.js', mode='w') as f:
+            f.write('var stylesheet = "";\nfunction myRule(){alert(\'syntax error\');}')
+        
+    return send_file('static/rule.js')
+
 
 @app.route('/sample/slingshot', methods=['POST'])
 def getSlingShotSample():
