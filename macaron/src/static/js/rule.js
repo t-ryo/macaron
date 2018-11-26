@@ -1,0 +1,2 @@
+var stylesheet = "";
+function myRule(){}

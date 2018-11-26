@@ -1,0 +1,63 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true
+  },
+  "rectangle":{
+    "name":"leftWall",
+    "x":10,
+    "y":420,
+    "width":20,
+    "height":840,
+    "isStatic":true
+  },
+  "leftWall":{
+    "name":"rightWall",
+    "x":1430
+  },
+  "rectangle":{
+    "name":"ceiling",
+    "x":720,
+    "y":10,
+    "width":1400,
+    "height":20,
+    "isStatic":true
+  },
+  "ceiling":{
+    "name":"floor0",
+    "y":830
+  },
+  "car":{
+    "name":"car0",
+    "x":150,
+    "y":100,
+    "width":150,
+    "height":30,
+    "wheelSize":30
+  },
+  "car0":{
+    "name":"car1",
+    "x":1200,
+    "y":350
+  },
+  "rectangle":{
+    "name":"floor1",
+    "x":400,
+    "y":200,
+    "width":1000,
+    "height":50,
+    "isStatic":true,
+    "angle": 0.13
+  },
+  "floor1":{
+    "name":"floor2",
+    "x":950,
+    "y":450,
+    "angle": -0.13
+  },
+  "floor1":{
+    "name":"floor3",
+    "y":700
+  }
+}
+---
