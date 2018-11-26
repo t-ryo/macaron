@@ -1,2 +1,0 @@
-var stylesheet = "";
-function myRule(){}
