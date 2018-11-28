@@ -42,25 +42,12 @@
 //     Pictogram: "Pictogram"
 // };
 
-/* 廃止するかは未定 新しい仕様次第 */
-/* macaron言語の関数はパターンマッチで記述される。
-   その際同じ名前の関数が複数記述される。
-   2回目以降はすでに定義されている関数を更新する必要がある。
-   よって、更新に必要な情報を保持しておく */
-// class MFunc{
-//     constructor(func, params, body) {
-//         this.func = func; /* 関数全体 eval()で評価するためString */
-//         this.params = params; /* 関数の引数 */
-//         this.body = body; /* 関数の中身 funcを更新する際に使用 */
-//     }
-// }
-
 const cvswOrg = 1440; /* MacBookAirのSafariのwindowサイズ */
 const cvshOrg = 837;  /* MacBookAirのSafariのwindowサイズ */
-var cvswBase = 1440;  /* 現在のcanvas幅 */
-var cvshBase = 837;   /* 現在のcanvas高さ */
 var cvsw = 1440;      /* リサイズ後のcanvas幅 */
 var cvsh = 837;       /* リサイズ後のcanvas高さ */
+var ratew = cvsw/cvswOrg;
+var rateh = cvsh/cvshOrg;
 var result;           /* macaronコードのパース結果の木 */
 
 // 旧Macaron
@@ -858,16 +845,6 @@ function evalNull(tree,info){
 //     return false;
 // }
 
-// /* Mfuncをeval()で評価するための関数 */
-// function callFunc(funcName){
-//     if(funcName in currentField){
-//         return eval(currentField[funcName].func);
-//     }else if(funcName in globalField){
-//         return eval(globalField[funcName].func);
-//     }
-//     return eval(funcName);
-// }
-
 /* matter.js */
 var Engine = Matter.Engine,
 	World = Matter.World,
@@ -906,8 +883,8 @@ var textContext = textCanvas.getContext('2d');
 
 var indexRegExp = new RegExp('\[[0-9]*\]', 'g');
 
+const fontSize = 40;
 // FIXME
-var fontSize = 40;
 var rockSize = 20;
 
 // ctreeで書いてるけど、jsのjsonに寄せる？
@@ -1155,12 +1132,11 @@ function initJSON(tree){
 
     /* リサイズ */
     writeAllText();
-    resizeWorldObjects(cvswBase/cvswOrg, cvshBase/cvshOrg);
-
-    // Render.lookAt(render, {
-    //     min: { x: 0, y: 0 },
-    //     max: { x: cvsw, y: cvsh }
-    // });
+    
+    Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: cvswOrg, y: cvshOrg }
+    });
 
     /* マウスドラッグ */
     if(enableMouse){
@@ -1293,14 +1269,10 @@ function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
 function writeAllText(){
     textContext.clearRect(0, 0, cvsw, cvsh);
 
-    fontSize = fontSize * cvsw/cvswBase;
-
     for(var textParam of Object.values(textMap)){
         textContext.fillStyle = textParam.color;
-        textContext.font = fontSize + "px " + textParam.font;
-        textParam.x = textParam.x * cvsw/cvswBase;
-        textParam.y = textParam.y * cvsh/cvshBase;
-        textContext.fillText(textParam.value, textParam.x, textParam.y);
+        textContext.font = fontSize * ratew + "px " + textParam.font;
+        textContext.fillText(textParam.value, textParam.x * ratew, textParam.y * rateh);
     }
 }
 
@@ -1343,8 +1315,9 @@ function collision(targetA, targetB, action){
 // }
 
 $(window).on('load', function(){
-    cvswBase = $( window ).width();
-    cvshBase = $( window ).height();
+    // FIXME はじめのwindowサイズ
+    // 大丈夫そう
+    
     resizeWindow();
 });
 
@@ -1359,48 +1332,54 @@ function resizeWindow(){
     cvsh = $( window ).height();
 
     resizeEditorSize();
+    resizeCanvasSize();
+
+    ratew = cvsw / cvswOrg;
+    rateh = cvsh / cvshOrg;
+
     /* canvasサイズ更新 */
     $('#matter-canvas').get(0).width = cvsw;
     $('#matter-canvas').get(0).height = cvsh;
     $('#text-canvas').get(0).width = cvsw;
     $('#text-canvas').get(0).height = cvsh;
+
+    centeringCanvas();
+
     /* objectサイズ更新 */
     writeAllText();
-    resizeWorldObjects(cvsw/cvswBase, cvsh/cvshBase);
-    /* 定数？ */
-    rockSize = rockSize * cvsw/cvswBase;
-    /* 変更前のwindowサイズを更新 */
-    cvswBase = cvsw;
-    cvshBase = cvsh;
+    if(render){
+        render.options.width = cvsw;
+        render.options.height = cvsh;
+    }
+
+    /* イベント内の関数が遅延評価になればいらない */ 
+    rockSize = rockSize * ratew;
 }
 
-function resizeWorldObjects(ratew, rateh){
-    if(engine){
-        /* body */
-        resizeBodies(engine.world.bodies, ratew, rateh);
-        /* composite */
-        for(var compositesObj of engine.world.composites){
-            childs = Composite.allBodies(compositesObj);
-            resizeBodies(childs, ratew, rateh);
-        }
-        /* constraint */
-        for(var constraint of engine.world.constraints){
-            constraint.pointA = {
-                x:constraint.pointA.x * ratew,
-                y:constraint.pointA.y * rateh
-            };
-        }
+/* canvasを 16:9 に合わせる */
+function resizeCanvasSize(){
+    var wBase = cvsw / 16.0;
+    var hBase = cvsh / 9.0;
+    if(wBase > hBase){
+      cvsw = hBase * 16;
+    }else{
+      cvsh = wBase * 9;
     }
 }
 
-function resizeBodies(objs, ratew, rateh){
-    for(var obj of objs){
-        Body.scale(obj, ratew, rateh);
-        Body.setPosition(obj, {
-            x : obj.position.x * ratew,
-            y : obj.position.y * rateh
-        });
-    }
+function centeringCanvas(){
+    var top = ($( window ).height() - cvsh)/2;
+    var left = ($( window ).width() - cvsw)/2;
+    $("#matter-canvas").css({
+        "position": "absolute",
+        "top": top,
+        "left": left
+    });
+    $("#text-canvas").css({
+        "position": "absolute",
+        "top": top,
+        "left": left
+    });
 }
 
 /* 各種イベント */
@@ -1559,8 +1538,8 @@ $(function () {
 });
 
 /* スタイルシート用エディタ */
-var editorW = 550;
-var editorH = 550;
+const editorW = 550;
+const editorH = 550;
 function makeJSONEditor(){
     var jsonEditor = CodeMirror.fromTextArea(document.getElementById("macaron-text"), {
         mode: "javascript", // FIXME 
@@ -1575,9 +1554,10 @@ function makeJSONEditor(){
 }
 
 function resizeEditorSize(){
-    editorW = editorW * cvsw/cvswBase;
-    editorH = editorH * cvsh/cvshBase;
-    jsonEditor.setSize(editorW, editorH);
+    // FIXME windowサイズ基準で
+    // editorW = editorW * cvsw/cvswBase;
+    // editorH = editorH * cvsh/cvshBase;
+    jsonEditor.setSize(cvsw/3, cvsh*11/16);
 }
 
 function resetState(){
