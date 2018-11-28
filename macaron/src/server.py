@@ -76,7 +76,7 @@ def main():
 
         if platform.system() == 'Darwin':
             try:
-                #subprocess.check_call(['open'])
+                subprocess.check_call(['open', 'http://localhost:5000'])
                 pass
             except:
                 pass
