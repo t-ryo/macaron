@@ -978,6 +978,11 @@ function initJSON(tree){
                     value: null,
                     /* constraint */
                     targetObject: null,
+                    /* 速度 */
+                    velocity: {
+                        x:0,
+                        y:0
+                    },
                     options: {
                         isStatic: false,   /* 静的オブジェクトかどうか */
                         density: 0.001,    /* 密度 */
@@ -1104,6 +1109,10 @@ function initJSON(tree){
                 }
             }
 
+            // if(newObject.velocity != {x:0,y:0}){
+            //     Body.setVelocity(objectMap[objectName], newObject.velocity);
+            // }
+
         }
     }
 
@@ -1156,8 +1165,6 @@ function initJSON(tree){
     Render.run(render);
 
     runner.enabled = false;
-
-    console.log(objectMap.floor0)
 
     /* メモ */
     /* timeScaleはengine自体は止まらないのでupdateは止まらない */
@@ -1465,11 +1472,32 @@ $(function () {
             /* スタイルシートの処理 */
             var inputsJSON = (new TextEncoder).encode(stylesheet);
             var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
-            initJSON(jsonResult);
+            if(jsonResult.tag == "[error]"){
+                alert("Syntax Error")
 
-            /* ルールの処理 */
-            /* 衝突判定? */
-            myRule();
+                var errorStr = stylesheet.substr(jsonResult.pos, jsonResult.epos);
+                console.log(errorStr);
+                var errorLine = errorStr.split("\n").length - 1 - 1;
+                console.log(errorLine)
+                var errorNum = errorStr.split("\n")[errorLine].length - 1;
+                console.log(errorNum)
+
+                jsonEditor.markText({ 
+                    line: errorLine,
+                    ch: errorNum
+                }, { 
+                    line: errorLine,                 
+                    ch: errorNum + 1
+                }, { 
+                    css: "background-color : red"
+                });
+
+            }else{
+                initJSON(jsonResult);
+                /* ルールの処理 */
+                /* 衝突判定? */
+                myRule();
+            }
             // eval(data.rule);
         })
         .fail(function() {
