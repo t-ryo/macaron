@@ -885,7 +885,7 @@ var indexRegExp = new RegExp('\[[0-9]*\]', 'g');
 
 const fontSize = 40;
 // FIXME
-var rockSize = 20;
+const rockSize = 20;
 
 // ctreeで書いてるけど、jsのjsonに寄せる？
 // jsonにすると重複禁止なので保留
@@ -1062,7 +1062,7 @@ function initJSON(tree){
                     }
                 );
             }else if(newObject.type == "slingshot" /* カタパルト */){
-                var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize, { 
+                var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize * ratew, { 
                     density: 0.004,
                     render: {
                         sprite: {
@@ -1156,6 +1156,8 @@ function initJSON(tree){
     Render.run(render);
 
     runner.enabled = false;
+
+    console.log(objectMap.floor0)
 
     /* メモ */
     /* timeScaleはengine自体は止まらないのでupdateは止まらない */
@@ -1252,7 +1254,7 @@ function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
     // FIXME engineの扱い
     Matter.Events.on(engine, 'afterUpdate', function() {
         if (mouseConstraint.mouse.button === -1 && (Math.abs(objectMap['_rock'].velocity.x) > 20 || Math.abs(objectMap['_rock'].velocity.y) > 20)) {
-            objectMap['_rock'] = Bodies.polygon(objectMap[slingshotName].pointA.x, objectMap[slingshotName].pointA.y, 7, rockSize, { 
+            objectMap['_rock'] = Bodies.polygon(objectMap[slingshotName].pointA.x, objectMap[slingshotName].pointA.y, 7, rockSize * ratew, { 
                 density: 0.004,
                 render: {
                     sprite: {
@@ -1317,7 +1319,7 @@ function collision(targetA, targetB, action){
 $(window).on('load', function(){
     // FIXME はじめのwindowサイズ
     // 大丈夫そう
-    
+
     resizeWindow();
 });
 
@@ -1352,8 +1354,6 @@ function resizeWindow(){
         render.options.height = cvsh;
     }
 
-    /* イベント内の関数が遅延評価になればいらない */ 
-    rockSize = rockSize * ratew;
 }
 
 /* canvasを 16:9 に合わせる */
@@ -1392,7 +1392,7 @@ $(function () {
     
     $('#macaron-text').val(initCode);
     // var jsEditor = makeEditor();
-    jsonEditor = makeJSONEditor();
+    jsonEditor = makeJsonEditor();
 
     $('#start-plot').click(function () {
         console.log("start");
@@ -1448,7 +1448,7 @@ $(function () {
 
         jsonEditor.toTextArea();
         var inputs = $('#macaron-text').val().toString();
-        jsonEditor = makeJSONEditor();
+        jsonEditor = makeJsonEditor();
 
         /* サーバーにinputsを投げる */
         $.ajax({
@@ -1504,7 +1504,7 @@ $(function () {
             .done(function(data) {
                 jsonEditor.toTextArea();
                 $('#macaron-text').val(data);
-                jsonEditor = makeJSONEditor();
+                jsonEditor = makeJsonEditor();
             })
             .fail(function() {
                 console.log('fail')
@@ -1512,7 +1512,7 @@ $(function () {
         }else{
             jsonEditor.toTextArea();
             $('#macaron-text').val("");
-            jsonEditor = makeJSONEditor();
+            jsonEditor = makeJsonEditor();
         }
     })
     /* ファイル読み込み(スタイルシート) */
@@ -1538,9 +1538,7 @@ $(function () {
 });
 
 /* スタイルシート用エディタ */
-const editorW = 550;
-const editorH = 550;
-function makeJSONEditor(){
+function makeJsonEditor(){
     var jsonEditor = CodeMirror.fromTextArea(document.getElementById("macaron-text"), {
         mode: "javascript", // FIXME 
         lineNumbers: false,
@@ -1548,15 +1546,12 @@ function makeJSONEditor(){
         // ,extraKeys: {"Ctrl-Space": "autocomplete"}
     });
 
-    jsonEditor.setSize(editorW, editorH);
+    jsonEditor.setSize(cvsw/3, cvsh*11/16);
     // jsonEditor.on('change', imageComplete);
     return jsonEditor;
 }
 
 function resizeEditorSize(){
-    // FIXME windowサイズ基準で
-    // editorW = editorW * cvsw/cvswBase;
-    // editorH = editorH * cvsh/cvshBase;
     jsonEditor.setSize(cvsw/3, cvsh*11/16);
 }
 

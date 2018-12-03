@@ -14,8 +14,6 @@ app = Flask(__name__)
 def home():
     return send_file(str(file_search('index.html', 'src/templates')))
 
-
-
 @app.route('/stylesheet', methods=['POST'])
 def transformStylesheet():
     inputText = request.form['stylesheet-value']
@@ -70,7 +68,6 @@ def main():
         except:
             pass
     else:
-        app.run(debug=True)
         # app.debug = True # デバッグモード有効化
         # app.run(host='0.0.0.0') # どこからでもアクセス可能に
 
@@ -80,6 +77,13 @@ def main():
                 pass
             except:
                 pass
+        elif platform.system() == 'Windows':
+            try:
+                subprocess.check_call(['start', 'http://localhost:5000'])
+                pass
+            except:
+                pass
+        app.run(debug=True)
 
 if __name__ == '__main__':
     main()
