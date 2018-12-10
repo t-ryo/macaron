@@ -1,6 +1,7 @@
 from flask import Flask, request, redirect, url_for, Response, send_file, render_template
 import json, re, os, platform, subprocess, sys
 from pathlib import Path
+# from datetime import datetime
 
 app = Flask(__name__)
 
@@ -12,14 +13,14 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
+    # now = datetime.now()
+    # return send_file(str(file_search('index.html', 'src/templates')) + '?date={0:%Y%m%d%H%M%S}'.format(now))
     return send_file(str(file_search('index.html', 'src/templates')))
 
 @app.route('/stylesheet', methods=['POST'])
 def transformStylesheet():
     inputText = request.form['stylesheet-value']
     splitText = re.split(r'---+', inputText)
-
-    # TODO トランスパイル
 
     if len(splitText) == 2:
         with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
@@ -28,6 +29,16 @@ def transformStylesheet():
     else:
         with file_search('rule.js', 'src/static/js').open(mode='w') as f:
             f.write('var stylesheet = "";\nfunction myRule(){alert(\'syntax error\');}')
+
+    return send_file(str(file_search('rule.js', 'src/static/js')))
+
+@app.route('/jp', methods=['POST'])
+def transformJp():
+    inputText = request.form['stylesheet-value']
+    with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
+        f.write('var stylesheet = `' + '\{\}' + '`\n')
+        # トランスパイル
+        f.write('function myRule(){' + 'hoge' + '}')
 
     return send_file(str(file_search('rule.js', 'src/static/js')))
 

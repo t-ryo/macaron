@@ -938,10 +938,14 @@ function initJSON(tree){
                     // else{
                     // TODO removeイベント
                     // }
+                }else if(key == "Wall"){
+                    objectMap['_wall0'] = Bodies.rectangle(0, 420, 20, 840, { isStatic: true });
+                    objectMap['_wall1'] = Bodies.rectangle(1440, 420, 20, 840, { isStatic: true });
+                    objectMap['_wall2'] = Bodies.rectangle(720, 10, 1420, 20, { isStatic: true });
+                    objectMap['_wall3'] = Bodies.rectangle(720, 830, 1420, 20, { isStatic: true });
+                }else{
+                    return key;
                 }
-                // else if(){
-                // TODO その他
-                // }
             }
         }else{
             var objectName = null;
@@ -973,16 +977,14 @@ function initJSON(tree){
                     /* chain */
                     length:0,              /* 長さ */
                     /* text */
-                    color: "white",
+                    textColor: "white",
                     font:'ＭＳ ゴシック',
                     value: null,
                     /* constraint */
                     targetObject: null,
                     /* 速度 */
-                    velocity: {
-                        x:0,
-                        y:0
-                    },
+                    velocityX: 0,
+                    velocityY: 0,
                     options: {
                         isStatic: false,   /* 静的オブジェクトかどうか */
                         density: 0.001,    /* 密度 */
@@ -1016,8 +1018,15 @@ function initJSON(tree){
                     newObject.options.render.sprite.texture = './static/image/' + value;
                 }else if(optionName.indexOf(key) > -1){
                     newObject.options[key] = value;
+                }else if(key == "color"){
+                    newObject.options.render.fillStyle = value;
                 }else{
-                    newObject[key] = value;
+                    if(key in newObject){
+                        newObject[key] = value;
+                    }else{
+                        /* keyがnewObjectにない場合はエラー */
+                        return key;
+                    }
                 }
             }
 
@@ -1109,9 +1118,21 @@ function initJSON(tree){
                 }
             }
 
-            // if(newObject.velocity != {x:0,y:0}){
-            //     Body.setVelocity(objectMap[objectName], newObject.velocity);
-            // }
+            if(!(newObject.velocityX == 0 && newObject.velocityY == 0)){
+                if(objectMap[objectName].bodies){
+                    for(var obj of objectMap[objectName].bodies){
+                        Body.setVelocity(obj, {
+                            x:newObject.velocityX,
+                            y:newObject.velocityY
+                        });
+                    }
+                }else{
+                    Body.setVelocity(objectMap[objectName], {
+                        x:newObject.velocityX,
+                        y:newObject.velocityY
+                    });
+                }              
+            }
 
         }
     }
@@ -1149,7 +1170,7 @@ function initJSON(tree){
 
     /* マウスドラッグ */
     if(enableMouse){
-        mouseConstraint = mouseDrag(render, engine, mouseConstraint);
+        mouseConstraint = mouseDrag(render, engine);
     }
 
     /* slingshot */
@@ -1172,6 +1193,8 @@ function initJSON(tree){
     /* sleepingは更新をしなくなる。
        (描画精度は落ちるが、安定性とパフォーマンス向上)
        アクティブなオブジェクトに接触すると再び起きる。 */
+
+    return false;
 }
 
 /* 端末の向きに応じた重力を設定 */
@@ -1237,7 +1260,7 @@ function getGroupedCallBack(type, group){
     }
 }
 
-function mouseDrag(render, engine, mouseConstraint){
+function mouseDrag(render, engine){
     // FIXME engineの扱い
     var mouse = Mouse.create(render.canvas);
     var mouseConstraint = MouseConstraint.create(engine, {
@@ -1279,7 +1302,7 @@ function writeAllText(){
     textContext.clearRect(0, 0, cvsw, cvsh);
 
     for(var textParam of Object.values(textMap)){
-        textContext.fillStyle = textParam.color;
+        textContext.fillStyle = textParam.textColor;
         textContext.font = fontSize * ratew + "px " + textParam.font;
         textContext.fillText(textParam.value, textParam.x * ratew, textParam.y * rateh);
     }
@@ -1324,9 +1347,7 @@ function collision(targetA, targetB, action){
 // }
 
 $(window).on('load', function(){
-    // FIXME はじめのwindowサイズ
-    // 大丈夫そう
-
+    // はじめにwindowサイズ取得する？
     resizeWindow();
 });
 
@@ -1430,79 +1451,19 @@ $(function () {
     //         runner.enabled = false;
     //     }, 1);
     // });
-    // $('#reset').click(function () {
-    //     console.log("reset");
-    //     resetState();
-    //     // engineとrunnerを消去
-    //     // スタイルシート読み込み
-    //     // macaronコード処理
-    // });
-    // TODO 画面を戻した時、発火するように変更
-    $('#apply').click(function (){
-        console.log("apply")
-
-        // $.ajax({
-        //     url: '/write',
-        //     type: 'POST',
-        //     timeout: 5000
-        // }).done(function(data) {
-        //     console.log(data);
-        //     myRule();
-        //     // document.write(response); 
-        // })
+    $('#reset').click(function () {
+        console.log("reset");
 
         resetState();
 
-        jsonEditor.toTextArea();
-        var inputs = $('#macaron-text').val().toString();
-        jsonEditor = makeJsonEditor();
+        compile();
+    });
+    $('#apply').click(function (){
+        console.log("apply")
 
-        /* サーバーにinputsを投げる */
-        $.ajax({
-            url: '/stylesheet',
-            type: 'POST',
-            // dataType: 'json',
-            data: {
-                [$('#macaron-text').attr('name')]:inputs
-            },
-            timeout: 5000,
-        })
-        .done(function(data) {
-            
-            /* スタイルシートの処理 */
-            var inputsJSON = (new TextEncoder).encode(stylesheet);
-            var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
-            if(jsonResult.tag == "[error]"){
-                alert("Syntax Error")
+        resetState();
 
-                var errorStr = stylesheet.substr(jsonResult.pos, jsonResult.epos);
-                console.log(errorStr);
-                var errorLine = errorStr.split("\n").length - 1 - 1;
-                console.log(errorLine)
-                var errorNum = errorStr.split("\n")[errorLine].length - 1;
-                console.log(errorNum)
-
-                jsonEditor.markText({ 
-                    line: errorLine,
-                    ch: errorNum
-                }, { 
-                    line: errorLine,                 
-                    ch: errorNum + 1
-                }, { 
-                    css: "background-color : red"
-                });
-
-            }else{
-                initJSON(jsonResult);
-                /* ルールの処理 */
-                /* 衝突判定? */
-                myRule();
-            }
-            // eval(data.rule);
-        })
-        .fail(function() {
-            console.log('fail')
-        });
+        compile();
     });
     /* デモ用 */
     $('[name="samples"]').change(function() {
@@ -1542,7 +1503,31 @@ $(function () {
             $('#macaron-text').val("");
             jsonEditor = makeJsonEditor();
         }
-    })
+    });
+    $('#jp').click(function (){
+
+        resetState();
+
+        jsonEditor.toTextArea();
+        var inputs = $('#macaron-text').val().toString();
+        jsonEditor = makeJsonEditor();
+
+        /* サーバーにinputsを投げる */
+        $.ajax({
+            url: '/jp',
+            type: 'POST',
+            data: {
+                [$('#macaron-text').attr('name')]:inputs
+            },
+            timeout: 5000,
+        })
+        .done(function(data) {
+            myRule();
+        })
+        .fail(function() {
+            console.log('fail');
+        });
+    });
     /* ファイル読み込み(スタイルシート) */
     // $('#load-json').click(function() {
     //     console.log("load json")
@@ -1564,6 +1549,60 @@ $(function () {
     //     });
     // });
 });
+
+function compile(){
+    jsonEditor.toTextArea();
+    var inputs = $('#macaron-text').val().toString();
+    jsonEditor = makeJsonEditor();
+
+    /* サーバーにinputsを投げる */
+    $.ajax({
+        url: '/stylesheet',
+        type: 'POST',
+        // dataType: 'json',
+        data: {
+            [$('#macaron-text').attr('name')]:inputs
+        },
+        timeout: 5000,
+    })
+    .done(function(data) {
+        
+        /* スタイルシートの処理 */
+        var inputsJSON = (new TextEncoder).encode(stylesheet);
+        var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
+        if(jsonResult.tag == "[error]"){
+            alert("Syntax Error");
+
+            var errorStr = stylesheet.substr(jsonResult.pos, jsonResult.epos);
+            var errorLine = errorStr.split("\n").length - 1;
+            var errorCh = errorStr.split("\n")[errorLine].length - 1;
+
+            displayError(errorLine, errorCh, errorLine, errorCh + 1);
+
+        }else{
+            var errorKey = initJSON(jsonResult);
+
+            if(errorKey){
+                alert("Can't find parameter: " + errorKey);
+
+                var errorPos = stylesheet.indexOf(errorKey);
+                var errorStr = stylesheet.substr(0, errorPos + errorKey.length);
+                var errorLine = errorStr.split("\n").length - 1;
+                var errorCh = errorStr.split("\n")[errorLine].indexOf(errorKey);
+
+                displayError(errorLine, errorCh, errorLine, errorCh + errorKey.length);
+
+            }else{
+                /* ルールの処理 */
+                /* 衝突判定? */
+                myRule();
+            }
+        }
+    })
+    .fail(function() {
+        console.log('fail')
+    });
+}
 
 /* スタイルシート用エディタ */
 function makeJsonEditor(){
@@ -1613,6 +1652,70 @@ function resetState(){
     }
 }
 
+/* マウス位置表示 */
+function simple_tooltip(target_items, name){
+    $(target_items).each(function(i){
+        $("#wrapper").append("<div class='"+name+"' id='"+name+i+"'><p></p></div>");  
+        var my_tooltip = $("#"+name+i);
+        var tooltipDoc =  document.getElementById(name+i);
+             
+        if($(this).attr("title") != "" && $(this).attr("title") != "undefined" ){      
+            $(this).removeAttr("title").mouseover(function(){  
+                my_tooltip.css({opacity:0.8, display:"none"}).fadeIn(400);  
+            }).mousemove(function(kmouse){
+                var border_top = $(window).scrollTop();   
+                var border_right = $(window).width();  
+                var left_pos;  
+                var top_pos;  
+                var offset = 5;  // 場所
+
+                if(border_right - (offset *2) >= my_tooltip.width() + kmouse.pageX){  
+                    left_pos = kmouse.pageX+offset;  
+                } else{  
+                    left_pos = border_right-my_tooltip.width()-offset;  
+                }  
+                            
+                if(border_top + (offset *2)>= kmouse.pageY - my_tooltip.height()){  
+                    top_pos = border_top +offset;  
+                } else{  
+                    top_pos = kmouse.pageY-my_tooltip.height()-offset;  
+                }     
+                
+                my_tooltip.css({left:left_pos, top:top_pos});
+
+                tooltipDoc.innerHTML = '<p>'+ getMousePosition(matterCanvas, kmouse) +'</p>'
+
+            }).mouseout(function(){  
+                my_tooltip.css({left:"-9999px"});                   
+            });         
+        } 
+    });  
+}  
+
+$(document).ready(function(){  
+    simple_tooltip("#matter-canvas","tooltip");  
+});
+
+function getMousePosition(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    // return {
+    //   x: evt.clientX - rect.left,
+    //   y: evt.clientY - rect.top
+    // };
+    return "(" + (evt.clientX - rect.left) + "," + (evt.clientY - rect.top) + ")"
+}
+
+function displayError(startline, startch, endline, endch){
+    jsonEditor.markText({ 
+        line: startline,
+        ch: startch
+    }, { 
+        line: endline,                 
+        ch: endch
+    }, { 
+        css: "background-color : red"
+    });
+}
 /* 補完機能(参考) */
 // let imageList = ['arrow', 'circle', 'fish', 'rocket', 'sakura', 'star', 'triangle']
 

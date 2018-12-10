@@ -30,7 +30,7 @@
 <div id="perspective" class="perspective effect-moveleft">
 	
 	<div class="container">
-		<div class="wrapper"><!-- wrapper needed for scroll -->
+		<div class="wrapper" id="wrapper"><!-- wrapper needed for scroll -->
 			<!-- <div class="main clearfix">
 
 			</div> -->
@@ -47,6 +47,9 @@
 				<div id="pause-plot" class="btn btn-stop-plot" switch-link="#start-plot">
 					<span class="fa fa-pause"></span>
 				</div>
+				<div id="reset" class="btn btn-reset">
+					<span class="fa fa-fast-backward"></span>
+				</div>
 
 				<!-- <div id="control-panel">
 					<div id="increment-frame" class="btn btn-increment-frame">
@@ -55,10 +58,7 @@
 						<span> </span>
 						コマ送り
 					</div>
-					<div id="reset" class="btn btn-reset">
-						<span class="fa fa-fast-backward"></span>
-						リセット
-					</div>
+					
 					<h2 class="time-counter">
 						time counter : <span id="time-counter">0</span>
 					</h2>
@@ -66,7 +66,7 @@
 				
 				<!-- <div class="clear"></div> -->
 
-				<div class="column">
+				<div class="btn">
 					<p>
 						<button id="showMenu">
 								<div id="humberger">
@@ -78,6 +78,7 @@
 					</p>
 				</div>
 			</main><!-- /main -->
+
 		</div><!-- wrapper -->
 	</div><!-- /container -->
 
@@ -90,7 +91,7 @@
 				<form name="fm">
 					<textarea id="macaron-text" class="macaron-form" name="stylesheet-value"></textarea>	
 					<input type="button" id="apply-macaron" name="submit" value="送信" style="display:none;"/>
-					<div id="apply" class="btn btn-apply">apply</div>
+					<div id="apply" class="btn btn-apply">compile</div>
 
 					  サンプル
 					<div class="sample-select" style="display: inline-block; _display: inline;">
@@ -103,6 +104,9 @@
 							<option value="wreckingball">Wrecking Ball</option>
 						</select>
 					</div>
+
+				<input type="button" id="apply-jp" name="submit" value="送信" style="display:none;"/>
+				<div id="jp" class="btn btn-apply">日本語</div>
 				</form>
 			</div>
 		</div>
@@ -124,5 +128,6 @@
 <!-- drawer button -->
 <script src="../static/js/drawer/classie.js"></script>
 <script src="../static/js/drawer/menu.js"></script>
+
 </body>
 </html>

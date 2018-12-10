@@ -28,14 +28,14 @@
     "name":"score",
     "x":1100,
     "y":800,
-    "color":"blue",
+    "textColor":"blue",
     "value":"score"
   },
   "text":{
     "name":"score_val",
     "x":1220,
     "y":800,
-    "color":"blue",
+    "textColor":"blue",
     "font":"ＭＳ ゴシック",
     "value":0
   }
