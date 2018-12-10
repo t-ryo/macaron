@@ -887,6 +887,8 @@ const fontSize = 40;
 // FIXME
 const rockSize = 20;
 
+var bgm;
+
 // ctreeで書いてるけど、jsのjsonに寄せる？
 // jsonにすると重複禁止なので保留
 function initJSON(tree){
@@ -938,11 +940,14 @@ function initJSON(tree){
                     // else{
                     // TODO removeイベント
                     // }
-                }else if(key == "Wall"){
+                }else if(key == "wall"){
                     objectMap['_wall0'] = Bodies.rectangle(0, 420, 20, 840, { isStatic: true });
                     objectMap['_wall1'] = Bodies.rectangle(1440, 420, 20, 840, { isStatic: true });
                     objectMap['_wall2'] = Bodies.rectangle(720, 10, 1420, 20, { isStatic: true });
                     objectMap['_wall3'] = Bodies.rectangle(720, 830, 1420, 20, { isStatic: true });
+                }else if(key == "bgm"){
+                    bgm = new Audio('./static/audio/' + value);
+                    bgm.loop = true;
                 }else{
                     return key;
                 }
@@ -1013,9 +1018,13 @@ function initJSON(tree){
                 if(key == "name"){
                     objectName = value;
                 }else if(key == "image"){
-                    // FIXME 拡張子
-                    // httpでもとれるように
-                    newObject.options.render.sprite.texture = './static/image/' + value;
+                    if(value.indexOf('https://') > -1){
+                        // TODO 確認
+                        newObject.options.render.sprite.texture = value;
+                    }else{
+                        // FIXME 拡張子
+                        newObject.options.render.sprite.texture = './static/image/' + value;
+                    }
                 }else if(optionName.indexOf(key) > -1){
                     newObject.options[key] = value;
                 }else if(key == "color"){
@@ -1430,7 +1439,11 @@ $(function () {
         $($(this).attr("switch-link")).addClass("active");
         
         /* engineを動かす */
-        runner.enabled = true;    
+        runner.enabled = true;   
+        
+        /* audio */
+        // loopかも?
+        bgm.play();
     });
     $('#pause-plot').click(function (){
         console.log("pause");
@@ -1441,6 +1454,9 @@ $(function () {
 
         /* engineを止める */
         runner.enabled = false;
+        
+        /* audio */
+        bgm.pause();
     });
     // $('#increment-frame').click(function () {
     //     console.log("increment-frame");
@@ -1495,8 +1511,12 @@ $(function () {
                 $('#macaron-text').val(data);
                 jsonEditor = makeJsonEditor();
             })
-            .fail(function() {
-                console.log('fail')
+            .fail(function(XMLHttpRequest, textStatus, errorThrown) {
+                console.log("ajax通信に失敗しました");
+                console.log("XMLHttpRequest : " + XMLHttpRequest.status);
+                console.log("textStatus     : " + textStatus);
+                console.log("errorThrown    : " + errorThrown.message);
+                alert(errorThrown.message);
             });
         }else{
             jsonEditor.toTextArea();
@@ -1522,10 +1542,18 @@ $(function () {
             timeout: 5000,
         })
         .done(function(data) {
+            var inputsJSON = (new TextEncoder).encode(stylesheet);
+            var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
+            initJSON(jsonResult);
+
             myRule();
         })
-        .fail(function() {
-            console.log('fail');
+        .fail(function(XMLHttpRequest, textStatus, errorThrown) {
+            console.log("ajax通信に失敗しました");
+            console.log("XMLHttpRequest : " + XMLHttpRequest.status);
+            console.log("textStatus     : " + textStatus);
+            console.log("errorThrown    : " + errorThrown.message);
+            alert(errorThrown.message);
         });
     });
     /* ファイル読み込み(スタイルシート) */
@@ -1599,8 +1627,12 @@ function compile(){
             }
         }
     })
-    .fail(function() {
-        console.log('fail')
+    .fail(function(XMLHttpRequest, textStatus, errorThrown) {
+        console.log("ajax通信に失敗しました");
+        console.log("XMLHttpRequest : " + XMLHttpRequest.status);
+        console.log("textStatus     : " + textStatus);
+        console.log("errorThrown    : " + errorThrown.message);
+        alert(errorThrown.message);
     });
 }
 
@@ -1649,6 +1681,12 @@ function resetState(){
         World.clear(engine.world);
         Engine.clear(engine);
         engine = null;
+    }
+
+    // TODO 他のaudioの扱い
+    if(bgm){
+        bgm.pause();
+        bgm.currentTime = 0;
     }
 }
 

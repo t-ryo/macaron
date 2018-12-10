@@ -25,7 +25,7 @@ def transformStylesheet():
     if len(splitText) == 2:
         with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
             f.write('var stylesheet = `' + splitText[0] + '`\n')
-            f.write('function myRule(){' + splitText[1] + '}')
+            f.write('function myRule(){try{' + splitText[1] + '} catch (error) {alert(error);console.log(error);}}')
     else:
         with file_search('rule.js', 'src/static/js').open(mode='w') as f:
             f.write('var stylesheet = "";\nfunction myRule(){alert(\'syntax error\');}')
@@ -35,10 +35,10 @@ def transformStylesheet():
 @app.route('/jp', methods=['POST'])
 def transformJp():
     inputText = request.form['stylesheet-value']
-    with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
-        f.write('var stylesheet = `' + '\{\}' + '`\n')
+    # with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
+        # f.write('var stylesheet = `{"world":{"wireframes":false}}`\n')
         # トランスパイル
-        f.write('function myRule(){' + 'hoge' + '}')
+        # f.write('function myRule(){' + '}')
 
     return send_file(str(file_search('rule.js', 'src/static/js')))
 
