@@ -51,7 +51,7 @@ var rateh = cvsh/cvshOrg;
 var result;           /* macaronコードのパース結果の木 */
 
 // 旧Macaron
-// var globalField = {}; 
+// var globalField = {};
 // var currentField = globalField; /* スコープ管理のため */
 // var timeCounter = 0; /* macaronシミュレータの実行時間 */
 
@@ -313,8 +313,8 @@ function evalSource(tree,info){
 //             var params = [];
 //             for(var i = 0;i<paramLen;i++){
 //                 if(typeof funcParams[0] == "number" || funcParams[0].match("\"") != null){
-//                     params.push("p" + i); 
-//                     conds.push("p" + i + " == " + funcParams[i]); 
+//                     params.push("p" + i);
+//                     conds.push("p" + i + " == " + funcParams[i]);
 //                 }else{
 //                     params.push(funcParams[i]);
 //                     conds.push("true");
@@ -394,7 +394,7 @@ function evalSource(tree,info){
 //     if(leftName.indexOf("[") > 0){
 //         leftName = leftName.slice(0, leftName.indexOf("["));
 //     }
-    
+
 //     if(MEmpty.prototype.isPrototypeOf(right)){
 //         try{
 //             currentField[leftName].img.src = "image/" + right.value + ".png";
@@ -406,7 +406,7 @@ function evalSource(tree,info){
 //         return null;
 //     }
 //     var val = null;
-    
+
 //     if(leftName in currentField){
 //         val = eval("currentField." + left + " = " + right);
 //     }else if(leftName in globalField){
@@ -578,7 +578,7 @@ function evalSource(tree,info){
 // function evalApply(tree,info){
 //     if(info.isKey){
 //         return "callFunc(\"" + tree.getLabeledChild("recv").visit(info) + "\")(" + tree.getLabeledChild("param").visit(info) + ")";
-        
+
 //     }
 
 //     info.isKey = true;
@@ -859,7 +859,7 @@ var Engine = Matter.Engine,
     Render = Matter.Render,
     Mouse = Matter.Mouse,
     MouseConstraint = Matter.MouseConstraint;
-    
+
 var engine;
 var runner;
 var render;
@@ -897,7 +897,7 @@ function initJSON(tree){
     /* マウスイベント用 */
     var enableMouse = false;
     var mouseConstraint = null;
-    
+
     /* slingshot用 */
     var enableSlingshot = false;
     var elastic = null;
@@ -924,7 +924,7 @@ function initJSON(tree){
                 /* getValue()は()->String */
                 var key = member.getChild(j).getLabeledChild("key").getValue();
                 var value = member.getChild(j).getLabeledChild("value").visit();
-                
+
                 if(key == "gravity"){
                     gravityVal = value;
                 }else if(key == "background"){
@@ -1003,7 +1003,7 @@ function initJSON(tree){
                                 texture: null, /* テクスチャ */
                                 // lookAt入れないとダメ？
                                 // xScale:5,
-                                // yScale:5 
+                                // yScale:5
                             }
                         },
                     }
@@ -1013,7 +1013,7 @@ function initJSON(tree){
             for(var j = 0; j < memberNum; j++){
                 var key = member.getChild(j).getLabeledChild("key").getValue();
                 var value = member.getChild(j).getLabeledChild("value").visit();
-                
+
                 // FIXME こっちで条件分岐した方がいいか？
                 if(key == "name"){
                     objectName = value;
@@ -1065,7 +1065,7 @@ function initJSON(tree){
             }else if(newObject.type == "chain" /* 鎖 */){
                 var group = Body.nextGroup(true); /* chain内のオブジェクト同士は衝突しないようにcollisionFilterでグループ化する */
                 var chain = Composites.stack(newObject.x, newObject.y, newObject.length, 1, 0, 0, getGroupedCallBack(newObject.elementType, group));
-                objectMap[objectName] = Composites.chain(chain, 0.3, 0, -0.3, 0, { 
+                objectMap[objectName] = Composites.chain(chain, 0.3, 0, -0.3, 0, {
                     stiffness: 1,
                     length: 0,
                     render: {
@@ -1076,16 +1076,16 @@ function initJSON(tree){
                 objectMap[objectName] = Composites.newtonsCradle(newObject.x, newObject.y, newObject.columns, newObject.radius, newObject.length);
             }else if(newObject.type == "cloth" /* 布 */){
                 var group = Body.nextGroup(true);
-                objectMap[objectName] = Composites.softBody(newObject.x, newObject.y, newObject.width, newObject.height, 5, 5, false, 8, { 
-                    friction: 0.00001, 
+                objectMap[objectName] = Composites.softBody(newObject.x, newObject.y, newObject.width, newObject.height, 5, 5, false, 8, {
+                    friction: 0.00001,
                     collisionFilter: { group: group }
                     , render: { visible: false }
-                    }, { 
-                        stiffness: 0.06 
+                    }, {
+                        stiffness: 0.06
                     }
                 );
             }else if(newObject.type == "slingshot" /* カタパルト */){
-                var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize * ratew, { 
+                var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize * ratew, {
                     density: 0.004,
                     render: {
                         sprite: {
@@ -1093,9 +1093,9 @@ function initJSON(tree){
                         }
                     }
                 });
-                elastic = Constraint.create({ 
-                    pointA: { x: newObject.x, y:newObject.y }, 
-                    bodyB: rock, 
+                elastic = Constraint.create({
+                    pointA: { x: newObject.x, y:newObject.y },
+                    bodyB: rock,
                     stiffness: 0.05
                 });
                 objectMap[objectName] = elastic;
@@ -1109,16 +1109,16 @@ function initJSON(tree){
                 if(index/* targetObjectが配列の場合 */){
                     /* オブジェクトが配列の場合、object.bodies[index]でアクセスする必要があるため */
                     newObject.targetObject = newObject.targetObject.replace(indexRegExp, '');
-                    objectMap[objectName] = Constraint.create({ 
-                        pointA: { x: newObject.x, y: newObject.y }, 
+                    objectMap[objectName] = Constraint.create({
+                        pointA: { x: newObject.x, y: newObject.y },
                         bodyB: objectMap[newObject.targetObject].bodies[parseInt(index[0].slice(1, -1), 10)],
                         // pointB: { x: 25, y: 0 },
                         // length: 2,
                         stiffness: 0.9
                     })
                 }else{
-                    objectMap[objectName] = Constraint.create({ 
-                        pointA: { x: newObject.x, y: newObject.y }, 
+                    objectMap[objectName] = Constraint.create({
+                        pointA: { x: newObject.x, y: newObject.y },
                         bodyB: objectMap[newObject.targetObject],
                         // pointB: { x: 25, y: 0 },
                         // length: 2,
@@ -1140,7 +1140,7 @@ function initJSON(tree){
                         x:newObject.velocityX,
                         y:newObject.velocityY
                     });
-                }              
+                }
             }
 
         }
@@ -1161,7 +1161,7 @@ function initJSON(tree){
 
     /* worldに追加 */
     World.add(engine.world, Object.values(objectMap));
-    
+
     /* レンダリング設定 */
     render = Render.create({
         canvas: matterCanvas,/* あらかじめ作成したcanvasに描画するために必須 */
@@ -1171,7 +1171,7 @@ function initJSON(tree){
 
     /* リサイズ */
     writeAllText();
-    
+
     Render.lookAt(render, {
         min: { x: 0, y: 0 },
         max: { x: cvswOrg, y: cvshOrg }
@@ -1190,7 +1190,7 @@ function initJSON(tree){
     /* スタイルシートを読み込んだ段階で
        オブジェクトを描画するために
        runの後、engineを非アクティブにする。 */
-    
+
     Runner.run(runner, engine);
     Render.run(render);
 
@@ -1241,7 +1241,7 @@ function getCallBack(type){
 function getGroupedCallBack(type, group){
     if(type == "circle"){
         return function(x, y) {
-            return Bodies.circle(x - 20, y, 20, { 
+            return Bodies.circle(x - 20, y, 20, {
                 collisionFilter: { group: group }
                 // TODO option
                 // density: 0.005,
@@ -1253,14 +1253,14 @@ function getGroupedCallBack(type, group){
         };
     }else if(type == "rectangle"){
         return function(x, y) {
-            return Bodies.rectangle(x - 20, y, 53, 20, { 
+            return Bodies.rectangle(x - 20, y, 53, 20, {
                 collisionFilter: { group: group }
                 // TODO option
             });
         };
     }else if(type == "ellipse"){
         return function(x, y) {
-            return Bodies.rectangle(x - 20, y, 53, 20, { 
+            return Bodies.rectangle(x - 20, y, 53, 20, {
                 collisionFilter: { group: group },
                 // TODO option
                 chamfer: 5 /* 角取り */
@@ -1293,7 +1293,7 @@ function switchSlingshot(engine, elastic, slingshotName, mouseConstraint){
     // FIXME engineの扱い
     Matter.Events.on(engine, 'afterUpdate', function() {
         if (mouseConstraint.mouse.button === -1 && (Math.abs(objectMap['_rock'].velocity.x) > 20 || Math.abs(objectMap['_rock'].velocity.y) > 20)) {
-            objectMap['_rock'] = Bodies.polygon(objectMap[slingshotName].pointA.x, objectMap[slingshotName].pointA.y, 7, rockSize * ratew, { 
+            objectMap['_rock'] = Bodies.polygon(objectMap[slingshotName].pointA.x, objectMap[slingshotName].pointA.y, 7, rockSize * ratew, {
                 density: 0.004,
                 render: {
                     sprite: {
@@ -1426,7 +1426,7 @@ var jsonEditor;
 var initCode = "";
 
 $(function () {
-    
+
     $('#macaron-text').val(initCode);
     // var jsEditor = makeEditor();
     jsonEditor = makeJsonEditor();
@@ -1437,13 +1437,17 @@ $(function () {
         /* 一時停止ボタンに切り替え */
         $(this).removeClass("active");
         $($(this).attr("switch-link")).addClass("active");
-        
+
         /* engineを動かす */
+<<<<<<< Updated upstream
         runner.enabled = true;   
         
         /* audio */
         // loopかも?
         bgm.play();
+=======
+        runner.enabled = true;
+>>>>>>> Stashed changes
     });
     $('#pause-plot').click(function (){
         console.log("pause");
@@ -1542,6 +1546,7 @@ $(function () {
             timeout: 5000,
         })
         .done(function(data) {
+<<<<<<< Updated upstream
             var inputsJSON = (new TextEncoder).encode(stylesheet);
             var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
             initJSON(jsonResult);
@@ -1555,6 +1560,19 @@ $(function () {
             console.log("errorThrown    : " + errorThrown.message);
             alert(errorThrown.message);
         });
+=======
+          var inputsJSON = (new TextEncoder).encode(stylesheet);
+          var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
+          initJSON(jsonResult);
+          myRule();
+        })
+        .fail(function(XMLHttpRequest, textStatus, errorThrown) {
+           console.log("ajax通信に失敗しました");
+           console.log("XMLHttpRequest : " + XMLHttpRequest.status);
+           console.log("textStatus     : " + textStatus);
+           console.log("errorThrown    : " + errorThrown.message);
+       });
+>>>>>>> Stashed changes
     });
     /* ファイル読み込み(スタイルシート) */
     // $('#load-json').click(function() {
@@ -1594,7 +1612,7 @@ function compile(){
         timeout: 5000,
     })
     .done(function(data) {
-        
+
         /* スタイルシートの処理 */
         var inputsJSON = (new TextEncoder).encode(stylesheet);
         var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
@@ -1639,7 +1657,7 @@ function compile(){
 /* スタイルシート用エディタ */
 function makeJsonEditor(){
     var jsonEditor = CodeMirror.fromTextArea(document.getElementById("macaron-text"), {
-        mode: "javascript", // FIXME 
+        mode: "javascript", // FIXME
         lineNumbers: false,
         indentUnit: 4
         // ,extraKeys: {"Ctrl-Space": "autocomplete"}
@@ -1693,45 +1711,45 @@ function resetState(){
 /* マウス位置表示 */
 function simple_tooltip(target_items, name){
     $(target_items).each(function(i){
-        $("#wrapper").append("<div class='"+name+"' id='"+name+i+"'><p></p></div>");  
+        $("#wrapper").append("<div class='"+name+"' id='"+name+i+"'><p></p></div>");
         var my_tooltip = $("#"+name+i);
         var tooltipDoc =  document.getElementById(name+i);
-             
-        if($(this).attr("title") != "" && $(this).attr("title") != "undefined" ){      
-            $(this).removeAttr("title").mouseover(function(){  
-                my_tooltip.css({opacity:0.8, display:"none"}).fadeIn(400);  
+
+        if($(this).attr("title") != "" && $(this).attr("title") != "undefined" ){
+            $(this).removeAttr("title").mouseover(function(){
+                my_tooltip.css({opacity:0.8, display:"none"}).fadeIn(400);
             }).mousemove(function(kmouse){
-                var border_top = $(window).scrollTop();   
-                var border_right = $(window).width();  
-                var left_pos;  
-                var top_pos;  
+                var border_top = $(window).scrollTop();
+                var border_right = $(window).width();
+                var left_pos;
+                var top_pos;
                 var offset = 5;  // 場所
 
-                if(border_right - (offset *2) >= my_tooltip.width() + kmouse.pageX){  
-                    left_pos = kmouse.pageX+offset;  
-                } else{  
-                    left_pos = border_right-my_tooltip.width()-offset;  
-                }  
-                            
-                if(border_top + (offset *2)>= kmouse.pageY - my_tooltip.height()){  
-                    top_pos = border_top +offset;  
-                } else{  
-                    top_pos = kmouse.pageY-my_tooltip.height()-offset;  
-                }     
-                
+                if(border_right - (offset *2) >= my_tooltip.width() + kmouse.pageX){
+                    left_pos = kmouse.pageX+offset;
+                } else{
+                    left_pos = border_right-my_tooltip.width()-offset;
+                }
+
+                if(border_top + (offset *2)>= kmouse.pageY - my_tooltip.height()){
+                    top_pos = border_top +offset;
+                } else{
+                    top_pos = kmouse.pageY-my_tooltip.height()-offset;
+                }
+
                 my_tooltip.css({left:left_pos, top:top_pos});
 
                 tooltipDoc.innerHTML = '<p>'+ getMousePosition(matterCanvas, kmouse) +'</p>'
 
-            }).mouseout(function(){  
-                my_tooltip.css({left:"-9999px"});                   
-            });         
-        } 
-    });  
-}  
+            }).mouseout(function(){
+                my_tooltip.css({left:"-9999px"});
+            });
+        }
+    });
+}
 
-$(document).ready(function(){  
-    simple_tooltip("#matter-canvas","tooltip");  
+$(document).ready(function(){
+    simple_tooltip("#matter-canvas","tooltip");
 });
 
 function getMousePosition(canvas, evt) {
@@ -1744,13 +1762,13 @@ function getMousePosition(canvas, evt) {
 }
 
 function displayError(startline, startch, endline, endch){
-    jsonEditor.markText({ 
+    jsonEditor.markText({
         line: startline,
         ch: startch
-    }, { 
-        line: endline,                 
+    }, {
+        line: endline,
         ch: endch
-    }, { 
+    }, {
         css: "background-color : red"
     });
 }
@@ -1769,7 +1787,7 @@ function displayError(startline, startch, endline, endch){
 
 // let imageComplete = function(cm) {
 //   CodeMirror.showHint(cm, function() {
-//     let cur = cm.getCursor(); 
+//     let cur = cm.getCursor();
 //     let token = cm.getTokenAt(cur);
 //     var ch = cur.ch;
 //     let line = cur.line;
@@ -1824,7 +1842,7 @@ function displayError(startline, startch, endline, endch){
 //          if (LEFT == 1) {
 //            Matter.Body.setAngularVelocity(target, -Math.PI / 180);
 //          };
-         
+
 //          // 移動
 //          speedx = Math.abs(target.position.x - OLD_X);
 //          speedy = Math.abs(target.position.y - OLD_Y);
@@ -1839,6 +1857,6 @@ function displayError(startline, startch, endline, endch){
 //          }
 //          wrap(target);
 //          OLD_X = target.position.x;
-//          OLD_Y = target.position.y;   
+//          OLD_Y = target.position.y;
 //     });
 // }
