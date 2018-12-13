@@ -1,3 +1,22 @@
+var Playground;
+(function (Playground) {
+    Playground.CodeGenTarget = "js";
+
+    function CreateEditor(query) {
+        var editor = ace.edit(query);
+        editor.setTheme("ace/theme/xcode");
+        // editor.getSession().setMode("ace/mode/javascript");
+        editor.getSession().setUseWrapMode(true);/* 折り返しあり */
+        return editor;
+    }
+    Playground.CreateEditor = CreateEditor;
+
+    function ChangeSyntaxHighlight(editor, targetMode) {
+        editor.getSession().setMode("ace/mode/" + targetMode);
+    }
+    Playground.ChangeSyntaxHighlight = ChangeSyntaxHighlight;
+})(Playground || (Playground = {}));
+
 // const ttag = {
 //     Source: "Source",
 //     Rule: "Rule",
@@ -815,14 +834,6 @@ function evalNull(tree,info){
     return null;
 }
 
-// /* 廃止予定 */
-// function evalPictogram(tree,info){
-//     if(info.createNew){
-//         return new MCircle("circle");
-//     }
-//     return new MEmpty("circle");
-// }
-
 // /* foreachの対象を見つける 廃止するかは仕様次第 */
 // function targetsSetter(targets,index,setted,counter){
 //     for(obj in globalField){
@@ -1186,22 +1197,11 @@ function initJSON(tree){
     if(enableSlingshot){
         switchSlingshot(engine, elastic, slingshotName, mouseConstraint);
     }
+    
+    Runner.run(runner, engine); /* 物理エンジンを動かす */
+    Render.run(render); /* 描画開始 */
 
-    /* スタイルシートを読み込んだ段階で
-       オブジェクトを描画するために
-       runの後、engineを非アクティブにする。 */
-
-    Runner.run(runner, engine);
-    Render.run(render);
-
-    runner.enabled = false;
-
-    /* メモ */
-    /* timeScaleはengine自体は止まらないのでupdateは止まらない */
-    // engine.timing.timeScale = 0;
-    /* sleepingは更新をしなくなる。
-       (描画精度は落ちるが、安定性とパフォーマンス向上)
-       アクティブなオブジェクトに接触すると再び起きる。 */
+    runner.enabled = false; /* 初期位置を描画したら一度止める */
 
     return false;
 }
@@ -1317,24 +1317,23 @@ function writeAllText(){
     }
 }
 
-// TODO
-function collision(targetA, targetB, action){
-    // ラベル判定だと、同じ種類のオブジェクトを区別できない
-    // idで頑張る？ stackは id[0] < pair < id[0] + length ?
-    Matter.Events.on(engine, 'collisionEnd', function(event) {
-        pairs = event.pairs;
-        for (i = 0; i < pairs.length; i++) {
-            var pair = pairs[i];
-            if (pair.bodyA.label === targetA.label && pair.bodyB.label === targetB.label) {
-                // TODO action 記述した中身をここで仕込む
-                // eval(action)
+// function collision(targetA, targetB, action){
+//     // ラベル判定だと、同じ種類のオブジェクトを区別できない
+//     // idで頑張る？ stackは id[0] < pair < id[0] + length ?
+//     Matter.Events.on(engine, 'collisionEnd', function(event) {
+//         pairs = event.pairs;
+//         for (i = 0; i < pairs.length; i++) {
+//             var pair = pairs[i];
+//             if (pair.bodyA.label === targetA.label && pair.bodyB.label === targetB.label) {
+//                 // TODO action 記述した中身をここで仕込む
+//                 // eval(action)
 
-                // World.remove(engine.world, pair.bodyA);
-                // World.remove(engine.world, pair.bodyB);
-            }
-        }
-    });
-}
+//                 // World.remove(engine.world, pair.bodyA);
+//                 // World.remove(engine.world, pair.bodyB);
+//             }
+//         }
+//     });
+// }
 
 // TODO 画面外に出たオブジェクトを削除する
 // World.remove(engine.world, object);
@@ -1421,15 +1420,31 @@ function centeringCanvas(){
 
 /* 各種イベント */
 
-// FIXME
-var jsonEditor;
-var initCode = "";
+var macaronEditor;
 
 $(function () {
 
-    $('#macaron-text').val(initCode);
-    // var jsEditor = makeEditor();
-    jsonEditor = makeJsonEditor();
+    macaronEditor = Playground.CreateEditor("macaron-editor");
+
+    var GenerateServer = function () {
+    
+        resetState();
+
+        if($('[name="lang"]').val() == 'json'){
+            compile('json');
+        }else/* $('[name="lang"]').val() == 'jp' */{
+            compile('jp');
+        }
+    };
+
+    var timer = null;
+    macaronEditor.on("change", function (cm, obj) {
+        if (timer) {
+            clearTimeout(timer);
+            timer = null;
+        }
+        timer = setTimeout(GenerateServer, 400);
+    });
 
     $('#start-plot').click(function () {
         console.log("start");
@@ -1439,15 +1454,10 @@ $(function () {
         $($(this).attr("switch-link")).addClass("active");
 
         /* engineを動かす */
-<<<<<<< Updated upstream
         runner.enabled = true;   
         
         /* audio */
-        // loopかも?
         bgm.play();
-=======
-        runner.enabled = true;
->>>>>>> Stashed changes
     });
     $('#pause-plot').click(function (){
         console.log("pause");
@@ -1458,7 +1468,7 @@ $(function () {
 
         /* engineを止める */
         runner.enabled = false;
-        
+
         /* audio */
         bgm.pause();
     });
@@ -1473,13 +1483,6 @@ $(function () {
     // });
     $('#reset').click(function () {
         console.log("reset");
-
-        resetState();
-
-        compile();
-    });
-    $('#apply').click(function (){
-        console.log("apply")
 
         resetState();
 
@@ -1511,69 +1514,49 @@ $(function () {
                 timeout: 5000,
             })
             .done(function(data) {
-                jsonEditor.toTextArea();
-                $('#macaron-text').val(data);
-                jsonEditor = makeJsonEditor();
+                macaronEditor.setValue(data);
             })
             .fail(function(XMLHttpRequest, textStatus, errorThrown) {
                 console.log("ajax通信に失敗しました");
                 console.log("XMLHttpRequest : " + XMLHttpRequest.status);
                 console.log("textStatus     : " + textStatus);
                 console.log("errorThrown    : " + errorThrown.message);
-                alert(errorThrown.message);
+                // alert(errorThrown.message);
             });
         }else{
-            jsonEditor.toTextArea();
-            $('#macaron-text').val("");
-            jsonEditor = makeJsonEditor();
+            macaronEditor.setValue("");
         }
     });
-    $('#jp').click(function (){
 
-        resetState();
+    // $('#jp').click(function (){
 
-        jsonEditor.toTextArea();
-        var inputs = $('#macaron-text').val().toString();
-        jsonEditor = makeJsonEditor();
+    //     resetState();
 
-        /* サーバーにinputsを投げる */
-        $.ajax({
-            url: '/jp',
-            type: 'POST',
-            data: {
-                [$('#macaron-text').attr('name')]:inputs
-            },
-            timeout: 5000,
-        })
-        .done(function(data) {
-<<<<<<< Updated upstream
-            var inputsJSON = (new TextEncoder).encode(stylesheet);
-            var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
-            initJSON(jsonResult);
+    //     var inputs = macaronEditor.getValue();
 
-            myRule();
-        })
-        .fail(function(XMLHttpRequest, textStatus, errorThrown) {
-            console.log("ajax通信に失敗しました");
-            console.log("XMLHttpRequest : " + XMLHttpRequest.status);
-            console.log("textStatus     : " + textStatus);
-            console.log("errorThrown    : " + errorThrown.message);
-            alert(errorThrown.message);
-        });
-=======
-          var inputsJSON = (new TextEncoder).encode(stylesheet);
-          var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
-          initJSON(jsonResult);
-          myRule();
-        })
-        .fail(function(XMLHttpRequest, textStatus, errorThrown) {
-           console.log("ajax通信に失敗しました");
-           console.log("XMLHttpRequest : " + XMLHttpRequest.status);
-           console.log("textStatus     : " + textStatus);
-           console.log("errorThrown    : " + errorThrown.message);
-       });
->>>>>>> Stashed changes
-    });
+    //     /* サーバーにinputsを投げる */
+    //     $.ajax({
+    //         url: '/jp',
+    //         type: 'POST',
+    //         data: {
+    //             source:inputs
+    //         },
+    //         timeout: 5000,
+    //     })
+    //     .done(function(data) {
+    //       var inputsJSON = (new TextEncoder).encode(stylesheet);
+    //       var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
+    //       initJSON(jsonResult);
+    //       myRule();
+    //     })
+    //     .fail(function(XMLHttpRequest, textStatus, errorThrown) {
+    //        console.log("ajax通信に失敗しました");
+    //        console.log("XMLHttpRequest : " + XMLHttpRequest.status);
+    //        console.log("textStatus     : " + textStatus);
+    //        console.log("errorThrown    : " + errorThrown.message);
+    //    });
+    // });
+    
     /* ファイル読み込み(スタイルシート) */
     // $('#load-json').click(function() {
     //     console.log("load json")
@@ -1596,18 +1579,23 @@ $(function () {
     // });
 });
 
-function compile(){
-    jsonEditor.toTextArea();
-    var inputs = $('#macaron-text').val().toString();
-    jsonEditor = makeJsonEditor();
+function compile(lang){
+
+    var inputs = macaronEditor.getValue();
+
+    var postURL = '/stylesheet';
+
+    if(lang == "jp"){
+        postURL = '/jp';
+    }
 
     /* サーバーにinputsを投げる */
     $.ajax({
-        url: '/stylesheet',
+        url: postURL,
         type: 'POST',
         // dataType: 'json',
         data: {
-            [$('#macaron-text').attr('name')]:inputs
+            source:inputs
         },
         timeout: 5000,
     })
@@ -1617,59 +1605,51 @@ function compile(){
         var inputsJSON = (new TextEncoder).encode(stylesheet);
         var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
         if(jsonResult.tag == "[error]"){
-            alert("Syntax Error");
+            // 要検討
 
-            var errorStr = stylesheet.substr(jsonResult.pos, jsonResult.epos);
-            var errorLine = errorStr.split("\n").length - 1;
-            var errorCh = errorStr.split("\n")[errorLine].length - 1;
+            // alert("Syntax Error");
 
-            displayError(errorLine, errorCh, errorLine, errorCh + 1);
+            // var errorStr = stylesheet.substr(jsonResult.pos, jsonResult.epos);
+            // var errorLine = errorStr.split("\n").length - 1;
+            // var errorCh = errorStr.split("\n")[errorLine].length - 1;
+
+            // displayError(errorLine, errorCh, errorLine, errorCh + 1);
 
         }else{
             var errorKey = initJSON(jsonResult);
 
             if(errorKey){
-                alert("Can't find parameter: " + errorKey);
+                // 要検討
 
-                var errorPos = stylesheet.indexOf(errorKey);
-                var errorStr = stylesheet.substr(0, errorPos + errorKey.length);
-                var errorLine = errorStr.split("\n").length - 1;
-                var errorCh = errorStr.split("\n")[errorLine].indexOf(errorKey);
+                // alert("Can't find parameter: " + errorKey);
 
-                displayError(errorLine, errorCh, errorLine, errorCh + errorKey.length);
+                // var errorPos = stylesheet.indexOf(errorKey);
+                // var errorStr = stylesheet.substr(0, errorPos + errorKey.length);
+                // var errorLine = errorStr.split("\n").length - 1;
+                // var errorCh = errorStr.split("\n")[errorLine].indexOf(errorKey);
+
+                // displayError(errorLine, errorCh, errorLine, errorCh + errorKey.length);
 
             }else{
                 /* ルールの処理 */
-                /* 衝突判定? */
                 myRule();
             }
         }
     })
     .fail(function(XMLHttpRequest, textStatus, errorThrown) {
-        console.log("ajax通信に失敗しました");
-        console.log("XMLHttpRequest : " + XMLHttpRequest.status);
-        console.log("textStatus     : " + textStatus);
-        console.log("errorThrown    : " + errorThrown.message);
-        alert(errorThrown.message);
-    });
-}
+        // 要検討
 
-/* スタイルシート用エディタ */
-function makeJsonEditor(){
-    var jsonEditor = CodeMirror.fromTextArea(document.getElementById("macaron-text"), {
-        mode: "javascript", // FIXME
-        lineNumbers: false,
-        indentUnit: 4
-        // ,extraKeys: {"Ctrl-Space": "autocomplete"}
+        // console.log("ajax通信に失敗しました");
+        // console.log("XMLHttpRequest : " + XMLHttpRequest.status);
+        // console.log("textStatus     : " + textStatus);
+        // console.log("errorThrown    : " + errorThrown.message);
+        // alert(errorThrown.message);
     });
-
-    jsonEditor.setSize(cvsw/3, cvsh*11/16);
-    // jsonEditor.on('change', imageComplete);
-    return jsonEditor;
 }
 
 function resizeEditorSize(){
-    jsonEditor.setSize(cvsw/3, cvsh*11/16);
+    // FIXME
+    // jsonEditor.setSize(cvsw/3, cvsh*11/16);
 }
 
 function resetState(){
@@ -1748,10 +1728,6 @@ function simple_tooltip(target_items, name){
     });
 }
 
-$(document).ready(function(){
-    simple_tooltip("#matter-canvas","tooltip");
-});
-
 function getMousePosition(canvas, evt) {
     var rect = canvas.getBoundingClientRect();
     // return {
@@ -1761,53 +1737,16 @@ function getMousePosition(canvas, evt) {
     return "(" + (evt.clientX - rect.left) + "," + (evt.clientY - rect.top) + ")"
 }
 
-function displayError(startline, startch, endline, endch){
-    jsonEditor.markText({
-        line: startline,
-        ch: startch
-    }, {
-        line: endline,
-        ch: endch
-    }, {
-        css: "background-color : red"
-    });
-}
-/* 補完機能(参考) */
-// let imageList = ['arrow', 'circle', 'fish', 'rocket', 'sakura', 'star', 'triangle']
-
-// window.onload = function(){
-//     var folderRef = new Folder("/image/");
-//     var fileList = folderRef.getFiles();
-//     var imageList1 = [];
-//     for (i=0; i<fileList.length; i++){
-//         imageList1 = push(fileList[i].fullName);
-//     }
-//     console.log(imageList1);
-// }
-
-// let imageComplete = function(cm) {
-//   CodeMirror.showHint(cm, function() {
-//     let cur = cm.getCursor();
-//     let token = cm.getTokenAt(cur);
-//     var ch = cur.ch;
-//     let line = cur.line;
-//     let start = token.start;
-//     let end = ch;
-
-//     var inputReg = new RegExp('^' + token.string);
-//     let filteredList = imageList.filter((item) => {
-//         return item.slice(0, item.length - 1).match(inputReg) ? true : false
+// function displayError(startline, startch, endline, endch){
+//     jsonEditor.markText({
+//         line: startline,
+//         ch: startch
+//     }, {
+//         line: endline,
+//         ch: endch
+//     }, {
+//         css: "background-color : red"
 //     });
-//     if (filteredList.length >= 1) {
-//         ch = 0;
-//         return {
-//             list: filteredList,
-//             from: CodeMirror.Pos(line, ch),
-//             to: CodeMirror.Pos(line, end)
-//         }
-//     }
-
-//   }, { completeSingle: false })
 // }
 
 /* Matter.js(参考) */

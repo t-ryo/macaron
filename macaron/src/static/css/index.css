@@ -360,3 +360,9 @@ div.tooltip p{
   background: #222;  
   padding: 1px 1px;  
 }
+
+#macaron-editor {
+  height: 600px;
+  border: 1px solid black;
+  border-radius: 3px;
+}

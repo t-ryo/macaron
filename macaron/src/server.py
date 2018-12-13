@@ -2,7 +2,7 @@ import json, re, os, platform, subprocess, sys
 from pathlib import Path
 
 from flask import Flask, request, redirect, url_for, Response, send_file, render_template
-from pegpy.main import macaron
+# from pegpy.main import macaron
 # from datetime import datetime
 
 app = Flask(__name__)
@@ -21,7 +21,7 @@ def home():
 
 @app.route('/stylesheet', methods=['POST'])
 def transformStylesheet():
-    inputText = request.form['stylesheet-value']
+    inputText = request.form['source']
     splitText = re.split(r'---+', inputText)
 
     if len(splitText) == 2:
@@ -36,7 +36,7 @@ def transformStylesheet():
 
 @app.route('/jp', methods=['POST'])
 def transformJp():
-    inputText = request.form['stylesheet-value']
+    inputText = request.form['source']
     with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
         f.write('var stylesheet = ' + '`{"world":{"mouse":true,"gravity":0}}`' + '\n')
         f.write('function checkComposite(obj, param) {\n\tif (obj[param]) {\n\t\treturn obj[param]\n\t} else {\n\t\tcheckComposite(obj[0],param)\n\t}\n}\n')
