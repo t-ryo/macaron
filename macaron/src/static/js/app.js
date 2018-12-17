@@ -1197,7 +1197,7 @@ function initJSON(tree){
     if(enableSlingshot){
         switchSlingshot(engine, elastic, slingshotName, mouseConstraint);
     }
-    
+
     Runner.run(runner, engine); /* 物理エンジンを動かす */
     Render.run(render); /* 描画開始 */
 
@@ -1427,7 +1427,7 @@ $(function () {
     macaronEditor = Playground.CreateEditor("macaron-editor");
 
     var GenerateServer = function () {
-    
+
         resetState();
 
         if($('[name="lang"]').val() == 'json'){
@@ -1454,8 +1454,8 @@ $(function () {
         $($(this).attr("switch-link")).addClass("active");
 
         /* engineを動かす */
-        runner.enabled = true;   
-        
+        runner.enabled = true;
+
         /* audio */
         bgm.play();
     });
@@ -1503,6 +1503,8 @@ $(function () {
             url = '/sample/pendulum';
         }else if(sampleName == "wreckingball"){
             url = '/sample/wreckingball';
+        }else if(sampleName == "japanese"){
+            url = '/sample/japanese';
         }else{
             // TODO
         }
@@ -1556,7 +1558,7 @@ $(function () {
     //        console.log("errorThrown    : " + errorThrown.message);
     //    });
     // });
-    
+
     /* ファイル読み込み(スタイルシート) */
     // $('#load-json').click(function() {
     //     console.log("load json")

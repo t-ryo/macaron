@@ -5,6 +5,8 @@ from flask import Flask, request, redirect, url_for, Response, send_file, render
 # from pegpy.main import macaron
 # from datetime import datetime
 
+from pegpy.main import macaron
+
 app = Flask(__name__)
 
 # horizontalBar = r"---"
@@ -38,13 +40,9 @@ def transformStylesheet():
 def transformJp():
     inputText = request.form['source']
     with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
-        f.write('var stylesheet = ' + '`{"world":{"mouse":true,"gravity":0}}`' + '\n')
-        f.write('function checkComposite(obj, param) {\n\tif (obj[param]) {\n\t\treturn obj[param]\n\t} else {\n\t\tcheckComposite(obj[0],param)\n\t}\n}\n')
-        # トランスパイル
-        #f.write('function myRule(){\n' + "console.log('ok')" + '\n}')
-        f.write('function myRule(){\n' + macaron({'inputs': [inputText]}) + '\n}')
-        print(macaron({'inputs': [inputText]}))
-
+         f.write('var stylesheet = `{"world":{"mouse":true,"gravity":0}}`\n')
+         f.write('function checkComposite(obj, param) {\n\tif (obj[param]) {\n\t\treturn obj[param]\n\t} else {\n\t\tcheckComposite(obj[0],param)\n\t}\n}\n')
+         f.write('function myRule(){\n' + macaron({'inputs': [inputText]}) + '\n}')
     return send_file(str(file_search('rule.js', 'src/static/js')))
 
 
@@ -71,6 +69,11 @@ def getPendulumSample():
 @app.route('/sample/wreckingball', methods=['POST'])
 def getWreckingBallSample():
     with file_search('wreckingball.macaron').open() as f:
+        return f.read()
+
+@app.route('/sample/japanese', methods=['POST'])
+def getJapaneseSample():
+    with file_search('japanese.macaron').open() as f:
         return f.read()
 
 def file_search(file, subdir = 'examples'):
