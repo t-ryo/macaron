@@ -1601,19 +1601,32 @@ function compile(lang){
     })
     .done(function(data) {
 
+        var annotations = [];
+
         /* スタイルシートの処理 */
         var inputsJSON = (new TextEncoder).encode(stylesheet);
         var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
+
+        // if(lang == "jp"){
+        //     // エラーの返し方による
+        // }
+
         if(jsonResult.tag == "[error]"){
             // 要検討
 
-            // alert("Syntax Error");
-
-            // var errorStr = stylesheet.substr(jsonResult.pos, jsonResult.epos);
-            // var errorLine = errorStr.split("\n").length - 1;
+            var errorStr = stylesheet.substr(jsonResult.pos, jsonResult.epos);
+            var errorLine = errorStr.split("\n").length - 1;
             // var errorCh = errorStr.split("\n")[errorLine].length - 1;
 
             // displayError(errorLine, errorCh, errorLine, errorCh + 1);
+
+            annotations = [
+                {
+                    row: errorLine, // FIXME
+                    type: "error",
+                    text: "Syntax Error"
+                }
+            ];
 
         }else{
             var errorKey = initJSON(jsonResult);
@@ -1621,20 +1634,27 @@ function compile(lang){
             if(errorKey){
                 // 要検討
 
-                // alert("Can't find parameter: " + errorKey);
-
-                // var errorPos = stylesheet.indexOf(errorKey);
-                // var errorStr = stylesheet.substr(0, errorPos + errorKey.length);
-                // var errorLine = errorStr.split("\n").length - 1;
+                var errorPos = stylesheet.indexOf(errorKey);
+                var errorStr = stylesheet.substr(0, errorPos + errorKey.length);
+                var errorLine = errorStr.split("\n").length - 1;
                 // var errorCh = errorStr.split("\n")[errorLine].indexOf(errorKey);
 
-                // displayError(errorLine, errorCh, errorLine, errorCh + errorKey.length);
+                annotations = [
+                    {
+                        row: errorLine - 1,
+                        type: "error",
+                        text: "Can't find parameter: " + errorKey
+                    }
+                ];
 
             }else{
                 /* ルールの処理 */
                 myRule();
             }
         }
+
+        macaronEditor.getSession().setAnnotations(annotations);
+
     })
     .fail(function(XMLHttpRequest, textStatus, errorThrown) {
         // 要検討
@@ -1649,6 +1669,7 @@ function compile(lang){
 
 function resizeEditorSize(){
     // FIXME
+    $('#macaron-editor').css("height", cvsh*11/16);
     // jsonEditor.setSize(cvsw/3, cvsh*11/16);
 }
 
