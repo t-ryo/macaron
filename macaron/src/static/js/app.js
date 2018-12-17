@@ -1529,36 +1529,7 @@ $(function () {
             macaronEditor.setValue("");
         }
     });
-
-    // $('#jp').click(function (){
-
-    //     resetState();
-
-    //     var inputs = macaronEditor.getValue();
-
-    //     /* サーバーにinputsを投げる */
-    //     $.ajax({
-    //         url: '/jp',
-    //         type: 'POST',
-    //         data: {
-    //             source:inputs
-    //         },
-    //         timeout: 5000,
-    //     })
-    //     .done(function(data) {
-    //       var inputsJSON = (new TextEncoder).encode(stylesheet);
-    //       var jsonResult = parseJSON(inputsJSON,inputsJSON.length-1);
-    //       initJSON(jsonResult);
-    //       myRule();
-    //     })
-    //     .fail(function(XMLHttpRequest, textStatus, errorThrown) {
-    //        console.log("ajax通信に失敗しました");
-    //        console.log("XMLHttpRequest : " + XMLHttpRequest.status);
-    //        console.log("textStatus     : " + textStatus);
-    //        console.log("errorThrown    : " + errorThrown.message);
-    //    });
-    // });
-
+    
     /* ファイル読み込み(スタイルシート) */
     // $('#load-json').click(function() {
     //     console.log("load json")
