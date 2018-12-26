@@ -5,7 +5,7 @@ var Playground;
     function CreateEditor(query) {
         var editor = ace.edit(query);
         editor.setTheme("ace/theme/xcode");
-        // editor.getSession().setMode("ace/mode/javascript");
+        editor.getSession().setMode("ace/mode/macaron");
         editor.getSession().setUseWrapMode(true);/* 折り返しあり */
         return editor;
     }
@@ -72,8 +72,6 @@ var result;           /* macaronコードのパース結果の木 */
 // 旧Macaron
 // var globalField = {};
 // var currentField = globalField; /* スコープ管理のため */
-// var timeCounter = 0; /* macaronシミュレータの実行時間 */
-
 
 /* ctree走査用メソッド */
 
@@ -884,6 +882,22 @@ const optionName = [
     "angle"
 ]
 
+const objectTypeList = [
+    "circle",
+    "rectangle",
+    "polygon",
+    "trapezoid",
+    "car",
+    "stack",
+    "pyramid",
+    "chain",
+    "pendulum",
+    "cloth",
+    "slingshot",
+    "text",
+    "constraint"
+]
+
 var objectParamMap = {};
 var objectMap = {};
 var textMap = {};
@@ -970,7 +984,8 @@ function initJSON(tree){
             if(objectType in objectParamMap){
                 /* パラメータ引き継ぎ(値渡し) */
                 newObject = JSON.parse(JSON.stringify(objectParamMap[objectType]));
-            }else{
+            }else if(objectTypeList.indexOf(objectType) > -1){
+
                 var newObject = {
                     type:objectType,
                     x: 0,                  /* x座標 */
@@ -1006,7 +1021,7 @@ function initJSON(tree){
                         density: 0.001,    /* 密度 */
                         friction: 0.1,     /* 摩擦係数 */
                         frictionAir: 0.01, /* 空気抵抗 */
-                        restitution: 0,    /* 反発係数 */
+                        restitution: 1,    /* 反発係数 */
                         // 度数にする？
                         angle: 0,          /* 角度 */
                         render: {
@@ -1019,6 +1034,8 @@ function initJSON(tree){
                         },
                     }
                 };
+            }else/* エラー */{
+                return objectType;
             }
 
             for(var j = 0; j < memberNum; j++){
@@ -1161,11 +1178,6 @@ function initJSON(tree){
 
     /* 重力 */
     engine.world.gravity.y = gravityVal;
-
-    /* time counter を更新イベントに設定 */
-    // Matter.Events.on(engine, 'afterUpdate', function() {
-    //     $("#time-counter").text(++timeCounter);
-    // });
 
     /* engineのアクティブ、非アクティブの制御を行う */
     runner = Runner.create();
@@ -1317,28 +1329,12 @@ function writeAllText(){
     }
 }
 
-// function collision(targetA, targetB, action){
-//     // ラベル判定だと、同じ種類のオブジェクトを区別できない
-//     // idで頑張る？ stackは id[0] < pair < id[0] + length ?
-//     Matter.Events.on(engine, 'collisionEnd', function(event) {
-//         pairs = event.pairs;
-//         for (i = 0; i < pairs.length; i++) {
-//             var pair = pairs[i];
-//             if (pair.bodyA.label === targetA.label && pair.bodyB.label === targetB.label) {
-//                 // TODO action 記述した中身をここで仕込む
-//                 // eval(action)
+// TODO 画面外に出たオブジェクトの扱い
 
-//                 // World.remove(engine.world, pair.bodyA);
-//                 // World.remove(engine.world, pair.bodyB);
-//             }
-//         }
-//     });
-// }
-
-// TODO 画面外に出たオブジェクトを削除する
+// 削除する
 // World.remove(engine.world, object);
 
-/* 画面外に出たオブジェクトを反対の画面端から出現させる */
+/* 反対の画面端から出現させる */
 // function wrap(body) {
 //     if (body.position.x < 0) {
 //         Body.translate(body, {x: cvsw - 1,y: 0});
@@ -1355,7 +1351,6 @@ function writeAllText(){
 // }
 
 $(window).on('load', function(){
-    // はじめにwindowサイズ取得する？
     resizeWindow();
 });
 
@@ -1457,7 +1452,9 @@ $(function () {
         runner.enabled = true;
 
         /* audio */
-        bgm.play();
+        if(bgm){
+            bgm.play();
+        }
     });
     $('#pause-plot').click(function (){
         console.log("pause");
@@ -1470,17 +1467,10 @@ $(function () {
         runner.enabled = false;
 
         /* audio */
-        bgm.pause();
+        if(bgm){
+            bgm.pause();
+        }
     });
-    // $('#increment-frame').click(function () {
-    //     console.log("increment-frame");
-    //     runner.enabled = true;
-    //     /* 1フレーム後にrunnerを再び非アクティブにする */
-    //     // FIXME timeCounterが増えない場合がある
-    //     setTimeout(function(){
-    //         runner.enabled = false;
-    //     }, 1);
-    // });
     $('#reset').click(function () {
         console.log("reset");
 
@@ -1523,7 +1513,6 @@ $(function () {
                 console.log("XMLHttpRequest : " + XMLHttpRequest.status);
                 console.log("textStatus     : " + textStatus);
                 console.log("errorThrown    : " + errorThrown.message);
-                // alert(errorThrown.message);
             });
         }else{
             macaronEditor.setValue("");
@@ -1585,13 +1574,14 @@ function compile(lang){
         // }
 
         if(jsonResult.tag == "[error]"){
-            // 要検討
-
             var errorStr = stylesheet.substr(jsonResult.pos, jsonResult.epos);
             var errorLine = errorStr.split("\n").length - 1;
-            // var errorCh = errorStr.split("\n")[errorLine].length - 1;
 
-            // displayError(errorLine, errorCh, errorLine, errorCh + 1);
+            /* 行の先頭でパースエラーが発生した場合 */
+            if(errorStr.split("\n")[errorLine].replace(/^\s+/g, "").length <= 1){
+                /* 間違っている構文は一つ前の行 */
+                errorLine = errorLine - 1;
+            }
 
             annotations = [
                 {
@@ -1605,16 +1595,13 @@ function compile(lang){
             var errorKey = initJSON(jsonResult);
 
             if(errorKey){
-                // 要検討
-
                 var errorPos = stylesheet.indexOf(errorKey);
                 var errorStr = stylesheet.substr(0, errorPos + errorKey.length);
                 var errorLine = errorStr.split("\n").length - 1;
-                // var errorCh = errorStr.split("\n")[errorLine].indexOf(errorKey);
 
                 annotations = [
                     {
-                        row: errorLine - 1,
+                        row: errorLine,
                         type: "error",
                         text: "Can't find parameter: " + errorKey
                     }
@@ -1630,25 +1617,21 @@ function compile(lang){
 
     })
     .fail(function(XMLHttpRequest, textStatus, errorThrown) {
-        // 要検討
-
-        // console.log("ajax通信に失敗しました");
-        // console.log("XMLHttpRequest : " + XMLHttpRequest.status);
-        // console.log("textStatus     : " + textStatus);
-        // console.log("errorThrown    : " + errorThrown.message);
-        // alert(errorThrown.message);
+        /* textStatus == "parseerror" の時、rule.jsでシンタックスエラー */
+        console.log("ajax通信に失敗しました");
+        console.log("XMLHttpRequest : " + XMLHttpRequest.status);
+        console.log("textStatus     : " + textStatus);
+        console.log("errorThrown    : " + errorThrown.message);
+        alert(textStatus.name + ': ' + errorThrown.message);
     });
 }
 
 function resizeEditorSize(){
-    // FIXME
     $('#macaron-editor').css("height", cvsh*11/16);
-    // jsonEditor.setSize(cvsw/3, cvsh*11/16);
+    $('#macaron-editor').css("width", cvsw*2/5);
 }
 
 function resetState(){
-    // timeCounter = 0;
-    // $("#time-counter").text(timeCounter);
 
     textContext.clearRect(0, 0, cvsw, cvsh);
 

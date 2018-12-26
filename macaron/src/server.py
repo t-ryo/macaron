@@ -5,8 +5,6 @@ from flask import Flask, request, redirect, url_for, Response, send_file, render
 # from pegpy.main import macaron
 # from datetime import datetime
 
-from pegpy.main import macaron
-
 app = Flask(__name__)
 
 # horizontalBar = r"---"
@@ -29,7 +27,7 @@ def transformStylesheet():
     if len(splitText) == 2:
         with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
             f.write('var stylesheet = `' + splitText[0] + '`\n')
-            f.write('function myRule(){try{' + splitText[1] + '} catch (error) {alert(error);console.log(error);}}')
+            f.write('function myRule(){try{' + splitText[1] + '} catch (error) {alert(error.name + \': \' + error.message);console.log(error.name + \': \' + error.message);}}')
     else:
         with file_search('rule.js', 'src/static/js').open(mode='w') as f:
             f.write('var stylesheet = "";\nfunction myRule(){alert(\'syntax error\');}')

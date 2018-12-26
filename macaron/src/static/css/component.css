@@ -92,10 +92,12 @@ html, body, .perspective {
 }
 
 .outer-nav.vertical {
-	top: 50%;
+	top: 15%;
 	left: 50%;
-	-webkit-transform: translateY(-50%);
-	transform: translateY(-50%);
+	/* top: 50%;
+	left: 50%; */
+	/* -webkit-transform: translateY(-50%);
+	transform: translateY(-50%); */
 	-webkit-transform-style: preserve-3d;
 	transform-style: preserve-3d;
 }
