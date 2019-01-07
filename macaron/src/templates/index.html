@@ -61,7 +61,7 @@
 
 	<nav class="outer-nav right vertical">
 		<div id="macaron-editor"></div>
-			サンプル
+			サンプル　<!-- 全角スペースあり -->
 		<div class="sample-select" style="display: inline-block; _display: inline;">
 			<select name="samples">
 				<option value="">-</option>
@@ -74,10 +74,35 @@
 			</select>
 		</div>
 
+		<br>
+			モード　　<!-- 全角スペースあり -->
 		<div class="sample-select" style="display: inline-block; _display: inline;">
 			<select name="lang">
 				<option value="json">JSON</option>
 				<option value="jp">日本語</option>
+			</select>
+		</div>
+
+		<br>
+			文字サイズ
+		<div class="sample-select" style="display: inline-block; _display: inline;">
+			<select name="fontsize">
+				<option value="8">8</option>
+				<option value="9">9</option>
+				<option value="10">10</option>
+				<option value="10.5">10.5</option>
+				<option value="11">11</option>
+				<option value="12" selected>12</option>
+				<option value="14">14</option>
+				<option value="16">16</option>
+				<option value="18">18</option>
+				<option value="20">20</option>
+				<option value="24">24</option>
+				<option value="28">28</option>
+				<option value="32">32</option>
+				<option value="36">36</option>
+				<option value="40">40</option>
+				<option value="46">46</option>
 			</select>
 		</div>
 
@@ -94,6 +119,7 @@
 
 <!-- 実装汚いけど他にうまくできなかったので -->
 <script src="../static/js/query.js"></script>
+<!-- <script src="../static/js/app.js"></script> -->
 
 <script src="../static/js/parser/json.js"></script>
 

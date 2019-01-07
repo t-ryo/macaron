@@ -44,6 +44,7 @@
 			contentWrapper = container.querySelector( '.wrapper' );
 
 		showMenu.addEventListener( clickevent, function( ev ) {
+			/* Matter.jsのrunnerを停止 */
 			if(runner && runner.enabled){
 				$('#pause-plot').removeClass("active");
 				$($('#pause-plot').attr("switch-link")).addClass("active");
@@ -52,10 +53,13 @@
 			ev.stopPropagation();
 			ev.preventDefault();
 			docscroll = scrollY();
+
+			console.log($('.container'));
+
 			// change top of contentWrapper
-			contentWrapper.style.top = docscroll * -1 + 'px';
+			//contentWrapper.style.top = docscroll * -1 + 'px';
 			// mac chrome issue:
-			document.body.scrollTop = document.documentElement.scrollTop = 0;
+			//document.body.scrollTop = document.documentElement.scrollTop = 0;
 			// add modalview class
 			classie.add( perspectiveWrapper, 'modalview' );
 			// animate..

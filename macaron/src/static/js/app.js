@@ -7,6 +7,7 @@ var Playground;
         editor.setTheme("ace/theme/xcode");
         editor.getSession().setMode("ace/mode/macaron");
         editor.getSession().setUseWrapMode(true);/* 折り返しあり */
+        editor.setFontSize(12);
         return editor;
     }
     Playground.CreateEditor = CreateEditor;
@@ -1518,6 +1519,12 @@ $(function () {
             macaronEditor.setValue("");
         }
     });
+    /* 文字サイズ */
+    $('[name="fontsize"]').change(function() {
+        var fontsize = Number($('[name="fontsize"]').val());
+        // alert($('[name="fontsize"]').val());
+        macaronEditor.setFontSize(fontsize);
+    });
     
     /* ファイル読み込み(スタイルシート) */
     // $('#load-json').click(function() {
@@ -1622,7 +1629,8 @@ function compile(lang){
         console.log("XMLHttpRequest : " + XMLHttpRequest.status);
         console.log("textStatus     : " + textStatus);
         console.log("errorThrown    : " + errorThrown.message);
-        alert(textStatus.name + ': ' + errorThrown.message);
+        // TODO うざい
+        // alert(textStatus.name + ': ' + errorThrown.message);
     });
 }
 
@@ -1705,26 +1713,14 @@ function simple_tooltip(target_items, name){
     });
 }
 
+$(document).ready(function(){  
+    simple_tooltip("#matter-canvas","tooltip");  
+});
+
 function getMousePosition(canvas, evt) {
     var rect = canvas.getBoundingClientRect();
-    // return {
-    //   x: evt.clientX - rect.left,
-    //   y: evt.clientY - rect.top
-    // };
     return "(" + (evt.clientX - rect.left) + "," + (evt.clientY - rect.top) + ")"
 }
-
-// function displayError(startline, startch, endline, endch){
-//     jsonEditor.markText({
-//         line: startline,
-//         ch: startch
-//     }, {
-//         line: endline,
-//         ch: endch
-//     }, {
-//         css: "background-color : red"
-//     });
-// }
 
 /* Matter.js(参考) */
 
@@ -1747,32 +1743,7 @@ function getMousePosition(canvas, evt) {
 //         if (event.keyCode == 32) {SPACE = 0};
 // };
 
-// var OLD_X = 0;
-// var OLD_Y = 0;
-
-// function setController(target){
-//     Matter.Events.on(engine, 'beforeUpdate', function() {
-//          if (RIGHT == 1) {
-//            Matter.Body.setAngularVelocity(target, Math.PI / 180);
-//          };
-//          if (LEFT == 1) {
-//            Matter.Body.setAngularVelocity(target, -Math.PI / 180);
-//          };
-
-//          // 移動
-//          speedx = Math.abs(target.position.x - OLD_X);
-//          speedy = Math.abs(target.position.y - OLD_Y);
-//          if (UP == 1 && speedx * speedx + speedy * speedy < 10) {
-//              Matter.Body.applyForce(target, {
-//                  x: target.position.x,
-//                  y: target.position.y
-//              }, {
-//                  x: Math.cos(target.angle-Math.PI/2) * 0.003,
-//                  y: Math.sin(target.angle-Math.PI/2) * 0.003
-//              });
-//          }
-//          wrap(target);
-//          OLD_X = target.position.x;
-//          OLD_Y = target.position.y;
-//     });
-// }
+// TODO メモ
+// 左画面 縮尺 modalビュー
+// Crome検証 エラーメッセージくらい
+// klabにpush 綺麗にする

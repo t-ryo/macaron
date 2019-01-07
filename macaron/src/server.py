@@ -15,8 +15,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    # now = datetime.now()
-    # return send_file(str(file_search('index.html', 'src/templates')) + '?date={0:%Y%m%d%H%M%S}'.format(now))
+#     root = datetime.now().strftime('?%Y%m%d%H%M%S')
+#     return send_file(str(file_search('index.html', 'src/templates')) + root)
     return send_file(str(file_search('index.html', 'src/templates')))
 
 @app.route('/stylesheet', methods=['POST'])
@@ -27,10 +27,15 @@ def transformStylesheet():
     if len(splitText) == 2:
         with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
             f.write('var stylesheet = `' + splitText[0] + '`\n')
-            f.write('function myRule(){try{' + splitText[1] + '} catch (error) {alert(error.name + \': \' + error.message);console.log(error.name + \': \' + error.message);}}')
+            f.write('function myRule(){' + splitText[1] + '}')
+        # with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
+        #     f.write('var stylesheet = `' + splitText[0] + '`\n')
+        #     f.write('function myRule(){try{' + splitText[1] + '} catch (error) {alert(error.name + \': \' + error.message);console.log(error.name + \': \' + error.message);}}')
     else:
         with file_search('rule.js', 'src/static/js').open(mode='w') as f:
-            f.write('var stylesheet = "";\nfunction myRule(){alert(\'syntax error\');}')
+            f.write('var stylesheet = "";\nfunction myRule(){ }')
+        # with file_search('rule.js', 'src/static/js').open(mode='w') as f:
+        #     f.write('var stylesheet = "";\nfunction myRule(){alert(\'syntax error\');}')
 
     return send_file(str(file_search('rule.js', 'src/static/js')))
 
