@@ -2,7 +2,7 @@ import json, re, os, platform, subprocess, sys
 from pathlib import Path
 
 from flask import Flask, request, redirect, url_for, Response, send_file, render_template
-# from pegpy.main import macaron
+from pegpy.main import macaron
 # from datetime import datetime
 
 app = Flask(__name__)

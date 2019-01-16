@@ -11,103 +11,89 @@
 	<meta http-equiv="Content-Script-Type" content="text/javascript" />
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-
-	<!-- drawer button -->
-	<link rel="stylesheet" href="../static/css/component.css" />
-	<!-- <link rel="stylesheet" type="text/css" href="css/normalize.css" /> -->
-	<script src="../static/js/drawer/modernizr.custom.25376.js"></script>
 </head>
 <body>
 
-<div id="perspective" class="perspective effect-moveleft">
+<div id="canvas-area">
+	<!-- <canvas id="matter-canvas" style="background: black"></canvas> -->
+	<canvas id="text-canvas" width="1440px" height="837px" style="background: black"></canvas>
+	<canvas id="matter-canvas" width="1440px" height="837px"></canvas>
+</div>
 
-	<div class="container">
-		<div class="wrapper" id="wrapper"><!-- wrapper needed for scroll -->
-			<!-- <div class="main clearfix">
+<div id="start-plot" class="btn btn-start-plot active" switch-link="#pause-plot">
+	<span class="fa fa-play"></span>
+</div>
+<div id="pause-plot" class="btn btn-stop-plot" switch-link="#start-plot">
+	<span class="fa fa-pause"></span>
+</div>
+<div id="reset" class="btn btn-reset">
+	<span class="fa fa-fast-backward"></span>
+</div>
 
-			</div> -->
-			<main>
-				<div id="canvas-area">
-					<!-- <canvas id="matter-canvas" style="background: black"></canvas> -->
-					<canvas id="text-canvas" width="1440px" height="837px" style="background: black"></canvas>
-					<canvas id="matter-canvas" width="1440px" height="837px"></canvas>
+<div class="btn">
+	<p>
+		<button id="showMenu">
+				<div id="humberger">
+					<div></div>
+					<div></div>
+					<div></div>
 				</div>
+		</button>
+	</p>
+</div>
 
-				<div id="start-plot" class="btn btn-start-plot active" switch-link="#pause-plot">
-					<span class="fa fa-play"></span>
-				</div>
-				<div id="pause-plot" class="btn btn-stop-plot" switch-link="#start-plot">
-					<span class="fa fa-pause"></span>
-				</div>
-				<div id="reset" class="btn btn-reset">
-					<span class="fa fa-fast-backward"></span>
-				</div>
+<!-- エディタ -->
+<div id="macaron-editor"></div>
 
-				<div class="btn">
-					<p>
-						<button id="showMenu">
-								<div id="humberger">
-									<div></div>
-									<div></div>
-									<div></div>
-								</div>
-						</button>
-					</p>
-				</div>
-			</main>
+<div id="sample-menu">
+		サンプル　<!-- 全角スペースあり -->
+	<div class="sample-select" style="display: inline-block; _display: inline;">
+		<select name="samples">
+			<option value="">-</option>
+			<option value="bridge">Bridge</option>
+			<option value="car">Car</option>
+			<option value="pendulum">Newton's Cradls</option>
+			<option value="slingshot">Slingshot</option>
+			<option value="wreckingball">Wrecking Ball</option>
+			<option value="japanese">日本語</option>
+		</select>
+	</div>
+	<br>
+</div>
 
-		</div><!-- wrapper -->
-	</div><!-- /container -->
+<div id="mode-menu">
+		モード　　<!-- 全角スペースあり -->
+	<div class="sample-select" style="display: inline-block; _display: inline;">
+		<select name="lang">
+			<option value="json">JSON</option>
+			<option value="jp">日本語</option>
+		</select>
+	</div>
+	<br>
+</div>
 
-	<nav class="outer-nav right vertical">
-		<div id="macaron-editor"></div>
-			サンプル　<!-- 全角スペースあり -->
-		<div class="sample-select" style="display: inline-block; _display: inline;">
-			<select name="samples">
-				<option value="">-</option>
-				<option value="bridge">Bridge</option>
-				<option value="car">Car</option>
-				<option value="pendulum">Newton's Cradls</option>
-				<option value="slingshot">Slingshot</option>
-				<option value="wreckingball">Wrecking Ball</option>
-				<option value="japanese">日本語</option>
-			</select>
-		</div>
-
-		<br>
-			モード　　<!-- 全角スペースあり -->
-		<div class="sample-select" style="display: inline-block; _display: inline;">
-			<select name="lang">
-				<option value="json">JSON</option>
-				<option value="jp">日本語</option>
-			</select>
-		</div>
-
-		<br>
-			文字サイズ
-		<div class="sample-select" style="display: inline-block; _display: inline;">
-			<select name="fontsize">
-				<option value="8">8</option>
-				<option value="9">9</option>
-				<option value="10">10</option>
-				<option value="10.5">10.5</option>
-				<option value="11">11</option>
-				<option value="12" selected>12</option>
-				<option value="14">14</option>
-				<option value="16">16</option>
-				<option value="18">18</option>
-				<option value="20">20</option>
-				<option value="24">24</option>
-				<option value="28">28</option>
-				<option value="32">32</option>
-				<option value="36">36</option>
-				<option value="40">40</option>
-				<option value="46">46</option>
-			</select>
-		</div>
-
-		<div class="clear"></div>
-	</nav>
+<div id="fontsize-menu">
+		文字サイズ
+	<div class="sample-select" style="display: inline-block; _display: inline;">
+		<select name="fontsize">
+			<option value="8">8</option>
+			<option value="9">9</option>
+			<option value="10">10</option>
+			<option value="10.5">10.5</option>
+			<option value="11">11</option>
+			<option value="12" selected>12</option>
+			<option value="14">14</option>
+			<option value="16">16</option>
+			<option value="18">18</option>
+			<option value="20">20</option>
+			<option value="24">24</option>
+			<option value="28">28</option>
+			<option value="32">32</option>
+			<option value="36">36</option>
+			<option value="40">40</option>
+			<option value="46">46</option>
+		</select>
+	</div>
 </div>
 
 <!-- エディタ -->
@@ -122,10 +108,5 @@
 <!-- <script src="../static/js/app.js"></script> -->
 
 <script src="../static/js/parser/json.js"></script>
-
-<!-- drawer button -->
-<script src="../static/js/drawer/classie.js"></script>
-<script src="../static/js/drawer/menu.js"></script>
-
 </body>
 </html>

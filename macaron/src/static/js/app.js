@@ -1361,11 +1361,10 @@ $(window).on('resize', function(){
 });
 
 function resizeWindow(){
-    /* 現在のwindowサイズ */
-    cvsw = $( window ).width();
-    cvsh = $( window ).height();
+    /* 現在の canvas area サイズ */
+    cvsw = $('#canvas-area').width();
+    cvsh = $('#canvas-area').height();
 
-    resizeEditorSize();
     resizeCanvasSize();
 
     ratew = cvsw / cvswOrg;
@@ -1400,8 +1399,9 @@ function resizeCanvasSize(){
 }
 
 function centeringCanvas(){
-    var top = ($( window ).height() - cvsh)/2;
-    var left = ($( window ).width() - cvsw)/2;
+    var top = ($('#canvas-area').height() - cvsh)/2;
+    var left = ($('#canvas-area').width() - cvsw)/2;
+
     $("#matter-canvas").css({
         "position": "absolute",
         "top": top,
@@ -1475,9 +1475,35 @@ $(function () {
     $('#reset').click(function () {
         console.log("reset");
 
+        if(runner && runner.enabled){
+            /* 停止処理 */
+            $('#pause-plot').removeClass("active");
+            $($('#pause-plot').attr("switch-link")).addClass("active");
+            runner.enabled = false;
+        }
+
         resetState();
 
         compile();
+    });
+    $('#showMenu').click(function () {
+        if($('#macaron-editor').css('display') == 'none'){
+            /* エディタ表示 */
+            $('#macaron-editor').show();
+            $('#sample-menu').show();
+            $('#mode-menu').show();
+            $('#fontsize-menu').show();
+            $('#canvas-area').css('width', '60%');
+            resizeWindow();
+        }else{
+            /* エディタ非表示 */
+            $('#macaron-editor').hide();
+            $('#sample-menu').hide();
+            $('#mode-menu').hide();
+            $('#fontsize-menu').hide();
+            $('#canvas-area').css('width', '100%');
+            resizeWindow();
+        }
     });
     /* デモ用 */
     $('[name="samples"]').change(function() {
@@ -1634,11 +1660,6 @@ function compile(lang){
     });
 }
 
-function resizeEditorSize(){
-    $('#macaron-editor').css("height", cvsh*11/16);
-    $('#macaron-editor').css("width", cvsw*2/5);
-}
-
 function resetState(){
 
     textContext.clearRect(0, 0, cvsw, cvsh);
@@ -1676,7 +1697,7 @@ function resetState(){
 /* マウス位置表示 */
 function simple_tooltip(target_items, name){
     $(target_items).each(function(i){
-        $("#wrapper").append("<div class='"+name+"' id='"+name+i+"'><p></p></div>");
+        $("body").append("<div class='"+name+"' id='"+name+i+"'><p></p></div>");
         var my_tooltip = $("#"+name+i);
         var tooltipDoc =  document.getElementById(name+i);
 
@@ -1685,7 +1706,7 @@ function simple_tooltip(target_items, name){
                 my_tooltip.css({opacity:0.8, display:"none"}).fadeIn(400);
             }).mousemove(function(kmouse){
                 var border_top = $(window).scrollTop();
-                var border_right = $(window).width();
+                var border_right = $('#canvas-area').width();
                 var left_pos;
                 var top_pos;
                 var offset = 5;  // 場所
@@ -1742,8 +1763,3 @@ function getMousePosition(canvas, evt) {
 //         if (event.keyCode == 38) {UP = 0};
 //         if (event.keyCode == 32) {SPACE = 0};
 // };
-
-// TODO メモ
-// 左画面 縮尺 modalビュー
-// Crome検証 エラーメッセージくらい
-// klabにpush 綺麗にする

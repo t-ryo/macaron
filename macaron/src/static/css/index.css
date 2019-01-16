@@ -28,7 +28,9 @@ main {
 } */
 
 #canvas-area {
-  position: relative;
+  position: absolute;
+  width: 60%;
+  height: 100%;
 }
 
 #matter-canvas {
@@ -277,8 +279,31 @@ div.tooltip p{
 }
 
 #macaron-editor {
-  height: 600px;
-  width: 600px;
+  position: absolute;
+  top: 5%;
+  left: 60%;
+  width: 40%;
+  height: 75%;
+  /* height: 600px;
+  width: 600px; */
   border: 1px solid black;
   border-radius: 3px;
+}
+
+#sample-menu{
+  position: absolute;
+  top: 80%;
+  left: 65%;
+}
+
+#mode-menu{
+  position: absolute;
+  top: 85%;
+  left: 65%;
+}
+
+#fontsize-menu{
+  position: absolute;
+  top: 90%;
+  left: 65%;
 }
