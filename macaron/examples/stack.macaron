@@ -1,0 +1,17 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "stack":{
+    "name":"stackA",
+    "x":500,
+    "y":300,
+    "columns":10,
+    "rows":5,
+    "size":30,
+    "elementType":"rectangle"
+  }
+}
+---

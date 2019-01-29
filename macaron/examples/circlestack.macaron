@@ -1,0 +1,17 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true
+  },
+  "stack":{
+    "name":"balls",
+    "x":500,
+    "y":200,
+    "columns":10,
+    "rows":10,
+    "size":20,
+    "elementType":"circle",
+    "restitution":0
+  }
+}
+---

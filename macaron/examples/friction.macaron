@@ -1,0 +1,44 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "rectangle":{
+    "name":"floor1",
+    "x":400,
+    "y":200,
+    "width":1000,
+    "height":50,
+    "isStatic":true,
+    "angle": 0.13
+  },
+  "floor1":{
+    "name":"floor2",
+    "y":450
+  },
+  "floor1":{
+    "name":"floor3",
+    "y":700
+  },
+  "rectangle":{
+    "name":"boxA",
+    "x":300,
+    "y":90,
+    "width":40,
+    "height":40,
+    "restitution":0,
+    "friction": 0.001
+  },
+  "boxA":{
+    "name":"boxB",
+    "y":340,
+    "friction": 0.0005
+  },
+  "boxA":{
+    "name":"boxC",
+    "y":590,
+    "friction": 0
+  }
+}
+---

@@ -8,6 +8,7 @@
     "x":500,
     "y":430,
     "length":15,
+    "size":20,
     "elementType":"ellipse"
   },
   "stack":{
@@ -16,6 +17,7 @@
     "y":250,
     "columns":6,
     "rows":3,
+    "size":20,
     "elementType":"rectangle"
   },
   "rectangle":{

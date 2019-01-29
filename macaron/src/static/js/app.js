@@ -1,67 +1,3 @@
-var Playground;
-(function (Playground) {
-    Playground.CodeGenTarget = "js";
-
-    function CreateEditor(query) {
-        var editor = ace.edit(query);
-        editor.setTheme("ace/theme/xcode");
-        editor.getSession().setMode("ace/mode/macaron");
-        editor.getSession().setUseWrapMode(true);/* 折り返しあり */
-        editor.setFontSize(12);
-        return editor;
-    }
-    Playground.CreateEditor = CreateEditor;
-
-    function ChangeSyntaxHighlight(editor, targetMode) {
-        editor.getSession().setMode("ace/mode/" + targetMode);
-    }
-    Playground.ChangeSyntaxHighlight = ChangeSyntaxHighlight;
-})(Playground || (Playground = {}));
-
-// const ttag = {
-//     Source: "Source",
-//     Rule: "Rule",
-//     Context: "Context",
-//     TimingPremise: "TimingPremise",
-//     Premise: "Premise",
-//     PeriodicSome: "PeriodicSome",
-//     Periodic: "Periodic",
-//     Event: "Event",
-//     Body: "Body",
-//     Let: "Let",
-//     Assign: "Assign",
-//     Return: "Return",
-//     Name: "Name",
-//     Infix: "Infix",
-//     Cast: "Cast",
-//     Unary: "Unary",
-//     Norm: "Norm",
-//     Method: "Method",
-//     Get: "Get",
-//     Apply: "Apply",
-//     Index: "Index",
-//     CastExpr: "CastExpr",
-//     Tuple: "Tuple",
-//     Empty: "Empty",
-//     List: "List",
-//     RangeUntilExpr: "RangeUntilExpr",
-//     RangeExpr: "RangeExpr",
-//     Dict: "Dict",
-//     Data: "Data",
-//     Template: "Template",
-//     String: "String",
-//     Char: "Char",
-//     Image: "Image",
-//     Rational: "Rational",
-//     Unit: "Unit",
-//     Int: "Int",
-//     Double: "Double",
-//     True: "True",
-//     False: "False",
-//     Null: "Null",
-//     Pictogram: "Pictogram"
-// };
-
 const cvswOrg = 1440; /* MacBookAirのSafariのwindowサイズ */
 const cvshOrg = 837;  /* MacBookAirのSafariのwindowサイズ */
 var cvsw = 1440;      /* リサイズ後のcanvas幅 */
@@ -71,15 +7,6 @@ var rateh = cvsh/cvshOrg;
 var result;           /* macaronコードのパース結果の木 */
 
 // 旧Macaron
-// var globalField = {};
-// var currentField = globalField; /* スコープ管理のため */
-
-/* ctree走査用メソッド */
-
-/* パース結果の木はctree(ノード)をclinkで繋いでいるので、
-   現在のctreeから次のctreeを参照するために一手間かかる。
-   以下は、ctreeを楽に操作するためのメソッドを挿している。 */
-
 ctree.prototype.getLength = function(){
     return this.child.calcLength();
 }
@@ -168,646 +95,11 @@ function evalSource(tree,info){
     return null;
 }
 
-// FIXME 新しい仕様次第
-// function evalRule(tree,info){
-//     var before = currentField;
-//     currentField = {};
-//     var contextTree = tree.getLabeledChild("context");
-//     var inContext = contextTree != null ? contextTree.visit(info) : null;
-//     info.counter = 0;
-//     if(info.inFlow){
-//         if(tree.getLabeledChild("cond").tag === ttag.TimingPremise){/* foreach or event */
-//             if(!(tree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event)){
-//                 /* eventは前処理のみ */
-//                 /* foreachの処理 */
-//                 while(true){
-//                     var bool = tree.getLabeledChild("cond").visit(info);
-//                     if(bool){
-//                         info.isKey = false;
-//                         tree.getLabeledChild("body").visit(info);
-//                     }else{
-//                         break;
-//                     }
-//                 }
-//             }
-//         }else{
-//             if(tree.getLabeledChild("cond").getChild(0).tag === ttag.Name){
-//                 info.isKey = false;
-//                 tree.getLabeledChild("body").visit(info);/* Premiseへ */
-//             }
-//         }
-//     }else{
-//         if(tree.getLabeledChild("cond").tag === ttag.TimingPremise){
-//             if(tree.getLabeledChild("cond").getLabeledChild("timing").tag === ttag.Event){/* event処理 */
-//                 var eventInfo = tree.getLabeledChild("cond").visit(info);
-//                 var event = eventInfo["event"];
-//                 var targets = eventInfo["target"];
-//                 var conds = eventInfo["conds"];
-//                 // if(event == "Click"){
-//                 //     var clickFunc = function(evt){
-//                 //         var before = currentField;
-//                 //         currentField = {};
-//                 //         if(onDown/* 廃止済み */(overlayCanvas/* 廃止済み */, evt, targets, conds)){
-//                 //             info.isKey =false;
-//                 //             tree.getLabeledChild("body").visit(info);
-//                 //         }
-//                 //         currentField = before;
-//                 //     };
-//                 //     overlayCanvas.addEventListener("mousedown",clickFunc,false);
-//                 //     events.push(["mousedown",clickFunc]);
-//                 // }
-//             }
-//         }else{
-//             if(tree.getLabeledChild("cond").getChild(0).tag === ttag.Apply){/* 関数定義 */
-//                 info.isKey = true;
-//                 var funcInfo = tree.getLabeledChild("cond").visit(info);
-//                 /* 関数はパターンマッチで記述されるので、同じ名前の関数が来た際に前の関数を更新する必要がある */
-//                 if(funcInfo.name in globalField){/* すでに同じ名前の関数が存在する場合 */
-//                     var mfunc = globalField[funcInfo.name];
-//                     if(mfunc.params.length == funcInfo.params.length){/* 関数の引数の数が同じか確認 */
-//                         /* 新しい関数の引数名をすでにある関数の引数名と一致させるために、(新変数名)=(旧変数名)として環境に登録 */
-//                         for(var i = 0; i < mfunc.params.length; i++){
-//                             currentField[funcInfo.params[i]] = mfunc.params[i];
-//                         }
-//                         info.inFuncDecl = true;
-//                         var conds = funcInfo.conds;
-//                         /* 新しい関数のパターンマッチの条件を取得 */
-//                         for(var i=0; i<conds.length; i++){
-//                             if(ctree.prototype.isPrototypeOf(conds[i])){
-//                                 conds[i] = conds[i].visit(info);
-//                             }
-//                         }
-//                         var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
-//                         info.inFuncDecl = false;
-//                         /* 関数の中身を更新 */
-//                         body = mfunc.body + body;
-//                         mfunc.body = body;
-//                         mfunc.func = "(function(" + mfunc.params.join(',') + "){" + body + "})";
-//                         globalField[funcInfo.name] = mfunc;
-//                     }else{/* 関数の引数の数が違う場合はエラー */
-//                         throw new Error('wrong number of arguments');
-//                         // return false;
-//                     }
-//                 }else{/* 同じ名前の関数が存在しない場合 */
-//                     var conds = funcInfo.conds;
-//                     /* パターンマッチの条件を取得 */
-//                     for(var i=0; i<conds.length; i++){
-//                         if(ctree.prototype.isPrototypeOf(conds[i])){
-//                             conds[i] = conds[i].visit(info);
-//                         }
-//                     }
-//                     /* 更新用に関数の中身を保持しておく */
-//                     var body = "if(" + conds.join(' && ') + "){" + tree.getLabeledChild("body").visit(info) + "}"
-//                     /* eval用に関数を完成 */
-//                     var func = "(function(" + funcInfo.params.join(',') + "){" + body + "})";
-//                     globalField[funcInfo.name] = new MFunc(func,funcInfo.params,body);
-//                 }
-//             }
-//         }
-//     }
-//     currentField = before;
-//     return null;
-// }
-
-// /* 未実装 */
-// function evalContext(tree,info){
-//     var length = tree.getLength();
-//     var inContext = true;
-//     for(var i = 0;i<length;i++){
-//         inContext = inContext && tree.getChild(i).visit(info); // TODO 子ノードのeval結果はbool?
-//     }
-//     return inContext;
-// }
-
-// function evalTimingPremise(tree,info){
-//     var length = tree.getLength();
-//     if(tree.getLabeledChild("timing").tag === ttag.Event){/* eventの処理 */
-//         var target = tree.getChild(0).visit(info);
-//         var targets = target["target"];
-//         if(length > 1){
-//             var conds = [];
-//             for(var i = 1; i < length; i++){
-//                 conds.push(tree.getChild(i))
-//             }
-//         }else{
-//             var conds = true;
-//         }
-//         target["conds"] = conds;
-//         return target;
-//     }else{/* foreachの処理 */
-//         var targets = tree.getChild(0).visit(info);
-//         while(targetsSetter(targets,info.counter,[],{index:0})){
-//             var isContinue = false;
-//             for(var i = 1;i<length;i++){
-//                 if(!(tree.getChild(i).visit(info))){
-//                     isContinue = true;
-//                     break;
-//                 }
-//             }
-//             info.counter++;
-//             if(isContinue){
-//                 continue;
-//             }else{
-//                 return true;
-//             }
-//         }
-//     }
-//     return false;
-// }
-
-// function evalPremise(tree,info){
-//     var funcInfo = {};
-//     var length = tree.getLength();
-//     var funcTree = tree.getChild(0);
-//     funcInfo.name = funcTree.getLabeledChild("recv").visit(info);
-//     var funcParams = funcTree.getLabeledChild("param").visit(info);
-//     var conds = [];
-//     if(length == 1){
-//         if(funcParams.length == 0){
-//             params = funcParams;
-//             conds = ["true"];
-//         }else{
-//             var paramLen = funcParams.length;
-//             var params = [];
-//             for(var i = 0;i<paramLen;i++){
-//                 if(typeof funcParams[0] == "number" || funcParams[0].match("\"") != null){
-//                     params.push("p" + i);
-//                     conds.push("p" + i + " == " + funcParams[i]);
-//                 }else{
-//                     params.push(funcParams[i]);
-//                     conds.push("true");
-//                 }
-//             }
-//         }
-//         funcInfo.params = params;
-//         funcInfo.conds = conds;
-//     }else{
-//         funcInfo.params = funcParams;
-//         for(var i = 1;i<length;i++){
-//             conds.push(tree.getChild(i));
-//         }
-//         funcInfo.conds = conds;
-//     }
-//     return funcInfo;
-// }
-
-// function evalPeriodicSome(tree,info){ // FIXME
-//     var targets = [];
-//     targets.push(tree.getChild(0).visit({inFlow:true,isKey:true}));
-//     targets.push(tree.getChild(1).visit({inFlow:true,isKey:true}));
-//     return targets;
-// }
-
-// function evalPeriodic(tree,info){
-//     var length = tree.getLength();
-//     var targets = []
-//     for(var i = 0;i<length;i++){
-//         targets.push(tree.getChild(i).visit({inFlow:true,isKey:true}));
-//     }
-//     return targets;
-// }
-
-// function evalEvent(tree,info){
-//     try{
-//         var event = {"event":tree.getChild(0).getLabeledChild("recv").visit({inFlow:false,isKey:true})};
-//         var target = tree.getChild(0).getLabeledChild("param").visit({inFlow:false,isKey:true});
-//         if(!(target instanceof Array)){
-//             target = [target];
-//         }
-//         event["target"] = target;
-//     }catch(e){
-//         console.error("EventError:", e.message);
-//     }
-//     return event;
-// }
-
-// function evalBody(tree,info){
-//     var length = tree.getLength();
-//     if(info.isKey){
-//         var body = "";
-//         for(var i = 0;i<length;i++){
-//             body = body + tree.getChild(i).visit(info);
-//         }
-//         return body;
-//     }
-
-//     for(var i = 0;i<length;i++){
-//         tree.getChild(i).visit(info);
-//     }
-//     return null;
-// }
-
-// function evalAssign(tree,info){
-//     if(info.isKey){
-//         return tree.getLabeledChild("left").visit(info) + "=" + tree.getLabeledChild("right").visit(info) + ";";
-//     }
-
-//     var right = tree.getLabeledChild("right").visit(info);
-//     info.isKey = true;
-//     var left = tree.getLabeledChild("left").visit(info);
-//     var leftName = left;
-//     if(leftName.indexOf(".") > 0){
-//         leftName = leftName.slice(0, leftName.indexOf("."));
-//     }
-//     if(leftName.indexOf("[") > 0){
-//         leftName = leftName.slice(0, leftName.indexOf("["));
-//     }
-
-//     if(MEmpty.prototype.isPrototypeOf(right)){
-//         try{
-//             currentField[leftName].img.src = "image/" + right.value + ".png";
-//             currentField[leftName].value = right.value;
-//         }catch(e){
-//             globalField[leftName].img.src = "image/" + right.value + ".png";
-//             globalField[leftName].value = right.value;
-//         }
-//         return null;
-//     }
-//     var val = null;
-
-//     if(leftName in currentField){
-//         val = eval("currentField." + left + " = " + right);
-//     }else if(leftName in globalField){
-//         val = eval("globalField." + left + " = " + right);
-//     }else{
-//         val = eval(left + " = " + right);
-//     }
-//     // try{
-//     //     val = eval("currentField." + tree.getLabeledChild("left").visit(info) + " = " + right);
-//     // }catch(e){
-//     //     try{
-//     //         val = eval("globalField." + tree.getLabeledChild("left").visit(info) + " = " + right);
-//     //     }catch(e){
-//     //         val = eval(tree.getLabeledChild("left").visit(info) + " = " + right);
-//     //     }
-//     // }
-//     info.isKey = false;
-//     return null;
-// }
-
-// function evalReturn(tree,info){
-//     if(info.isKey){
-//         var returnExp = "return ";
-//         returnExp = returnExp + tree.getLabeledChild("expr").visit(info) + ";";
-//         return returnExp;
-//     }
-//     return tree.getLabeledChild("expr").visit(info);
-// }
-
-// function evalLet(tree,info){
-//     if(info.isKey){
-//         return tree.getLabeledChild("left").visit(info) + "=" + tree.getLabeledChild("right").visit(info) + ";";
-//     }
-//     // FIXME?
-//     if(!(info.inFlow)){
-//         currentField[tree.getLabeledChild("left").visit({inFlow:false,isKey:true})] = tree.getLabeledChild("right").visit({inFlow:false,createNew:true});
-//     }
-//     return null;
-// }
-
-// function evalPosition(tree,info){
-//     if(!(info.inFlow)){
-//         tree.getChild(0).visit({inFlow:false});
-//     }
-//     return null;
-// }
-
-// function evalName(tree,info){
-//     var val = tree.getValue();
-//     if(info.inFuncDecl){
-//         if(val in currentField){
-//             return currentField[val];
-//         }
-//     }
-//     if(info.isKey){
-//         return val;
-//     }
-//     if(val in currentField){
-//         return currentField[val];
-//     }
-//     if(val in globalField){
-//         return globalField[val];
-//     }
-//     throw new Error("Can't find variable: " + val); // FIXME
-//     // return val;
-// }
-
-// function evalInfix(tree,info){
-//     if(info.isKey){
-//         return tree.getLabeledChild("left").visit(info) + tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("right").visit(info);
-//     }
-//     var left = tree.getLabeledChild("left").visit(info);
-//     var right = tree.getLabeledChild("right").visit(info);
-//     if(MObject.prototype.isPrototypeOf(left)){
-//         left = left.value;
-//     }
-//     if(MObject.prototype.isPrototypeOf(right)){
-//         right = right.value;
-//     }
-//     return eval("left" + tree.getLabeledChild("op").visit({isKey:true}) + "right");
-// }
-
-// function evalCast(tree,info){
-//     if(info.isKey){
-//         return "(" + tree.getLabeledChild("type").visit(info) + ")" + tree.getLabeledChild("recv").visit(info);
-//     }
-//     return eval("(" + tree.getLabeledChild("type").visit(info) + ")" + tree.getLabeledChild("recv").visit(info));
-// }
-
-// function evalUnary(tree,info){
-//     if(info.isKey){
-//         return tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("expr").visit(info);
-//     }
-//     return eval(tree.getLabeledChild("op").visit(info) + tree.getLabeledChild("expr").visit(info));
-// }
-
-// function evalNorm(tree,info){
-//     if(info.isKey){
-//         return "|" + tree.getLabeledChild("expr").visit(info) + "|";
-//     }
-//     return eval("|" + tree.getLabeledChild("expr").visit(info) + "|");
-// }
-
-// function evalMethod(tree,info){
-//     if(info.isKey){
-//         return tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info) + "(" + tree.getLabeledChild("param").visit(info) + ")";
-//     }
-//     info.isKey = true;
-//     var val = null;
-
-//     var recv = tree.getLabeledChild("recv").visit(info);
-//     var name = tree.getLabeledChild("name").visit(info);
-//     var params = tree.getLabeledChild("param").visit(info);
-//     var paramStr = "";
-
-//     if(Array.isArray(params)){
-//         var length = params.length;
-//         for(var i = 0;i<length;i++){
-//             if(params[i] in currentField){
-//                 params[i] = currentField[params[i]];
-//             }
-//             if(params[i] in globalField){
-//                 params[i] = globalField[params[i]];
-//             }
-//             paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
-//         }
-//     }else{
-//         if(params in currentField){
-//             params = currentField[params];
-//         }
-//         if(params in globalField){
-//             params = globalField[params];
-//         }
-//         paramStr = "params"
-//     }
-
-//     try{
-//         val = eval("currentField." + recv + "." + name + "(" + paramStr + ")");
-//     }catch(e){
-//         try{
-//             val = eval("globalField." + recv + "." + name + "(" + paramStr + ")");
-//         }catch(e){
-//             val = eval(recv + "." + name + "(" + paramStr + ")");
-//         }
-//     }
-//     info.isKey = false;
-//     return val;
-// }
-
-// function evalGet(tree,info){
-//     if(info.isKey){
-//         return tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info);
-//     }
-//     info.isKey = true;
-//     var val = null;
-//     try{
-//         val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
-//     }catch(e){
-//         try{
-//             val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
-//         }catch(e){
-//             val = eval(tree.getLabeledChild("recv").visit(info) + "." + tree.getLabeledChild("name").visit(info));
-//         }
-//     }
-//     info.isKey = false;
-//     return val;
-// }
-
-// function evalApply(tree,info){
-//     if(info.isKey){
-//         return "callFunc(\"" + tree.getLabeledChild("recv").visit(info) + "\")(" + tree.getLabeledChild("param").visit(info) + ")";
-
-//     }
-
-//     info.isKey = true;
-//     var val = null;
-//     var recv = tree.getLabeledChild("recv").visit(info);
-//     var params = tree.getLabeledChild("param").visit(info);
-//     var paramStr = "";
-//     if(Array.isArray(params)){
-//         var length = params.length;
-//         for(var i = 0;i<length;i++){
-//             if(params[i] in currentField){
-//                 params[i] = currentField[params[i]];
-//             }
-//             if(params[i] in globalField){
-//                 params[i] = globalField[params[i]];
-//             }
-//             if(MObject.prototype.isPrototypeOf(params[i]) || params[i].type == "body"){
-//                 // MObject以外のオブジェクトもこちら
-//                 // .type のため、undefinedは今とれない
-//                 paramStr = i == 0 ? paramStr + "params[" + i + "]" : paramStr + ",params[" + i + "]";
-//             }else{
-//                 if(Array.isArray(params[i])){
-//                     paramStr = i == 0 ? paramStr + "[" + params[i] + "]" : paramStr + "," + "[" + params[i] + "]";
-//                 }else{
-//                     paramStr = i == 0 ? paramStr + params[i] : paramStr + "," + params[i];
-//                 }
-//             }
-//         }
-//     }else{
-//         if(params in currentField){
-//             params = currentField[params];
-//         }
-//         if(params in globalField){
-//             params = globalField[params];
-//         }
-//         paramStr = "params"
-//     }
-
-//     try{
-//         var mfunc = eval("currentField." + recv)
-//         val = eval(mfunc.func + "(" + paramStr + ")");
-//     }catch(e){
-//         try{
-//             var mfunc = eval("globalField." + recv)
-//             val = eval(mfunc.func + "(" + paramStr + ")");
-//         }catch(e){
-//             val = eval(recv + "(" + paramStr + ")");
-//         }
-//     }
-//     info.isKey = false;
-//     return val;
-// }
-
-// function evalIndex(tree,info){
-//     if(info.isKey){
-//         return tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]";
-//     }
-//     info.isKey = true;
-//     var val = null;
-//     try{
-//         val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
-//     }catch(e){
-//         try{
-//             val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
-//         }catch(e){
-//             val = eval(tree.getLabeledChild("recv").visit(info) + "[" + tree.getLabeledChild("param").visit(info) + "]");
-//         }
-//     }
-//     info.isKey = false;
-//     return val;
-// }
-
-// function evalArguments(tree,info){
-//     var length = tree.getLength();
-//     var list = [];
-//     for(var i = 0;i<length;i++){
-//         list.push(tree.getChild(i).visit(info));
-//     }
-//     return list;
-// }
-
-// function evalCastExpr(tree,info){
-//     if(info.isKey){
-//         return tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info);
-//     }
-//     info.isKey = true;
-//     var val = null;
-//     try{
-//         val = eval("currentField." + tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
-//     }catch(e){
-//         try{
-//             val = eval("globalField." + tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
-//         }catch(e){
-//             val = eval(tree.getLabeledChild("recv").visit(info) + "=>" + tree.getLabeledChild("type").visit(info));
-//         }
-//     }
-//     info.isKey = false;
-//     return val;
-// }
-
-// function evalTuple(tree,info){
-//     var length = tree.getLength();
-//     var tuple = [];
-//     for(var i = 0;i<length;i++){
-//         tuple.push(tree.getChild(i).visit(info));
-//     }
-//     return tuple;
-// }
-
-// function evalEmpty(tree,info){
-//     return null;
-// }
-
-// function evalList(tree,info){
-//     var length = tree.getLength();
-//     var list = [];
-//     for(var i = 0;i<length;i++){
-//         list.push(tree.getChild(i).visit(info));
-//     }
-//     return list;
-// }
-
-// function evalRangeUntilExpr(tree,info){
-//     var list = [];
-//     var start = tree.getLabeledChild("left").visit(info);
-//     var end = tree.getLabeledChild("right").visit(info);
-//     if(typeof start == "number" && typeof end == "number"){
-//         for(var i = start; i < end; i++){
-//             list.push(i);
-//         }
-//     }else if(typeof start == "string" && typeof end == "string"){
-//         var startByte = start.charCodeAt(0);
-//         var endByte = end.charCodeAt(0);
-//         for(var i = startByte; i < endByte; i++) {
-//             list.push(String.fromCodePoint(i));
-//         }
-//     }
-//     return list;
-// }
-
-// function evalRangeExpr(tree,info){
-//     var list = [];
-//     var start = tree.getLabeledChild("left").visit(info);
-//     var end = tree.getLabeledChild("right").visit(info);
-//     if(typeof start == "number" && typeof end == "number"){
-//         for(var i = start; i <= end; i++){
-//             list.push(i);
-//         }
-//     }else if(typeof start == "string" && typeof end == "string"){
-//         var startByte = start.charCodeAt(0);
-//         var endByte = end.charCodeAt(0);
-//         for(var i = startByte; i <= endByte; i++) {
-//             list.push(String.fromCodePoint(i));
-//         }
-//     }
-//     return list;
-// }
-
-// function evalDict(tree,info){
-//     var length = tree.getLength();
-//     var dict = {};
-//     for(var i = 0;i<length;i++){
-//         var target = tree.getChild(i);
-//         dict[target.getLabeledChild("name").visit(info)] = target.getLabeledChild("value").visit(info);
-//     }
-//     return dict;
-// }
-
-// function evalData(tree,info){
-//     return null; // TODO
-// }
-
-// function evalTemplate(tree,info){
-//     var length = tree.getLength();
-//     var template = "\`";
-//     for(var i = 0;i<length;i++){
-//         template = template + tree.getChild(i).getValue(); // TODO 確認
-//     }
-//     template = template +  "\`";
-//     return template;
-// }
-
 function evalString(tree,info){
     // FIXME
     return tree.getValue();
     // return "\"" + tree.getValue() + "\"";
 }
-
-// function evalChar(tree,info){
-//     return "\'" + tree.getValue() + "\'";
-// }
-
-// /* 廃止予定 */
-// function evalImage(tree,info){
-//     if(info.createNew){
-//         return createImage(tree.getValue());
-//     }
-//     return new MEmpty(tree.getValue());
-// }
-
-// function evalRational(tree,info){
-//     return eval(tree.getValue());
-// }
-
-// function evalUnit(tree,info){
-//     return null; // TODO
-// }
-
-// function evalInt(tree,info){
-//     return parseInt(tree.getValue());
-// }
 
 function evalInteger(tree,info){
     return parseInt(tree.getValue());
@@ -833,28 +125,6 @@ function evalNull(tree,info){
     return null;
 }
 
-// /* foreachの対象を見つける 廃止するかは仕様次第 */
-// function targetsSetter(targets,index,setted,counter){
-//     for(obj in globalField){
-//         if(setted.indexOf(obj) === -1){
-//             currentField[targets[0]] = globalField[obj];
-//             setted.push(obj);
-//             if(targets.length !== 1){
-//                 if(targetsSetter(targets.slice(1),index,setted.slice(0),counter)){
-//                     return true;
-//                 }else{
-//                     continue;
-//                 }
-//             }else if(counter.index == index){
-//                 return true;
-//             }else{
-//                 counter.index++;
-//             }
-//         }
-//     }
-//     return false;
-// }
-
 /* matter.js */
 var Engine = Matter.Engine,
 	World = Matter.World,
@@ -876,8 +146,10 @@ var render;
 
 const optionName = [
     "isStatic",
+    "isSensor",
     "density",
     "friction",
+    "frictionStatic",
     "frictionAir",
     "restitution",
     "angle"
@@ -894,6 +166,8 @@ const objectTypeList = [
     "chain",
     "pendulum",
     "cloth",
+    "softbody",
+    "cross",
     "slingshot",
     "text",
     "constraint"
@@ -929,6 +203,9 @@ function initJSON(tree){
     var elastic = null;
     var slingshotName = "";
 
+    /* sleeping 動作が軽くなる */
+    var enableSleeping = false;
+
     var renderOption = {
         wireframes: false, /* trueにするとオブジェクトが枠線のみになる */
         width: cvsw,
@@ -959,6 +236,8 @@ function initJSON(tree){
                     renderOption[key] = value;
                 }else if(key == "mouse"){
                     enableMouse = value;
+                }else if(key == "sleeping"){
+                    enableSleeping = value;
                 }else if(key == "gyro"){
                     if(value){
                         window.addEventListener('deviceorientation', updateGravity);
@@ -967,10 +246,12 @@ function initJSON(tree){
                     // TODO removeイベント
                     // }
                 }else if(key == "wall"){
-                    objectMap['_wall0'] = Bodies.rectangle(0, 420, 20, 840, { isStatic: true });
-                    objectMap['_wall1'] = Bodies.rectangle(1440, 420, 20, 840, { isStatic: true });
-                    objectMap['_wall2'] = Bodies.rectangle(720, 10, 1420, 20, { isStatic: true });
-                    objectMap['_wall3'] = Bodies.rectangle(720, 830, 1420, 20, { isStatic: true });
+                    if(value == true){
+                        objectMap['_wall0'] = Bodies.rectangle(0, 420, 20, 840, { isStatic: true });
+                        objectMap['_wall1'] = Bodies.rectangle(1440, 420, 20, 840, { isStatic: true });
+                        objectMap['_wall2'] = Bodies.rectangle(720, 10, 1420, 20, { isStatic: true });
+                        objectMap['_wall3'] = Bodies.rectangle(720, 830, 1420, 20, { isStatic: true });
+                    }
                 }else if(key == "bgm"){
                     bgm = new Audio('./static/audio/' + value);
                     bgm.loop = true;
@@ -1008,6 +289,7 @@ function initJSON(tree){
                     elementType: null,     /* 生成するオブジェクトの種類 */
                     /* chain */
                     length:0,              /* 長さ */
+                    size: 0,               /* 大きさ */
                     /* text */
                     textColor: "white",
                     font:'ＭＳ ゴシック',
@@ -1019,10 +301,12 @@ function initJSON(tree){
                     velocityY: 0,
                     options: {
                         isStatic: false,   /* 静的オブジェクトかどうか */
+                        isSensor: false,   /* コライダーとして扱うか（他のオブジェクトに干渉するか） */
                         density: 0.001,    /* 密度 */
                         friction: 0.1,     /* 摩擦係数 */
+                        frictionStatic: 0.5,/* 静摩擦係数 */
                         frictionAir: 0.01, /* 空気抵抗 */
-                        restitution: 1,    /* 反発係数 */
+                        restitution: 0,    /* 反発係数 */
                         // 度数にする？
                         angle: 0,          /* 角度 */
                         render: {
@@ -1033,6 +317,9 @@ function initJSON(tree){
                                 // yScale:5
                             }
                         },
+                        chamfer:{
+                            radius:0
+                        }
                     }
                 };
             }else/* エラー */{
@@ -1058,6 +345,8 @@ function initJSON(tree){
                     newObject.options[key] = value;
                 }else if(key == "color"){
                     newObject.options.render.fillStyle = value;
+                }else if(key == "chamfer"){
+                    newObject.options.chamfer = { radius:value };
                 }else{
                     if(key in newObject){
                         newObject[key] = value;
@@ -1086,14 +375,14 @@ function initJSON(tree){
             }else if(newObject.type == "stack" /* 積み重ね */){
                 // fieldに追加するかどうするか engine生成がこの後なので、World.add()のためにとりあえずpushしておく
                 // objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, newObject.columnGap, newObject.rowGap, getCallBack(newObject.elementType));
-                objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
+                objectMap[objectName] = Composites.stack(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject));
             }else if(newObject.type == "pyramid" /* 山なりに積む */){
                 // Gapをパラメータで設定したい？
                 // objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, newObject.columnGap, newObject.rowGap, getCallBack(newObject.elementType));
-                objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject.elementType));
+                objectMap[objectName] = Composites.pyramid(newObject.x, newObject.y, newObject.columns, newObject.rows, 0, 0, getCallBack(newObject));
             }else if(newObject.type == "chain" /* 鎖 */){
                 var group = Body.nextGroup(true); /* chain内のオブジェクト同士は衝突しないようにcollisionFilterでグループ化する */
-                var chain = Composites.stack(newObject.x, newObject.y, newObject.length, 1, 0, 0, getGroupedCallBack(newObject.elementType, group));
+                var chain = Composites.stack(newObject.x, newObject.y, newObject.length, 1, 0, 0, getGroupedCallBack(newObject, group));
                 objectMap[objectName] = Composites.chain(chain, 0.3, 0, -0.3, 0, {
                     stiffness: 1,
                     length: 0,
@@ -1113,6 +402,18 @@ function initJSON(tree){
                         stiffness: 0.06
                     }
                 );
+            }else if(newObject.type == "softbody" /* */){
+                var group = Body.nextGroup(true);
+                objectMap[objectName] = Composites.softBody(newObject.x, newObject.y, newObject.width, newObject.height, 0, 0, true, 18, {
+                    friction: 0.05,
+                    frictionStatic: 0.1,
+                    render: { visible: false }
+                    }
+                );
+            }else if(newObject.type == "cross"){
+                var partA = Bodies.rectangle(newObject.x, newObject.y, newObject.size, newObject.size / 10, newObject.options)
+                var partB = Bodies.rectangle(newObject.x, newObject.y, newObject.size / 10, newObject.size, { render: partA.render })
+                objectMap[objectName] = Body.create({ parts: [ partA, partB ]});
             }else if(newObject.type == "slingshot" /* カタパルト */){
                 var rock = Bodies.polygon(newObject.x, newObject.y, 8, rockSize * ratew, {
                     density: 0.004,
@@ -1175,7 +476,9 @@ function initJSON(tree){
         }
     }
 
-    engine = Engine.create();
+    engine = Engine.create({
+        enableSleeping: enableSleeping
+    })
 
     /* 重力 */
     engine.world.gravity.y = gravityVal;
@@ -1239,45 +542,71 @@ var updateGravity = function(event) {
     }
 };
 
-function getCallBack(type){
+function getCallBack(newObject){
+    var type = newObject.elementType;
     if(type == "circle"){
         return function(x, y) {
-            return Bodies.circle(x, y, 20);
+            // return Bodies.circle(x, y, 20);
+            return Bodies.circle(x, y, newObject.size, newObject.options);
         };
     }else if(type == "rectangle"){
         return function(x, y) {
-            return Bodies.rectangle(x, y, 25, 40);
+            // return Bodies.rectangle(x, y, 25, 40);
+            return Bodies.rectangle(x, y, newObject.size, newObject.size, newObject.options);
         };
+    }else if(type == "cross"){
+        return function(x, y) {
+            var partA = Bodies.rectangle(x, y, newObject.size, newObject.size / 10, newObject.options)
+            var partB = Bodies.rectangle(x, y, newObject.size / 10, newObject.size, { render: partA.render })
+            return Body.create({
+                parts: [
+                    partA, 
+                    partB
+                ]
+            });
+        };
+    }else if(type == "random"){
+        return function(x, y) {
+            switch (Math.round(Common.random(0, 1))) {
+    
+            case 0:
+                if (Common.random() < 0.8) {
+                    return Bodies.rectangle(x, y, Common.random(newObject.size / 2, newObject.size), Common.random(newObject.size / 2, newObject.size), newObject.options);
+                } else {
+                    return Bodies.rectangle(x, y, Common.random(newObject.size, newObject.size * 2), Common.random(newObject.size, newObject.size * 2), newObject.options);
+                }
+            case 1:
+                return Bodies.polygon(x, y, Math.round(Common.random(1, 8)), Common.random(newObject.size / 2, newObject.size), newObject.options);
+    
+            }
+        }
     }
 }
 
-function getGroupedCallBack(type, group){
+function getGroupedCallBack(newObject, group){
+    var type = newObject.elementType;
+    newObject.options.collisionFilter = { group: group };
     if(type == "circle"){
         return function(x, y) {
-            return Bodies.circle(x - 20, y, 20, {
-                collisionFilter: { group: group }
-                // TODO option
-                // density: 0.005,
-                // frictionAir: 0.05,
-                // render: {
-                //     fillStyle: '#575375'
-                // }
-            });
+            return Bodies.circle(x - newObject.size, y, newObject.size, 
+                newObject.options
+                // { collisionFilter: { group: group } }
+            );
         };
     }else if(type == "rectangle"){
         return function(x, y) {
-            return Bodies.rectangle(x - 20, y, 53, 20, {
-                collisionFilter: { group: group }
-                // TODO option
-            });
+            return Bodies.rectangle(x - newObject.size, y, newObject.size, newObject.size / 4, 
+                // { collisionFilter: { group: group } }
+                newObject.options
+            );
         };
     }else if(type == "ellipse"){
+        // newObject.options.chamfer = 5;
         return function(x, y) {
-            return Bodies.rectangle(x - 20, y, 53, 20, {
-                collisionFilter: { group: group },
-                // TODO option
-                chamfer: 5 /* 角取り */
-            });
+            return Bodies.rectangle(x - newObject.size, y, newObject.size, newObject.size / 4, 
+                { collisionFilter: { group: group }, chamfer: 5 /* 角取り */ }
+                // FIXME newObject.options
+            );
         };
     }
 }
@@ -1351,6 +680,12 @@ function writeAllText(){
 //     }
 // }
 
+// メモ plugin
+// stack.bodies[i].plugin.wrap = {
+//     min: { x: render.bounds.min.x, y: render.bounds.min.y },
+//     max: { x: render.bounds.max.x, y: render.bounds.max.y }
+// };
+
 $(window).on('load', function(){
     resizeWindow();
 });
@@ -1420,17 +755,23 @@ var macaronEditor;
 
 $(function () {
 
-    macaronEditor = Playground.CreateEditor("macaron-editor");
+    macaronEditor = ace.edit("macaron-editor");
+    macaronEditor.setTheme("ace/theme/xcode");
+    macaronEditor.getSession().setMode("ace/mode/macaron");
+    macaronEditor.getSession().setUseWrapMode(true);
+    macaronEditor.setFontSize(12);
 
     var GenerateServer = function () {
 
         resetState();
 
-        if($('[name="lang"]').val() == 'json'){
-            compile('json');
-        }else/* $('[name="lang"]').val() == 'jp' */{
-            compile('jp');
-        }
+        compile('json');
+
+        // if($('[name="lang"]').val() == 'json'){
+        //     compile('json');
+        // }else/* $('[name="lang"]').val() == 'jp' */{
+        //     compile('jp');
+        // }
     };
 
     var timer = null;

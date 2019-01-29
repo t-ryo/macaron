@@ -1,0 +1,70 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true,
+    "wall":true
+  },
+  "stack":{
+    "name":"balls",
+    "x":500,
+    "y":100,
+    "columns":9,
+    "rows":4,
+    "size":20,
+    "elementType":"circle",
+    "restitution":1
+  }
+}
+---
+
+Matter.Events.on(engine, 'beforeUpdate', function(event) {
+    var engine = event.source;
+
+    if (event.timestamp % 5000 < 50){
+        var bodies = Composite.allBodies(engine.world);
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.isStatic && body.position.y >= 500) {
+                var forceMagnitude = 0.02 * body.mass;
+
+                Body.applyForce(body, body.position, { 
+                    x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
+                    y: -forceMagnitude + Common.random() * -forceMagnitude
+                });
+            }
+        }
+    };
+});
+
+Matter.Events.on(engine, 'collisionStart', function(event) {
+    var pairs = event.pairs;
+
+    for (var i = 0; i < pairs.length; i++) {
+        var pair = pairs[i];
+        pair.bodyA.render.fillStyle = '#333';
+        pair.bodyB.render.fillStyle = '#333';
+    }
+});
+
+Matter.Events.on(engine, 'collisionActive', function(event) {
+    var pairs = event.pairs;
+
+    for (var i = 0; i < pairs.length; i++) {
+        var pair = pairs[i];
+        pair.bodyA.render.fillStyle = '#333';
+        pair.bodyB.render.fillStyle = '#333';
+    }
+});
+
+Matter.Events.on(engine, 'collisionEnd', function(event) {
+    var pairs = event.pairs;
+
+    for (var i = 0; i < pairs.length; i++) {
+        var pair = pairs[i];
+
+        pair.bodyA.render.fillStyle = '#222';
+        pair.bodyB.render.fillStyle = '#222';
+    }
+});

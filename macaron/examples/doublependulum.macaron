@@ -1,0 +1,56 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true,
+    "gravity":0.2
+  },
+  "chain":{
+    "name":"pendulumA",
+    "x":700,
+    "y":160,
+    "length":2,
+    "size":200,
+    "elementType":"ellipse"
+  },
+  "constraint":{
+    "name":"hookA",
+    "x":400,
+    "y":80,
+    "targetObject":"pendulumA[0]"
+  }
+}
+---
+var lowerArm = objectMap["pendulumA"].bodies[1];
+
+Body.rotate(lowerArm, -Math.PI * 0.3, {
+    x: lowerArm.position.x - 100,
+    y: lowerArm.position.y
+});
+
+var trail = [];
+
+Matter.Events.on(render, 'afterRender', function() {
+    trail.unshift({
+        position: Matter.Vector.clone(lowerArm.position),
+        speed: lowerArm.speed
+    });
+
+    Render.startViewTransform(render);
+    render.context.globalAlpha = 0.7;
+
+    for (var i = 0; i < trail.length; i += 1) {
+        var point = trail[i].position,
+            speed = trail[i].speed;
+        
+        var hue = 250 + Math.round((1 - Math.min(1, speed / 10)) * 170);
+        render.context.fillStyle = 'hsl(' + hue + ', 100%, 55%)';
+        render.context.fillRect(point.x, point.y, 2, 2);
+    }
+
+    render.context.globalAlpha = 1;
+    Render.endViewTransform(render);
+
+    if (trail.length > 2000) {
+        trail.pop();
+    }
+});

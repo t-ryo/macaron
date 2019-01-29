@@ -2,8 +2,10 @@ import json, re, os, platform, subprocess, sys
 from pathlib import Path
 
 from flask import Flask, request, redirect, url_for, Response, send_file, render_template
-from pegpy.main import macaron
+# from pegpy.main import macaron
 # from datetime import datetime
+
+import transpiler
 
 app = Flask(__name__)
 
@@ -43,9 +45,10 @@ def transformStylesheet():
 def transformJp():
     inputText = request.form['source']
     with file_search('rule.js', 'src/static/js/').open(mode='w') as f:
-         f.write('var stylesheet = `{"world":{"mouse":true,"gravity":0}}`\n')
-         f.write('function checkComposite(obj, param) {\n\tif (obj[param]) {\n\t\treturn obj[param]\n\t} else {\n\t\tcheckComposite(obj[0],param)\n\t}\n}\n')
-         f.write('function myRule(){\n' + macaron({'inputs': [inputText]}) + '\n}')
+        f.write(transpiler.transpile(inputText))
+         #f.write('var stylesheet = `{"world":{"mouse":true,"gravity":0}}`\n')
+         #f.write('function checkComposite(obj, param) {\n\tif (obj[param]) {\n\t\treturn obj[param]\n\t} else {\n\t\tcheckComposite(obj[0],param)\n\t}\n}\n')
+         #f.write('function myRule(){\n' + macaron({'inputs': [inputText]}) + '\n}')
     return send_file(str(file_search('rule.js', 'src/static/js')))
 
 

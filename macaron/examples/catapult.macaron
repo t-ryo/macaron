@@ -1,0 +1,47 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true
+  },
+  "stack":{
+    "name":"weights",
+    "x":550,
+    "y":500,
+    "columns":1,
+    "rows":6,
+    "size":30,
+    "elementType":"rectangle",
+    "restitution":0
+  },
+  "rectangle":{
+    "name":"catapult",
+    "x":700,
+    "y":760,
+    "width":320,
+    "height":20,
+    "restitution":0
+  },
+  "rectangle":{
+    "name":"objB",
+    "x":550,
+    "y":800,
+    "width":20,
+    "height":50,
+    "restitution":0,
+    "isStatic":true
+  },
+  "circle":{
+    "name":"wreckingball",
+    "x":860,
+    "y":400,
+    "radius":50,
+    "density":0.005
+  },
+  "constraint":{
+    "name":"joint",
+    "x":700,
+    "y":760,
+    "targetObject":"catapult"
+  }
+}
+---

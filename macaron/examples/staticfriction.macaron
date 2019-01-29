@@ -1,0 +1,42 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "stack":{
+    "name":"stackA",
+    "x":500,
+    "y":250,
+    "columns":1,
+    "rows":6,
+    "size":50,
+    "elementType":"rectangle",
+    "friction":1,
+    "restitution":0,
+    "frictionStatic":10000
+  },
+  "rectangle":{
+    "name":"objA",
+    "x":500,
+    "y":600,
+    "width":200,
+    "height":60,
+    "restitution":0,
+    "isStatic":true
+  }
+}
+---
+var counter = -1;
+Matter.Events.on(engine, 'beforeUpdate', function(event) {
+    counter += 0.014;
+
+    if (counter < 0) {
+        return;
+    }
+
+    var px = 500 + 100 * Math.sin(counter);
+
+    Body.setVelocity(objectMap["objA"], { x: px - objectMap["objA"].position.x, y: 0 });
+    Body.setPosition(objectMap["objA"], { x: px, y: objectMap["objA"].position.y });
+});

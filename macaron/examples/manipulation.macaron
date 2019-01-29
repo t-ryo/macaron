@@ -1,0 +1,77 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "rectangle":{
+    "name":"bodyA",
+    "x":100,
+    "y":200,
+    "width":50,
+    "height":50,
+    "isStatic":true
+  },
+  "rectangle":{
+    "name":"bodyB",
+    "x":200,
+    "y":200,
+    "width":50,
+    "height":50
+  },
+  "bodyB":{
+    "name":"bodyC",
+    "x":300
+  },
+  "bodyB":{
+    "name":"bodyD",
+    "x":400
+  },
+  "bodyB":{
+    "name":"bodyE",
+    "x":550
+  },
+  "bodyB":{
+    "name":"bodyF",
+    "x":700
+  },
+  "circle":{
+    "name":"bodyG",
+    "x":400,
+    "y":100,
+    "radius":25
+  }
+}
+---
+var counter = 0,
+scaleFactor = 1.01;
+
+Matter.Events.on(engine, 'beforeUpdate', function(event) {
+    counter += 1;
+
+    if (counter === 40)
+        Body.setStatic(objectMap["bodyG"], true);
+
+    if (scaleFactor > 1) {
+        Body.scale(objectMap["bodyF"], scaleFactor, scaleFactor);
+
+        objectMap["bodyE"].vertices[0].x -= 0.2;
+        objectMap["bodyE"].vertices[0].y -= 0.2;
+        objectMap["bodyE"].vertices[1].x += 0.2;
+        objectMap["bodyE"].vertices[1].y -= 0.2;
+        Body.setVertices(objectMap["bodyE"], objectMap["bodyE"].vertices);
+    }
+
+    var py = 300 + 100 * Math.sin(engine.timing.timestamp * 0.002);
+    Body.setVelocity(objectMap["bodyA"], { x: 0, y: py - objectMap["bodyA"].position.y });
+    Body.setPosition(objectMap["bodyA"], { x: 100, y: py });
+
+    if (counter >= 60 * 1.5) {
+        Body.setVelocity(objectMap["bodyB"], { x: 0, y: -10 });
+        Body.setAngle(objectMap["bodyC"], -Math.PI * 0.26);
+        Body.setAngularVelocity(objectMap["bodyD"], 0.2);
+
+        counter = 0;
+        scaleFactor = 1;
+    }
+});

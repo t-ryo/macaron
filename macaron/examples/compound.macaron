@@ -1,0 +1,47 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true,
+    "wall":true
+  },
+  "rectangle":{
+    "name":"partA",
+    "x":200,
+    "y":200,
+    "width":200,
+    "height":40
+  },
+  "rectangle":{
+    "name":"partB",
+    "x":200,
+    "y":200,
+    "width":40,
+    "height":200
+  },
+  "circle":{
+    "name":"partC",
+    "x":400,
+    "y":300,
+    "radius":30
+  },
+  "circle":{
+    "name":"partD",
+    "x":550,
+    "y":300,
+    "radius":30
+  },
+  "circle":{
+    "name":"partE",
+    "x":550,
+    "y":450,
+    "radius":30
+  },
+  "circle":{
+    "name":"partF",
+    "x":400,
+    "y":450,
+    "radius":30
+  }
+
+}
+---

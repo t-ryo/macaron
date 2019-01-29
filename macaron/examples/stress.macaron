@@ -1,0 +1,18 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "stack":{
+    "name":"stackA",
+    "x":500,
+    "y":200,
+    "columns":18,
+    "rows":15,
+    "size":30,
+    "elementType":"rectangle",
+    "restitution":0
+  }
+}
+---

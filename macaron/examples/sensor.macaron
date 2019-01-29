@@ -1,0 +1,53 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "rectangle":{
+    "name":"colliderA",
+    "x":600,
+    "y":300,
+    "width":500,
+    "height":50,
+    "isStatic":true,
+    "isSensor":true,
+    "color":"white"
+  },
+  "circle":{
+    "name":"ballA",
+    "x":600,
+    "y":60,
+    "radius":30,
+    "color":"#C7F464"
+  }
+}
+---
+Matter.Events.on(engine, 'collisionStart', function(event) {
+    var pairs = event.pairs;
+    
+    for (var i = 0, j = pairs.length; i != j; ++i) {
+        var pair = pairs[i];
+
+        if (pair.bodyA === objectMap["colliderA"]) {
+            console.log(pair.bodyB.render.fillStyle);
+            pair.bodyB.render.fillStyle = "#C44D58";
+        } else if (pair.bodyB === objectMap["colliderA"]) {
+            pair.bodyA.render.fillStyle = "#C44D58";
+        }
+    }
+});
+
+Matter.Events.on(engine, 'collisionEnd', function(event) {
+    var pairs = event.pairs;
+    
+    for (var i = 0, j = pairs.length; i != j; ++i) {
+        var pair = pairs[i];
+
+        if (pair.bodyA === objectMap["colliderA"]) {
+            pair.bodyB.render.fillStyle = "#C7F464";
+        } else if (pair.bodyB === objectMap["colliderA"]) {
+            pair.bodyA.render.fillStyle = "#C7F464";
+        }
+    }
+});

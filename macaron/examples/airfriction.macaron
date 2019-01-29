@@ -1,0 +1,26 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true
+  },
+  "rectangle":{
+    "name":"boxA",
+    "x":400,
+    "y":100,
+    "width":100,
+    "height":100,
+    "restitution":0,
+    "frictionAir":0.001
+  },
+  "boxA":{
+    "name":"boxB",
+    "x":600,
+    "frictionAir":0.05
+  },
+  "boxA":{
+    "name":"boxC",
+    "x":800,
+    "frictionAir":0.1
+  }
+}
+---

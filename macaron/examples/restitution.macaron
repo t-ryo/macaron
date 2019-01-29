@@ -1,0 +1,39 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "rectangle":{
+    "name":"boxA",
+    "x":100,
+    "y":150,
+    "width":50,
+    "height":50,
+    "restitution":0.9
+  },
+  "boxA":{
+    "name":"boxB",
+    "x":300,
+    "angle":-8.594367
+  },
+  "boxA":{
+    "name":"boxC",
+    "x":500,
+    "angle":-14.32394
+  },
+  "circle":{
+    "name":"ballA",
+    "x":700,
+    "y":150,
+    "radius":25,
+    "restitution":0.9
+  },
+  "boxA":{
+    "name":"boxD",
+    "x":900,
+    "width":20,
+    "height":100
+  }
+}
+---

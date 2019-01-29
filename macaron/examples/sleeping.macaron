@@ -1,0 +1,19 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true,
+    "wall":true,
+    "sleeping":true
+  },
+  "stack":{
+    "name":"objs",
+    "x":500,
+    "y":200,
+    "columns":12,
+    "rows":3,
+    "size":50,
+    "elementType":"random",
+    "restitution":0
+  }
+}
+---

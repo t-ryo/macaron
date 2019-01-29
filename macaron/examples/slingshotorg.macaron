@@ -1,0 +1,46 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true
+  },
+  "slingshot":{
+    "name":"sling",
+    "x":300,
+    "y":650
+  },
+  "rectangle":{
+    "name":"floorA",
+    "x":700,
+    "y":750,
+    "width":1400,
+    "height":20,
+    "isStatic":true
+  },
+  "rectangle":{
+    "name":"floorB",
+    "x":820,
+    "y":400,
+    "width":250,
+    "height":20,
+    "isStatic":true
+  },
+  "pyramid":{
+    "name":"targetA",
+    "x":700,
+    "y":590,
+    "columns":9,
+    "rows":10,
+    "size":30,
+    "elementType":"rectangle"
+  },
+  "pyramid":{
+    "name":"targetB",
+    "x":750,
+    "y":300,
+    "columns":5,
+    "rows":10,
+    "size":30,
+    "elementType":"rectangle"
+  }
+}
+----

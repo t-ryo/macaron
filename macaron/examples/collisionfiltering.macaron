@@ -1,0 +1,67 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "stack":{
+    "name":"stackA",
+    "x":500,
+    "y":200,
+    "columns":5,
+    "rows":9,
+    "size":30,
+    "elementType":"circle"
+  },
+  "circle":{
+    "name":"greenBall",
+    "x":550,
+    "y":70,
+    "radius":30,
+    "color":"green"
+  },
+  "circle":{
+    "name":"redBall",
+    "x":650,
+    "y":70,
+    "radius":30,
+    "color":"red"
+  },
+  "circle":{
+    "name":"blueBall",
+    "x":750,
+    "y":70,
+    "radius":30,
+    "color":"blue"
+  }
+}
+---
+var defaultCategory = 0x0001,
+    redCategory = 0x0002,
+    greenCategory = 0x0004,
+    blueCategory = 0x0008;
+
+var objs = objectMap["stackA"].bodies
+
+for(var i = 0; i < objs.length; i++){
+    var category = redCategory,
+        color = "red";
+
+    if (i > 29) {
+        category = blueCategory;
+        color = "blue";
+    } else if (i > 14) {
+        category = greenCategory;
+        color = "green";
+    }
+    
+    objs[i].render.strokeStyle = color;
+    objs[i].render.fillStyle = 'transparent';
+    objs[i].render.lineWidth = 1;
+    objs[i].collisionFilter =  { group:0, category: category, mask:-1};
+    
+}
+
+objectMap["greenBall"].collisionFilter = { group:0, category:1, mask: defaultCategory | greenCategory };
+objectMap["redBall"].collisionFilter = { group:0, category:1, mask: defaultCategory | redCategory };
+objectMap["blueBall"].collisionFilter = { group:0, category:1, mask: defaultCategory | blueCategory };

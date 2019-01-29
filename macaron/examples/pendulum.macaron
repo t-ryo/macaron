@@ -4,12 +4,20 @@
     "mouse":true
   },
   "pendulum":{
-    "name":"pSample",
+    "name":"pSampleA",
     "x":500,
-    "y":300,
+    "y":50,
     "columns":5,
     "radius":50,
     "length":300
+  },
+  "pendulum":{
+    "name":"pSampleB",
+    "x":450,
+    "y":450,
+    "columns":7,
+    "radius":40,
+    "length":250
   }
 }
 ---

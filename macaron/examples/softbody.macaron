@@ -1,0 +1,29 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true,
+    "wall":true
+  },
+  "softbody":{
+    "name":"softbodyA",
+    "x":250,
+    "y":100,
+    "width":5,
+    "height":5
+  },
+  "softbody":{
+    "name":"softbodyB",
+    "x":400,
+    "y":300,
+    "width":8,
+    "height":3
+  },
+  "softbody":{
+    "name":"softbodyC",
+    "x":250,
+    "y":400,
+    "width":4,
+    "height":4
+  }
+}
+---

@@ -1,0 +1,37 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "gravity":0
+  },
+  "stack":{
+    "name":"rectangles",
+    "x":400,
+    "y":200,
+    "columns":4,
+    "rows":4,
+    "size":30,
+    "elementType":"rectangle"
+  }
+}
+---
+Matter.Events.on(engine, 'afterUpdate', function(event) {
+    var time = engine.timing.timestamp;
+
+    Composite.translate(objectMap["rectangles"], {
+        x: Math.sin(time * 0.001) * 2,
+        y: 0
+    });
+
+    Composite.rotate(objectMap["rectangles"], Math.sin(time * 0.001) * 0.01, {
+        x: 300,
+        y: 300
+    });
+
+    var scale = 1 + (Math.sin(time * 0.001) * 0.01);
+
+    Composite.scale(objectMap["rectangles"], scale, scale, {
+        x: 300,
+        y: 300
+    });
+});

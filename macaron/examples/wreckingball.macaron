@@ -33,6 +33,7 @@
     "y":400,
     "columns":10,
     "rows":10,
+    "size":30,
     "elementType":"rectangle"
   },
   "circle":{

@@ -1,0 +1,45 @@
+{
+  "world":{
+    "wireframes":false
+  },
+  "rectangle":{
+    "name":"floor1",
+    "x":400,
+    "y":200,
+    "width":1000,
+    "height":50,
+    "isStatic":true,
+    "angle": 0.13
+  },
+  "floor1":{
+    "name":"floor2",
+    "x":950,
+    "y":450,
+    "angle": -0.13
+  },
+  "floor1":{
+    "name":"floor3",
+    "x":600,
+    "y":700
+  },
+  "stack":{
+    "name":"balls",
+    "x":20,
+    "y":20,
+    "columns":20,
+    "rows":5,
+    "size":20,
+    "elementType":"circle"
+  }
+}
+---
+// plugin
+Matter.use(
+    'matter-wrap'
+);
+for (var i = 0; i < objectMap["balls"].bodies.length; i += 1) {
+    objectMap["balls"].bodies[i].plugin.wrap = {
+        min: { x: render.bounds.min.x, y: render.bounds.min.y },
+        max: { x: render.bounds.max.x, y: render.bounds.max.y }
+    };
+}

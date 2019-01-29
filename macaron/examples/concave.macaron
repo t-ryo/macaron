@@ -1,0 +1,13 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "arrow":{
+    "name":"arrowA",
+    "x":500,
+    "y":300
+  }
+}
+---

@@ -1,0 +1,16 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true
+  },
+  "stack":{
+    "name":"randomObj",
+    "x":300,
+    "y":200,
+    "columns":12,
+    "rows":5,
+    "size":50,
+    "elementType":"random"
+  }
+}
+---

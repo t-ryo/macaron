@@ -1,0 +1,52 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true
+  },
+  "stack":{
+    "name":"objs",
+    "x":500,
+    "y":120,
+    "columns":11,
+    "rows":5,
+    "size":50,
+    "elementType":"random"
+  }
+}
+---
+varSpace = {};
+varSpace.timeScaleTarget = 1;
+varSpace.counter = 0;
+Matter.Events.on(engine, 'afterUpdate', function(event) {
+    engine.timing.timeScale += (varSpace.timeScaleTarget - engine.timing.timeScale) * 0.05;
+
+    varSpace.counter += 1;
+
+    if (varSpace.counter >= 60 * 1.5) {
+
+        if (varSpace.timeScaleTarget < 1) {
+            varSpace.timeScaleTarget = 1;
+        } else {
+            varSpace.timeScaleTarget = 0.05;
+        }
+
+        var bodies = Matter.Composite.allBodies(engine.world);
+
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (!body.isStatic && body.position.y >= 500) {
+                var forceMagnitude = 0.05 * body.mass;
+
+                Body.applyForce(body, body.position, {
+                    x: (forceMagnitude + Common.random() * forceMagnitude) * Common.choose([1, -1]), 
+                    y: -forceMagnitude + Common.random() * -forceMagnitude
+                });
+            }
+        }
+        
+        varSpace.counter = 0;
+    };
+    
+});

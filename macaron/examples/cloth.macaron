@@ -1,0 +1,33 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true,
+    "wall":true
+  },
+  "cloth":{
+    "name":"clothA",
+    "x":500,
+    "y":400,
+    "width":20,
+    "height":12
+  },
+  "rectangle":{
+    "name":"rectangleA",
+    "x":800,
+    "y":650,
+    "width":80,
+    "height":80,
+    "isStatic":true
+  },
+  "circle":{
+    "name":"circleA",
+    "x":600,
+    "y":650,
+    "radius":80,
+    "isStatic":true
+  }
+}
+---
+for (var i = 0; i < 20; i++) {
+    objectMap["clothA"].bodies[i].isStatic = true;
+}

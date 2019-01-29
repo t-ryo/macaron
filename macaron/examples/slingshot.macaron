@@ -22,6 +22,7 @@
     "y":300,
     "columns":9,
     "rows":10,
+    "size":30,
     "elementType":"rectangle"
   },
   "text":{

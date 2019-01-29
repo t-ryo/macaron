@@ -1,0 +1,17 @@
+{
+  "world":{
+    "wireframes":false,
+    "mouse":true,
+    "wall":true
+  },
+  "stack":{
+    "name":"crosses",
+    "x":500,
+    "y":200,
+    "columns":12,
+    "rows":3,
+    "size":50,
+    "elementType":"cross"
+  }
+}
+---

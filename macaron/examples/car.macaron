@@ -1,31 +1,8 @@
 {
   "world":{
     "wireframes":false,
-    "mouse":true
-  },
-  "rectangle":{
-    "name":"leftWall",
-    "x":10,
-    "y":420,
-    "width":20,
-    "height":840,
-    "isStatic":true
-  },
-  "leftWall":{
-    "name":"rightWall",
-    "x":1430
-  },
-  "rectangle":{
-    "name":"ceiling",
-    "x":720,
-    "y":10,
-    "width":1400,
-    "height":20,
-    "isStatic":true
-  },
-  "ceiling":{
-    "name":"floor0",
-    "y":830
+    "mouse":true,
+    "wall":true
   },
   "car":{
     "name":"car0",

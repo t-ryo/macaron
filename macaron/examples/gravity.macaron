@@ -1,0 +1,18 @@
+{
+  "world":{
+    "wireframes":false,
+    "wall":true,
+    "mouse":true,
+    "gravity":-1
+  },
+  "stack":{
+    "name":"objs",
+    "x":500,
+    "y":120,
+    "columns":11,
+    "rows":5,
+    "size":50,
+    "elementType":"random"
+  }
+}
+---
